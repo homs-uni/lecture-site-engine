@@ -5,7 +5,7 @@
 import { existsSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { listAllSubjectDirs, parseSubjectBrief } from './lib/scaffold-subject.mjs';
+import { listAllSubjectDirs, parseSubjectBrief, scaffoldSubjects } from './lib/scaffold-subject.mjs';
 import { ENGINE_ROOT } from './lib/subject-paths.mjs';
 
 const REPO = (process.env.GITHUB_REPOSITORY || 'Shahd-Abbara/lecture-site-engine');
@@ -45,11 +45,12 @@ function lecturePath(subjectRel) {
 }
 
 async function main() {
-  const subjectRels = (await listAllSubjectDirs()).filter(s => {
-    const base = path.join(ENGINE_ROOT, 'subjects', s);
-    return existsSync(path.join(base, 'lectures'))
-      || existsSync(path.join(base, 'subject-brief.yaml'));
-  });
+  await scaffoldSubjects();
+
+  // Only subjects with lectures/ on disk (same paths committed to main).
+  const subjectRels = (await listAllSubjectDirs()).filter(s =>
+    existsSync(path.join(ENGINE_ROOT, 'subjects', s, 'lectures')),
+  );
 
   /** @type {{ year: number, id: string, title: string, path: string }[]} */
   const subjects = await Promise.all(subjectRels.map(async id => {
@@ -118,13 +119,21 @@ async function main() {
     <p class="lead">ارفع ملف <code>.md</code> جاهز (drag &amp; drop) — مو محرّر نص.</p>
 
     <div class="note--warn">
-      <strong>ليش طلع محرّر نص؟</strong> الرابط القديم كان <code>/new/</code> (كتابة ولصق).
-      الرفع الحقيقي = <code>/upload/</code> على <strong>نسختك (Fork)</strong> — GitHub ما بيسمح برفع ملفات على المستودع الأصلي بدون صلاحية.
+      <strong>subject-brief.yaml ≠ جاهز للرفع</strong><br>
+      وجود <code>subject-brief.yaml</code> يعني المادة مُعرَّفة فقط. الرفع لازم يكون داخل
+      <code>subjects/…/lectures/</code> — هاد المجلد لازم يكون على <code>main</code> (مو بس الـ brief).
+    </div>
+
+    <div class="note--warn">
+      <strong>ليش 404 على Fork أو Upload؟</strong><br>
+      • ما عملت <strong>Fork</strong> بعد → اضغط ① أولاً<br>
+      • <strong>username غلط</strong> → لازم نفس الاسم بصفحة GitHub تبعك (بدون @)<br>
+      • Fork قديم → افتح نسختك واضغط <strong>Sync fork</strong><br>
+      • استخدم ② <strong>تحقق من Fork</strong> — إذا فتح 404 = المشكلة بالاسم أو ما عملت Fork
     </div>
 
     <div class="note--ok">
-      <strong>الترتيب:</strong> Fork → اكتب username → Upload files → Commit → Pull Request.
-      لازم تكون مسجّل دخول على <a href="https://github.com/login" target="_blank" rel="noopener">GitHub</a>.
+      مسجّل دخول على <a href="https://github.com/login" target="_blank" rel="noopener">GitHub</a> قبل ما تبلّش.
     </div>
 
     <div class="panel">
@@ -140,10 +149,13 @@ async function main() {
         <select id="subjectSelect" disabled aria-label="المادة">
           <option value="">— اختر المادة —</option>
         </select>
+      </div>
       <div class="field">
         <label for="ghUser">٣ — اسمك على GitHub (username)</label>
         <input type="text" id="ghUser" placeholder="مثال: ahmad-dev" autocomplete="username" spellcheck="false">
-        <p class="hint" style="font-size:0.8rem;color:#888;margin:0.35rem 0 0">بعد Fork — نفس الاسم اللي فوق يمين صفحتك على GitHub</p>
+        <p class="hint" style="font-size:0.8rem;color:#888;margin:0.35rem 0 0">
+          بعد Fork — من صفحة GitHub تبعك: <code>github.com/<strong>USERNAME</strong></code> (مو الاسم المعروض)
+        </p>
       </div>
     </div>
 
@@ -152,20 +164,27 @@ async function main() {
       <p class="card__path" id="cardPath"></p>
       <div class="actions">
         <a class="btn btn--primary is-disabled" id="btnFork" href="#" target="_blank" rel="noopener">① Fork المستودع</a>
-        <a class="btn btn--primary is-disabled" id="btnUpload" href="#" target="_blank" rel="noopener">② Upload files (parN.md)</a>
-        <a class="btn is-disabled" id="btnPr" href="#" target="_blank" rel="noopener">③ Open Pull Request</a>
-        <a class="btn btn--ghost is-disabled" id="btnFolder" href="#" target="_blank" rel="noopener">📁 عرض المجلد</a>
+        <a class="btn is-disabled" id="btnVerify" href="#" target="_blank" rel="noopener">② تحقق من Fork (لازم ما يعطي 404)</a>
+        <a class="btn btn--primary is-disabled" id="btnFolderFork" href="#" target="_blank" rel="noopener">③ افتح مجلد lectures على نسختك</a>
+        <a class="btn is-disabled" id="btnUpload" href="#" target="_blank" rel="noopener">④ Upload files مباشرة</a>
+        <a class="btn is-disabled" id="btnPr" href="#" target="_blank" rel="noopener">⑤ Open Pull Request</a>
+        <a class="btn btn--ghost is-disabled" id="btnFolder" href="#" target="_blank" rel="noopener">📁 المجلد على main</a>
       </div>
       <p class="upload-url" id="uploadUrlHint" hidden></p>
+      <p class="upload-url" id="forkHint" style="color:#5c4a00;margin-top:0.5rem" hidden>
+        على صفحة مجلد <code>lectures/</code>: <strong>Add file</strong> → <strong>Upload files</strong> → اسحب <code>parN.md</code>
+      </p>
     </article>
 
     <div class="steps">
-      <strong>بعد Upload files:</strong>
+      <strong>الخطوات:</strong>
       <ol>
-        <li>اسحبوا ملف <code>parN.md</code> (أو <code>parN-secM.md</code>) — <strong>drag &amp; drop</strong></li>
-        <li>Commit message → اختاروا <strong>Propose changes</strong> / <strong>Create a new branch and start a pull request</strong></li>
-        <li>أو اضغطوا ③ <strong>Open Pull Request</strong></li>
-        <li>بعد CI → Merge → الموقع يتحدّث</li>
+        <li>① <strong>Fork</strong> — انتظر لحد ما تفتح صفحة <code>github.com/اسمك/lecture-site-engine</code></li>
+        <li>اكتب <strong>username</strong> أعلاه (من الرابط — مو الاسم العربي)</li>
+        <li>② <strong>تحقق من Fork</strong> — إذا 404 راجع الخطوة 1 والاسم</li>
+        <li>③ افتح مجلد <code>lectures/</code> على <strong>نسختك</strong> → Add file → Upload files</li>
+        <li>Commit → <strong>Propose changes / start pull request</strong></li>
+        <li>⑤ <strong>Open Pull Request</strong> نحو <code>main</code></li>
       </ol>
       <div class="naming">
         <strong>تسمية الملف:</strong><br>
@@ -188,7 +207,6 @@ async function main() {
     const SUBJECTS = ${subjectsJson};
 
     const REPO_NAME = ${JSON.stringify(REPO.split('/')[1])};
-    const REPO_OWNER = ${JSON.stringify(REPO.split('/')[0])};
 
     const yearSelect = document.getElementById('yearSelect');
     const subjectSelect = document.getElementById('subjectSelect');
@@ -197,11 +215,14 @@ async function main() {
     const cardTitle = document.getElementById('cardTitle');
     const cardPath = document.getElementById('cardPath');
     const btnFork = document.getElementById('btnFork');
+    const btnVerify = document.getElementById('btnVerify');
+    const btnFolderFork = document.getElementById('btnFolderFork');
     const btnUpload = document.getElementById('btnUpload');
     const btnPr = document.getElementById('btnPr');
     const btnFolder = document.getElementById('btnFolder');
     const btnPaste = document.getElementById('btnPaste');
     const uploadUrlHint = document.getElementById('uploadUrlHint');
+    const forkHint = document.getElementById('forkHint');
 
     const savedUser = localStorage.getItem('contrib-gh-user');
     if (savedUser) ghUserInput.value = savedUser;
@@ -214,18 +235,23 @@ async function main() {
       return ghUserInput.value.trim().replace(/^@/, '');
     }
 
-    /** File upload on user's fork — /upload/ gives drag-and-drop, not text editor. */
     function contribUrls(s) {
       const user = ghUser();
       const enc = encPath(s.path);
       const forkBase = user
         ? 'https://github.com/' + encodeURIComponent(user) + '/' + REPO_NAME
-        : GH;
+        : null;
       return {
         fork: GH + '/fork',
-        upload: forkBase + '/upload/' + encodeURIComponent(MAIN_BRANCH) + '/' + enc,
+        verifyFork: forkBase || '#',
+        folderFork: forkBase
+          ? forkBase + '/tree/' + encodeURIComponent(MAIN_BRANCH) + '/' + enc
+          : '#',
+        upload: forkBase
+          ? forkBase + '/upload/' + encodeURIComponent(MAIN_BRANCH) + '/' + enc
+          : '#',
         paste: GH + '/new/' + encodeURIComponent(MAIN_BRANCH) + '/' + encPath(s.path + '/parN.md'),
-        openPr: GH + '/compare/' + encodeURIComponent(REPO_OWNER) + ':' + encodeURIComponent(MAIN_BRANCH) + '...' + (user ? encodeURIComponent(user) + ':' : '') + encodeURIComponent(MAIN_BRANCH) + '?expand=1',
+        openPr: GH + '/compare/' + encodeURIComponent(MAIN_BRANCH) + '?expand=1',
         folder: GH + '/tree/' + encodeURIComponent(MAIN_BRANCH) + '/' + enc,
       };
     }
@@ -235,20 +261,25 @@ async function main() {
       if (!s) { hideCard(); return; }
       const urls = contribUrls(s);
       const user = ghUser();
+      const hasUser = !!user;
       cardTitle.textContent = s.title;
       cardPath.textContent = s.path + '/';
       setBtn(btnFork, urls.fork, true);
-      setBtn(btnUpload, urls.upload, !!user);
-      setBtn(btnPr, urls.openPr, !!user);
+      setBtn(btnVerify, urls.verifyFork, hasUser);
+      setBtn(btnFolderFork, urls.folderFork, hasUser);
+      setBtn(btnUpload, urls.upload, hasUser);
+      setBtn(btnPr, urls.openPr, hasUser);
       setBtn(btnFolder, urls.folder, true);
       setBtn(btnPaste, urls.paste, true);
-      if (user) {
-        uploadUrlHint.hidden = false;
-        uploadUrlHint.textContent = urls.upload;
+      if (hasUser) {
         localStorage.setItem('contrib-gh-user', user);
+        uploadUrlHint.hidden = false;
+        uploadUrlHint.textContent = 'نسختك: github.com/' + user + '/' + REPO_NAME;
+        forkHint.hidden = false;
       } else {
         uploadUrlHint.hidden = false;
-        uploadUrlHint.textContent = '↑ اكتب GitHub username أولاً لتفعيل Upload files';
+        uploadUrlHint.textContent = '↑ اكتب GitHub username بعد Fork';
+        forkHint.hidden = true;
       }
       card.classList.add('is-visible');
     }
@@ -261,11 +292,14 @@ async function main() {
     function hideCard() {
       card.classList.remove('is-visible');
       setBtn(btnFork, '#', false);
+      setBtn(btnVerify, '#', false);
+      setBtn(btnFolderFork, '#', false);
       setBtn(btnUpload, '#', false);
       setBtn(btnPr, '#', false);
       setBtn(btnFolder, '#', false);
       setBtn(btnPaste, '#', false);
       uploadUrlHint.hidden = true;
+      forkHint.hidden = true;
     }
 
     ghUserInput.addEventListener('input', () => {

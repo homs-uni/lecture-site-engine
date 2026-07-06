@@ -141,6 +141,7 @@ async function main() {
     const text = normalizeLectureMd(await readFile(path.join(subjectDir, 'lectures', name), 'utf8'));
     const doc = parser.parseDocument(text);
     const lec = doc.lectures[0];
+    if (lec) lec.id = name.replace(/\.md$/i, '');
     const sectionIndex = lec ? parser.buildSectionIndex(lec) : {};
     const jsonName = name.replace(/\.md$/i, '.json');
     await writeFile(

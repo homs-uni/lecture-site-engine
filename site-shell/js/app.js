@@ -318,7 +318,9 @@ async function init() {
       const doc = await loadLectureJson(file.path);
       const lec = doc.lectures?.[0];
       if (!lec) continue;
-      lec.id = lec.id || `lec${appState.items.length + 1}`;
+      // One file = one lecture chunk → parser always emits lec1; use filename stem instead.
+      const fileStem = String(file.path).replace(/\.json$/i, '').replace(/\.md$/i, '');
+      lec.id = fileStem || lec.id || `lec${appState.items.length + 1}`;
       appState.items.push({
         lec,
         fileMeta: file,

@@ -1,0 +1,34 @@
+name: Deploy to Netlify (manual)
+
+# Run manually: Actions → Deploy to Netlify (manual) → Run workflow
+#
+# main  → GitHub Pages (automatic on push via deploy.yml)
+# sandbox → Netlify (only when YOU run this workflow)
+#
+# Netlify UI: Production branch = sandbox
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: netlify-sandbox-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy-netlify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Sync main → sandbox (triggers Netlify build)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git push origin HEAD:sandbox --force-with-lease

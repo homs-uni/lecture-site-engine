@@ -1,0 +1,19 @@
+# Netlify deploys from branch: sandbox — MANUAL ONLY
+# Run: GitHub → Actions → "Deploy to Netlify (manual)" → Run workflow
+# (Does NOT deploy on every push to main.)
+#
+# Netlify UI:
+#   Site configuration → Build & deploy → Branches → Production branch = sandbox
+#
+# main → GitHub Pages (deploy.yml)
+
+[build]
+  command = "npm test && node build/deploy-build.mjs --all"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  GITHUB_REPOSITORY = "Shahd-Abbara/lecture-site-engine"
+  GITHUB_BRANCH = "main"
+  # Set your Netlify URL after first deploy (Site settings → Environment variables):
+  # SITE_URL = https://YOUR-PROJECT-NAME.netlify.app
