@@ -45,6 +45,29 @@ let currentLectureIndex = -1;
 let routeLock = false;
 let scrollAnimObserver = null;
 let sidebarObserver = null;
+let htmlCacheBuildId = null;
+/** @type {Map<string, string>} */
+const lectureHtmlCache = new Map();
+/** @type {Map<string, Promise<unknown>>} */
+const lectureJsonInflight = new Map();
+
+function readBuildId() {
+  return appState.manifest?.settings?.buildId
+    || document.querySelector('meta[name="site-build-id"]')?.getAttribute('content')
+    || '';
+}
+
+function resetHtmlCacheIfStale(buildId) {
+  if (!buildId) return;
+  if (htmlCacheBuildId && htmlCacheBuildId !== buildId) lectureHtmlCache.clear();
+  htmlCacheBuildId = buildId;
+}
+
+function htmlCacheKey(item) {
+  const buildId = readBuildId();
+  const parsedAt = item.parsedAt || item.fileMeta?.parsedAt || 'unknown';
+  return `${buildId}:${item.lec.id}:${parsedAt}`;
+}
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -58,6 +81,19 @@ function lectureStats(lec) {
     mcq: mcqCount,
     sections: lec.parts?.find(p => p.type === 'detail')?.subsections?.length || 0,
   };
+}
+
+function itemStats(item) {
+  if (item.loaded && item.lec?.parts?.length) return lectureStats(item.lec);
+  const s = item.summary || item.fileMeta?.summary;
+  if (s) {
+    return {
+      parts: s.partsCount || 0,
+      mcq: s.mcqCount || 0,
+      sections: s.sectionCount || 0,
+    };
+  }
+  return lectureStats(item.lec);
 }
 
 function applyDarkMode(dark) {
@@ -84,26 +120,103 @@ function initTheme() {
   });
 }
 
+const HUB_HOME_URL = '../../index.html';
+
+function goToHubHome() {
+  window.location.href = HUB_HOME_URL;
+}
+
 function showView(name) {
   document.getElementById('homeView')?.classList.toggle('hidden', name !== 'home');
   document.getElementById('lectureView')?.classList.toggle('hidden', name !== 'lecture');
   document.getElementById('backToHomeBtn')?.classList.toggle('hidden', name === 'home');
+  document.getElementById('backToHubBtn')?.classList.toggle('hidden', name !== 'home');
   document.getElementById('lectureWidthControl')?.classList.toggle('hidden', name !== 'lecture');
   document.getElementById('mobileStudyBar')?.classList.toggle('hidden', name !== 'lecture');
   document.documentElement.classList.toggle('is-lecture-view', name === 'lecture');
   if (name !== 'lecture') closeMobileToc();
 }
 
+function versionedUrl(relativePath) {
+  const buildId = readBuildId();
+  if (!buildId) return relativePath;
+  const sep = relativePath.includes('?') ? '&' : '?';
+  return `${relativePath}${sep}v=${encodeURIComponent(buildId)}`;
+}
+
 async function loadManifest() {
-  const res = await fetch('lectures/manifest.json');
+  const res = await fetch(versionedUrl('lectures/manifest.json'), { cache: 'no-store' });
   if (!res.ok) throw new Error('تعذّر تحميل manifest.json');
   return res.json();
 }
 
 async function loadLectureJson(path) {
-  const res = await fetch(`lectures/${path}`);
-  if (!res.ok) throw new Error(`تعذّر تحميل ${path}`);
-  return res.json();
+  const key = versionedUrl(`lectures/${path}`);
+  if (lectureJsonInflight.has(key)) return lectureJsonInflight.get(key);
+
+  const promise = fetch(key, { cache: 'no-store' })
+    .then(res => {
+      if (!res.ok) throw new Error(`تعذّر تحميل ${path}`);
+      return res.json();
+    })
+    .finally(() => lectureJsonInflight.delete(key));
+
+  lectureJsonInflight.set(key, promise);
+  return promise;
+}
+
+function createItemStub(file, i, manifest) {
+  const defaultIcons = manifest.lectureIcons || ['📌'];
+  const defaultMatIcons = manifest.lectureMatIcons || ['school'];
+  const fileStem = String(file.path).replace(/\.json$/i, '').replace(/\.md$/i, '');
+  const summary = file.summary || {};
+  const stubId = summary.id || fileStem || `lec${i + 1}`;
+  return {
+    lec: {
+      id: stubId,
+      title: summary.title || file.badge || `محاضرة ${file.num || i + 1}`,
+      tag: summary.tag || '',
+      parts: [],
+    },
+    fileMeta: file,
+    icon: file.icon || defaultIcons[i] || '📌',
+    matIcon: file.matIcon || defaultMatIcons[i] || 'school',
+    sectionIndex: {},
+    toc: null,
+    summary: file.summary || null,
+    parsedAt: file.parsedAt || null,
+    loaded: false,
+    loading: null,
+  };
+}
+
+async function ensureLectureLoaded(idx) {
+  const item = appState.items[idx];
+  if (!item) throw new Error('محاضرة غير موجودة');
+  if (item.loaded) return item;
+  if (item.loading) return item.loading;
+
+  item.loading = (async () => {
+    const doc = await loadLectureJson(item.fileMeta.path);
+    const lec = doc.lectures?.[0];
+    if (!lec) throw new Error(`لا محتوى في ${item.fileMeta.path}`);
+    const fileStem = String(item.fileMeta.path).replace(/\.json$/i, '').replace(/\.md$/i, '');
+    lec.id = fileStem || lec.id || item.lec.id;
+    item.lec = lec;
+    item.sectionIndex = doc.sectionIndex || {};
+    item.toc = buildTocData([lec])[0];
+    item.parsedAt = doc.parsedAt || item.fileMeta.parsedAt || null;
+    item.loaded = true;
+    item.loading = null;
+    return item;
+  })();
+
+  try {
+    return await item.loading;
+  } catch (err) {
+    item.loading = null;
+    throw err;
+  }
 }
 
 function renderHomeGrid() {
@@ -111,7 +224,7 @@ function renderHomeGrid() {
   if (!grid) return;
 
   grid.innerHTML = appState.items.map((item, i) => {
-    const stats = lectureStats(item.lec);
+    const stats = itemStats(item);
     const title = shortLectureTitle(item.lec.title);
     const num = item.fileMeta?.num ?? item.lec.title.match(/المحاضرة\s+(\d+)/)?.[1] ?? String(i + 1);
     const badge = item.fileMeta?.badge;
@@ -355,9 +468,50 @@ function initScrollAnimations(root = document) {
   root.querySelectorAll('.lecture-body .section-block').forEach(revealSectionTree);
 }
 
-function loadLectureView(idx, hashPart) {
-  const item = appState.items[idx];
-  if (!item) return;
+function mountLectureHtml(item, html) {
+  document.getElementById('content').innerHTML = html;
+  showView('lecture');
+  initInteractivity(document.getElementById('content'));
+  initDiagrams(document.getElementById('content'));
+  initEquations(document.getElementById('content'));
+  if (window.hljs) document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  buildSidebar(item.toc);
+  initScrollAnimations(document.getElementById('content'));
+  revealLectureDetailSections(document.getElementById('content'));
+  requestAnimationFrame(() => {
+    revealLectureDetailSections(document.getElementById('content'));
+    refreshLectureVisibility(document.getElementById('content'));
+  });
+}
+
+function showLectureLoading() {
+  const content = document.getElementById('content');
+  if (!content) return;
+  content.innerHTML = `
+    <div class="py-2xl text-center text-on-surface-variant" role="status" aria-live="polite">
+      <span class="material-symbols-outlined text-4xl text-primary mb-md animate-pulse">hourglass_top</span>
+      <p class="font-label-md">جارٍ تحميل المحاضرة…</p>
+    </div>`;
+  showView('lecture');
+}
+
+async function loadLectureView(idx, hashPart) {
+  const stub = appState.items[idx];
+  if (!stub) return;
+
+  showLectureLoading();
+
+  let item;
+  try {
+    item = await ensureLectureLoaded(idx);
+  } catch (err) {
+    document.getElementById('content').innerHTML = `
+      <div class="py-2xl text-center text-error">
+        <p class="mb-md">⚠️ ${esc(err.message)}</p>
+        <button type="button" class="text-primary font-bold" onclick="location.hash='home'">العودة للمحاضرات</button>
+      </div>`;
+    return;
+  }
 
   const needsRender = currentLectureIndex !== idx || !document.getElementById(item.lec.id);
   currentLectureIndex = idx;
@@ -371,25 +525,18 @@ function loadLectureView(idx, hashPart) {
     document.getElementById('mobileTocCourseSub').textContent = item.lec.tag || '';
     document.getElementById('mobileTocMatIcon').textContent = item.matIcon || 'school';
 
-    setRefContext({ lectureRef: item.lec.id, sectionMap: item.sectionIndex || {} });
-    const html = renderLecture(item.lec, 'primary', item.icon, item.sectionIndex);
-    clearRefContext();
-
-    document.getElementById('content').innerHTML = html;
-    showView('lecture');
-    initInteractivity(document.getElementById('content'));
-    initDiagrams(document.getElementById('content'));
-    initEquations(document.getElementById('content'));
-    if (window.hljs) document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-    buildSidebar(item.toc);
-    initScrollAnimations(document.getElementById('content'));
-    revealLectureDetailSections(document.getElementById('content'));
-    requestAnimationFrame(() => {
-      revealLectureDetailSections(document.getElementById('content'));
-      refreshLectureVisibility(document.getElementById('content'));
-    });
+    const cacheKey = htmlCacheKey(item);
+    let html = lectureHtmlCache.get(cacheKey);
+    if (!html) {
+      setRefContext({ lectureRef: item.lec.id, sectionMap: item.sectionIndex || {} });
+      html = renderLecture(item.lec, 'primary', item.icon, item.sectionIndex);
+      clearRefContext();
+      lectureHtmlCache.set(cacheKey, html);
+    }
+    mountLectureHtml(item, html);
   } else {
     buildSidebar(item.toc);
+    showView('lecture');
   }
 
   const hash = resolveLectureHash(idx, hashPart, item);
@@ -556,12 +703,20 @@ function resolveRoute() {
   if (routeLock) return;
   const hash = anchorIdFromHash(location.hash);
   const idx = getLectureIndexFromHash(hash, appState.items);
-  if (idx >= 0) loadLectureView(idx, hash);
-  else {
+  if (idx >= 0) {
+    loadLectureView(idx, hash).catch(err => console.error(err));
+  } else {
     currentLectureIndex = -1;
     showView('home');
     if (hash === 'home' || !hash) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+function initServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const buildId = readBuildId();
+  const swUrl = buildId ? `sw.js?v=${encodeURIComponent(buildId)}` : 'sw.js';
+  navigator.serviceWorker.register(swUrl).catch(() => {});
 }
 
 async function init() {
@@ -576,40 +731,25 @@ async function init() {
     location.hash = 'home';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
-  document.getElementById('brandBtn')?.addEventListener('click', () => {
-    location.hash = 'home';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  document.getElementById('backToHubBtn')?.addEventListener('click', goToHubHome);
+  document.getElementById('brandBtn')?.addEventListener('click', goToHubHome);
   window.addEventListener('hashchange', resolveRoute);
 
   try {
     const manifest = await loadManifest();
     appState.manifest = manifest;
+    resetHtmlCacheIfStale(manifest.settings?.buildId || readBuildId());
 
     applySiteSettings(manifest, { guideConfig: GUIDE_CONFIG, basePath: 'themes/' });
     siteTitle = manifest.settings?.subjectName || manifest.title || GUIDE_CONFIG.defaultTitle;
 
-    const defaultIcons = manifest.lectureIcons || ['📌'];
-    const defaultMatIcons = manifest.lectureMatIcons || ['school'];
     const files = manifest.files || [];
 
     for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const doc = await loadLectureJson(file.path);
-      const lec = doc.lectures?.[0];
-      if (!lec) continue;
-      // One file = one lecture chunk → parser always emits lec1; use filename stem instead.
-      const fileStem = String(file.path).replace(/\.json$/i, '').replace(/\.md$/i, '');
-      lec.id = fileStem || lec.id || `lec${appState.items.length + 1}`;
-      appState.items.push({
-        lec,
-        fileMeta: file,
-        icon: file.icon || defaultIcons[i] || '📌',
-        matIcon: file.matIcon || defaultMatIcons[i] || 'school',
-        sectionIndex: doc.sectionIndex || {},
-        toc: buildTocData([lec])[0],
-      });
+      appState.items.push(createItemStub(files[i], i, manifest));
     }
+
+    initServiceWorker();
 
     if (!appState.items.length) {
       document.getElementById('lectureGrid').innerHTML =

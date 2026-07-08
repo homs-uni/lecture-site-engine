@@ -15,6 +15,9 @@ import { runSchemaChecks, hasErrors } from './lib/schema-checks.mjs';
 import { ensureSubjectScaffold } from './lib/scaffold-subject.mjs';
 import { normalizeLectureMd } from './lib/normalize-lecture-md.mjs';
 import { patchSubjectIndexHtml, patchSubjectStoragePrefix } from './lib/patch-subject-index.mjs';
+import { patchBuildMeta } from './lib/patch-build-meta.mjs';
+import { generateServiceWorker } from './lib/generate-sw.mjs';
+import { lectureSummaryFromLec } from './lib/lecture-summary.mjs';
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -142,48 +145,85 @@ async function main() {
   const manifest = JSON.parse(await readFile(manifestSrc, 'utf8'));
 
   const builtFiles = [];
+  /** @type {Map<string, { parsedAt: string, summary: ReturnType<typeof lectureSummaryFromLec>, jsonName: string }>} */
+  const parsedByJson = new Map();
+
   for (const name of mdFiles) {
     const text = normalizeLectureMd(await readFile(path.join(subjectDir, 'lectures', name), 'utf8'));
     const doc = parser.parseDocument(text);
     const lec = doc.lectures[0];
     if (lec) lec.id = name.replace(/\.md$/i, '');
     const sectionIndex = lec ? parser.buildSectionIndex(lec) : {};
+    const parsedAt = new Date().toISOString();
     const jsonName = name.replace(/\.md$/i, '.json');
     await writeFile(
       path.join(lecturesOut, jsonName),
       JSON.stringify({
         schemaVersion: '1.0',
         source: name,
-        parsedAt: new Date().toISOString(),
+        parsedAt,
         sectionIndex,
         ...doc,
       }, null, 2),
     );
     builtFiles.push(jsonName);
+    parsedByJson.set(jsonName, {
+      parsedAt,
+      summary: lectureSummaryFromLec(lec),
+      jsonName,
+    });
     console.log(`  parsed → lectures/${jsonName}`);
   }
 
-  // Update manifest paths .md → .json
+  const buildId = new Date().toISOString();
+
+  // Update manifest paths .md → .json + summaries for lazy home grid
   if (manifest.files?.length) {
-    manifest.files = manifest.files.map(f => ({
-      ...f,
-      path: String(f.path).replace(/\.md$/i, '.json'),
-      source: f.path,
-    }));
+    manifest.files = manifest.files.map(f => {
+      const jsonPath = String(f.path).replace(/\.md$/i, '.json');
+      const parsed = parsedByJson.get(jsonPath);
+      return {
+        ...f,
+        path: jsonPath,
+        source: f.path,
+        parsedAt: parsed?.parsedAt,
+        summary: parsed?.summary,
+      };
+    });
   } else {
-    manifest.files = builtFiles.map((p, i) => ({ path: p, num: i + 1 }));
+    manifest.files = builtFiles.map((p, i) => {
+      const parsed = parsedByJson.get(p);
+      return {
+        path: p,
+        num: i + 1,
+        parsedAt: parsed?.parsedAt,
+        summary: parsed?.summary,
+      };
+    });
   }
+
+  manifest.settings = {
+    ...(manifest.settings || {}),
+    buildId,
+  };
 
   await writeFile(path.join(lecturesOut, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
   const report = {
     subject: subjectRel,
-    builtAt: new Date().toISOString(),
+    builtAt: buildId,
+    buildId,
     output: path.relative(ENGINE_ROOT, outDir),
     lectures: builtFiles,
     settings: manifest.settings || {},
   };
   await writeFile(path.join(outDir, 'build-report.json'), JSON.stringify(report, null, 2));
+
+  await patchBuildMeta(outDir, buildId);
+  await generateServiceWorker(outDir, {
+    buildId,
+    cachePrefix: guide.storagePrefix || 'study-guide',
+  });
 
   console.log(`\n✓ Built → ${outDir}`);
   console.log(`  Deploy: drag-drop folder or GitHub Pages root = ${path.relative(ENGINE_ROOT, outDir)}`);

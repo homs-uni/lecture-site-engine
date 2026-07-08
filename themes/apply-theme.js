@@ -82,14 +82,21 @@ export function applySiteSettings(manifest, options = {}) {
   const homeSubtitle = document.getElementById('homeSubtitle');
   const heroSub = document.getElementById('heroSub');
   const appBrand = document.getElementById('appBrand');
+  const appBrandShort = document.getElementById('appBrandShort');
   const siteYear = document.getElementById('siteYear');
   const siteSubject = document.getElementById('siteSubject');
   const aiSubject = document.getElementById('aiDisclaimerSubject');
 
+  const headerBrand = guideConfig.homeHeaderBrand || subjectName || manifest.title || '';
+  const headerBrandShort = headerBrand.includes(' - ')
+    ? headerBrand.split(' - ')[0].trim()
+    : headerBrand;
+
   if (homeTitle) homeTitle.textContent = subjectName || manifest.title || '';
   if (homeSubtitle) homeSubtitle.textContent = subtitle;
   if (heroSub) heroSub.textContent = subtitle;
-  if (appBrand) appBrand.textContent = guideConfig.homeHeaderBrand || subjectName || manifest.title || '';
+  if (appBrand) appBrand.textContent = headerBrand;
+  if (appBrandShort) appBrandShort.textContent = headerBrandShort || 'موقع تفاعلي';
   if (siteYear) siteYear.textContent = year;
   if (siteSubject) siteSubject.textContent = subjectName;
   if (aiSubject) aiSubject.textContent = subjectName || manifest.title || '';

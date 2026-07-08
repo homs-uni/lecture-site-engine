@@ -70,10 +70,35 @@ body {
 @media (max-width: 767px) {
   .site-navbar {
     gap: 0.35rem;
+    padding-block: 0.45rem;
+    padding-inline: 0.65rem;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .site-navbar__brand {
-    gap: 0.35rem;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .site-navbar__brand-btn {
+    font-size: 0.8125rem;
+    max-width: min(56vw, 9.5rem);
+  }
+
+  .site-navbar__back {
+    padding: 0.35rem;
+  }
+
+  .site-navbar__back .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+
+  .site-navbar__toggle {
+    padding: 0.35rem;
+  }
+
+  .site-navbar__toggle .material-symbols-outlined {
+    font-size: 1.25rem;
   }
 }
 

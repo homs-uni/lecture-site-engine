@@ -911,6 +911,60 @@ function renderHtml(subjects) {
       .hub-card:hover { transform: none; }
       .hub-card:hover .hub-card__icon { transform: none; }
     }
+    @media (max-width: 767px) {
+      html, body { scroll-padding-top: 56px; }
+      .hub-navbar {
+        gap: 0.35rem;
+        padding: 0.45rem 0.65rem;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .hub-navbar__brand-btn {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        max-width: min(72vw, 14rem);
+      }
+      .hub-navbar__links {
+        display: none;
+      }
+      .hub-navbar__toggle {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
+      .hub-navbar__toggle .material-symbols-outlined {
+        font-size: 1.2rem;
+      }
+      .page-hero {
+        padding: 1rem 0.75rem 0.875rem;
+        margin-bottom: 1.25rem;
+      }
+      .page-hero h1 {
+        font-size: 1.125rem;
+        line-height: 1.45;
+      }
+      .lead {
+        font-size: 0.8125rem;
+        margin-bottom: 0.875rem;
+      }
+      .hero-stats {
+        gap: 0.5rem;
+      }
+      .hero-stat {
+        min-width: 0;
+        flex: 1 1 calc(50% - 0.5rem);
+        padding: 0.55rem 0.65rem;
+        border-radius: 0.75rem;
+      }
+      .hero-stat__icon {
+        font-size: 1.25rem !important;
+        padding: 0.3rem;
+      }
+      .hero-stat strong {
+        font-size: 0.9375rem;
+      }
+      .hero-stat span {
+        font-size: 0.6875rem;
+      }
+    }
     @media (max-width: 640px) {
       .year-panel__header { flex-direction: column; align-items: flex-start; }
       .year-panel__chips { margin-inline-start: 0; }

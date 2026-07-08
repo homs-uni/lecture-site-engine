@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="site-build-id" content="">
   <title>Study Guide</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -40,11 +41,15 @@
 <body class="bg-background text-on-surface scroll-smooth">
     <header class="site-navbar bg-surface border-b border-outline-variant w-full px-md md:px-lg sticky top-0 z-50">
       <div class="site-navbar__brand">
+        <button type="button" id="backToHubBtn" class="site-navbar__back md:hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all" aria-label="العودة للسنوات الدراسية">
+          <span class="material-symbols-outlined text-primary">home</span>
+        </button>
         <button type="button" id="backToHomeBtn" class="site-navbar__back hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all" aria-label="العودة للمحاضرات">
           <span class="material-symbols-outlined text-primary">arrow_forward</span>
       </button>
-        <button type="button" id="brandBtn" class="site-navbar__brand-btn text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity text-right min-w-0">
-        <span id="appBrand">Study Guide</span>
+        <button type="button" id="brandBtn" class="site-navbar__brand-btn text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity text-right min-w-0" title="العودة للسنوات الدراسية">
+        <span id="appBrandShort" class="md:hidden">موقع تفاعلي</span>
+        <span id="appBrand" class="hidden md:inline">Study Guide</span>
       </button>
     </div>
       <nav class="site-navbar__links hidden md:flex items-center gap-sm text-on-surface-variant font-label-md" aria-label="روابط أساسية">
