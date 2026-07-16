@@ -161,6 +161,122 @@ body {
   box-shadow: 0 4px 12px -2px var(--shadow-black-35), 0 0 0 1px var(--shadow-border-dark-40);
 }
 
+.subject-progress-card {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, var(--color-outline-variant));
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--color-primary-container) 68%, #fff) 0%, var(--color-surface-container-lowest) 72%);
+  box-shadow: 0 8px 20px -14px var(--shadow-primary-md);
+}
+
+.subject-progress-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.subject-progress-card__label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-on-surface-variant);
+}
+
+.subject-progress-card__title {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+}
+
+.subject-progress-card__percent {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.subject-progress-card__track {
+  width: 100%;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-outline-variant) 45%, transparent);
+  overflow: hidden;
+}
+
+.subject-progress-card__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary-accent));
+  transition: width 0.25s ease;
+}
+
+.lecture-card-head-actions {
+  min-width: 8.25rem;
+}
+
+.lecture-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.lecture-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-on-surface-variant);
+}
+
+.lecture-card-status.is-complete {
+  color: var(--color-primary);
+}
+
+.lecture-open-btn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.lecture-complete-btn,
+.lecture-complete-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-outline-variant));
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  color: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.lecture-complete-btn .material-symbols-outlined,
+.lecture-complete-toggle .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+
+.lecture-complete-btn.is-complete,
+.lecture-complete-toggle.is-complete {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+.dark .subject-progress-card {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--color-primary) 18%, var(--dm-elevated)) 0%, var(--dm-elevated) 74%);
+  border-color: var(--dm-border);
+}
+
 /* ── Dark theme (surfaces from tokens.css + theme-brand.css) ── */
 .dark {
   color-scheme: dark;
@@ -4022,5 +4138,26 @@ body.laser-pointer-enabled button {
   .code-terminal .hljs {
     font-size: 0.8125rem;
   }
+}
+
+/* ── Search ─────────────────────────────────────────────────────────────── */
+#searchContainer input[type="search"]::-webkit-search-decoration,
+#searchContainer input[type="search"]::-webkit-search-cancel-button,
+#searchContainer input[type="search"]::-webkit-search-results-button,
+#searchContainer input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+}
+
+#searchResults {
+  scrollbar-width: thin;
+}
+
+.search-result-item {
+  transition: background-color 0.15s ease;
+}
+
+.search-result-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 

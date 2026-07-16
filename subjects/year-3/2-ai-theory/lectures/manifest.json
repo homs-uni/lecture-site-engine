@@ -4,7 +4,8 @@
     "subjectNameEn": "Artificial Intelligence",
     "year": "2025-2026",
     "academicYear": 3,
-    "theme": "amber-default",
+    "theme": "software-purple",
+    "enabledLectures":true,
     "department": "القسم النظري"
   },
   "title": "الذكاء الاصطناعي — Artificial Intelligence",

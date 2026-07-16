@@ -9,7 +9,15 @@
   },
   "title": "خوارزميات وبنى المعطيات — Algorithms and Data Structures",
   "subtitle": "تقسيم + بيان + شرهة + ديناميكية",
-  "files": [],
+  "files": [
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٣"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",

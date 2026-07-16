@@ -5,17 +5,60 @@
     "year": "2025-2026",
     "academicYear": 4,
     "theme": "kotlin-pink-blue",
+    "enabledLectures": true,
     "department": "نظري"
   },
   "title": "2 - اللغة الانجليزية التخصصية — Android Development Fundamentals (Full Theory)",
   "subtitle": "منصة أندرويد كوتلن Compose",
   "files": [
     {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2.md",
+      "num": 2,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٣"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٤"
+    },
+    {
       "path": "par5.md",
       "num": 5,
       "icon": "📌",
       "matIcon": "school",
       "badge": "المحاضرة ٥"
+    },
+    {
+      "path": "par6.md",
+      "num": 6,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٦"
+    },
+    {
+      "path": "par7.md",
+      "num": 7,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٧"
     }
   ],
   "lectureIcons": [

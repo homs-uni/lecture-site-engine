@@ -39,14 +39,33 @@ const args = parseArgs(process.argv);
 const files = gitChangedFiles(args.base, args.range);
 const subjects = new Set(subjectsFromChangedFiles(files));
 
-// Review parser / build step changed → rebuild subjects with pending review output.
-const reviewPipelineChanged = files.some(f => {
+// A change to shared engine code (parser/, renderer/, or the build pipeline
+// itself) affects every subject's output, not just subjects whose own
+// subjects/**/*.md changed in this push. Without this, a bugfix to e.g.
+// parser/parts/handlers.js is invisible to subjectsFromChangedFiles() (it
+// only matches paths under subjects/year-N/<id>/), so the incremental CI
+// build restores every existing subject untouched from the dist/ cache and
+// the fix never actually reaches the live site — it only takes effect on
+// subjects that happen to also get a content change in the same push, or on
+// a full `--all` rebuild. Treat any shared-engine touch as "rebuild
+// everything" so a parser/renderer fix always reaches every already-built
+// subject on the next deploy.
+const sharedEngineChanged = files.some(f => {
   const p = f.replace(/\\/g, '/');
-  return p === 'build/cli.mjs' || p.startsWith('parser/review/');
+  return p.startsWith('parser/') || p.startsWith('renderer/') || p.startsWith('build/');
 });
-if (reviewPipelineChanged) {
-  for (const s of await listAllSubjectsWithLectures()) {
-    if (await subjectNeedsReviewBuild(s)) subjects.add(s);
+if (sharedEngineChanged) {
+  for (const s of await listAllSubjectsWithLectures()) subjects.add(s);
+} else {
+  // Review parser / build step changed → rebuild subjects with pending review output.
+  const reviewPipelineChanged = files.some(f => {
+    const p = f.replace(/\\/g, '/');
+    return p === 'build/cli.mjs' || p.startsWith('parser/review/');
+  });
+  if (reviewPipelineChanged) {
+    for (const s of await listAllSubjectsWithLectures()) {
+      if (await subjectNeedsReviewBuild(s)) subjects.add(s);
+    }
   }
 }
 

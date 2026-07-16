@@ -17,6 +17,8 @@ import {
   updateAnalyticsContext,
 } from './analytics.js';
 import { initLaserPointer } from './laser-pointer.js';
+import { createProgressTracker, lectureIdFromPath, resolveSubjectKeyFromPath } from './progress_tracker.js';
+import { search, snippet } from './search.js';
 
 /** Set true when lecture notes localStorage behaviour is ready. */
 const LECTURE_NOTES_ENABLED = false;
@@ -57,6 +59,9 @@ let appState = {
   items: [],
   reviewManifest: null,
   reviewItems: [],
+  progressTracker: null,
+  subjectKey: '',
+  progressUnsubscribe: null,
 };
 let siteTitle = "";
 let currentLectureIndex = -1;
@@ -277,6 +282,106 @@ function itemStats(item) {
   return lectureStats(item.lec);
 }
 
+function lectureStableId(item, idx) {
+  const fromFile = lectureIdFromPath(item?.fileMeta?.path);
+  if (fromFile) return fromFile;
+  if (item?.lec?.id) return item.lec.id;
+  return `lec${idx + 1}`;
+}
+
+function subjectLectureIds() {
+  return appState.items.map((item, idx) => lectureStableId(item, idx));
+}
+
+function renderSubjectProgressTracker() {
+  const host = document.getElementById('subjectProgressTracker');
+  if (!host || !appState.progressTracker) return;
+
+  const progress = appState.progressTracker.getSubjectProgress(subjectLectureIds());
+  const done = progress.completed;
+  const total = progress.total;
+  const percent = progress.percent;
+
+  host.classList.remove('hidden');
+  host.innerHTML = `
+    <div class="subject-progress-card">
+      <div class="subject-progress-card__head">
+        <div>
+          <p class="subject-progress-card__label">تقدم المادة</p>
+          <h3 class="subject-progress-card__title">${esc(String(done))} / ${esc(String(total))} محاضرة مكتملة</h3>
+        </div>
+        <span class="subject-progress-card__percent">${esc(String(percent))}%</span>
+      </div>
+      <div class="subject-progress-card__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${esc(String(percent))}" aria-label="تقدم المادة">
+        <span class="subject-progress-card__fill" style="width:${esc(String(percent))}%"></span>
+      </div>
+    </div>`;
+}
+
+function setLectureCompletedByIndex(idx, completed) {
+  const item = appState.items[idx];
+  if (!item || !appState.progressTracker) return;
+  const lectureId = lectureStableId(item, idx);
+  appState.progressTracker.setLectureCompleted(lectureId, completed);
+  renderSubjectProgressTracker();
+  renderHomeGrid();
+  syncLectureCompletionButtons(currentLectureIndex);
+}
+
+function toggleLectureCompletedByIndex(idx) {
+  const item = appState.items[idx];
+  if (!item || !appState.progressTracker) return;
+  const lectureId = lectureStableId(item, idx);
+  appState.progressTracker.toggleLectureCompleted(lectureId);
+  renderSubjectProgressTracker();
+  renderHomeGrid();
+  syncLectureCompletionButtons(currentLectureIndex);
+}
+
+function syncLectureCompletionButtons(idx) {
+  const item = appState.items[idx];
+  const sidebarBtn = document.getElementById('sidebarCompleteBtn');
+  const mobileBtn = document.getElementById('mobileCompleteBtn');
+
+  if (!item || !appState.progressTracker) {
+    [sidebarBtn, mobileBtn].forEach((btn) => {
+      if (!btn) return;
+      btn.dataset.lectureIndex = '';
+      btn.setAttribute('aria-pressed', 'false');
+      btn.classList.add('hidden');
+    });
+    return;
+  }
+
+  const lectureId = lectureStableId(item, idx);
+  const isDone = appState.progressTracker.isLectureCompleted(lectureId);
+  const label = isDone ? 'مكتملة' : 'وضع كمكتملة';
+
+  [sidebarBtn, mobileBtn].forEach((btn) => {
+    if (!btn) return;
+    btn.classList.remove('hidden');
+    btn.dataset.lectureIndex = String(idx);
+    btn.dataset.completed = isDone ? '1' : '0';
+    btn.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+    btn.classList.toggle('is-complete', isDone);
+    const text = btn.querySelector('[data-complete-label]');
+    if (text) text.textContent = label;
+  });
+}
+
+function initLectureCompletionButtons() {
+  ['sidebarCompleteBtn', 'mobileCompleteBtn'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn || btn.dataset.bound === '1') return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.lectureIndex);
+      if (!Number.isInteger(idx) || idx < 0) return;
+      toggleLectureCompletedByIndex(idx);
+    });
+  });
+}
+
 function applyDarkMode(dark) {
   document.documentElement.classList.toggle("dark", dark);
   document.body?.classList.toggle("dark", dark);
@@ -430,17 +535,23 @@ function renderHomeGrid() {
     const num = item.fileMeta?.num ?? item.lec.title.match(/المحاضرة\s+(\d+)/)?.[1] ?? String(i + 1);
     const badge = item.fileMeta?.badge;
     const tag = item.lec.tag || '';
+    const lectureId = lectureStableId(item, i);
+    const isDone = appState.progressTracker?.isLectureCompleted(lectureId) || false;
+    const doneLabel = isDone ? 'مكتملة' : 'غير مكتملة';
     return `
-      <button type="button"
-              class="lecture-picker-card group text-right bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow box-hover w-full cursor-pointer"
-              data-lecture-index="${i}" aria-label="فتح ${esc(title)}">
+      <article class="lecture-picker-card group text-right bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow box-hover w-full"
+               data-lecture-card="${i}" aria-label="${esc(title)}">
         <div class="flex items-start justify-between mb-md">
           <div class="picker-icon-wrap w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shrink-0">
             ${ms(item.matIcon, true, 'text-3xl')}
           </div>
-          <div class="flex flex-col items-end gap-xs">
+          <div class="flex flex-col items-end gap-xs lecture-card-head-actions">
             <span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-lg font-code-sm text-code-sm">#${esc(num)}</span>
             ${badge ? `<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg font-label-md text-label-md">${esc(badge)}</span>` : ''}
+            <button type="button" class="lecture-complete-btn ${isDone ? 'is-complete' : ''}" data-toggle-complete-index="${i}" aria-pressed="${isDone ? 'true' : 'false'}" aria-label="${isDone ? 'إلغاء إكمال' : 'تحديد كمكتملة'} ${escAttr(title)}">
+              ${ms(isDone ? 'task_alt' : 'radio_button_unchecked', false, 'text-base')}
+              <span>${doneLabel}</span>
+            </button>
           </div>
         </div>
         <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs group-hover:text-primary transition-colors">${esc(title)}</h3>
@@ -456,17 +567,32 @@ function renderHomeGrid() {
             ${ms('format_list_bulleted', false, 'text-sm text-tertiary')} ${stats.sections} أقسام
           </span>` : ''}
         </div>
-        <span class="inline-flex items-center gap-sm text-primary font-label-md font-bold group-hover:gap-md transition-all">
-          ابدأ الدراسة ${ms('arrow_back', false, 'text-lg')}
-        </span>
-      </button>`;
+        <div class="lecture-card-footer">
+          <span class="lecture-card-status ${isDone ? 'is-complete' : ''}">
+            ${ms(isDone ? 'check_circle' : 'pending', false, 'text-base')} ${doneLabel}
+          </span>
+          <button type="button" class="lecture-open-btn inline-flex items-center gap-sm text-primary font-label-md font-bold group-hover:gap-md transition-all" data-open-lecture-index="${i}" aria-label="فتح ${escAttr(title)}">
+            ابدأ الدراسة ${ms('arrow_back', false, 'text-lg')}
+          </button>
+        </div>
+      </article>`;
   }).join('');
 
-  grid.querySelectorAll('[data-lecture-index]').forEach(btn => {
+  grid.querySelectorAll('[data-open-lecture-index]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.lectureIndex);
+      const idx = Number(btn.dataset.openLectureIndex);
       const id = appState.items[idx]?.lec.id;
       if (id) location.hash = id;
+    });
+  });
+
+  grid.querySelectorAll('[data-toggle-complete-index]').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const idx = Number(btn.dataset.toggleCompleteIndex);
+      if (!Number.isInteger(idx) || idx < 0) return;
+      toggleLectureCompletedByIndex(idx);
     });
   });
 }
@@ -728,6 +854,7 @@ async function loadLectureView(idx, hashPart) {
     document.getElementById('mobileTocCourseTitle').textContent = shortLectureTitle(item.lec.title);
     document.getElementById('mobileTocCourseSub').textContent = item.lec.tag || '';
     document.getElementById('mobileTocMatIcon').textContent = item.matIcon || 'school';
+    syncLectureCompletionButtons(idx);
 
     const cacheKey = htmlCacheKey(item);
     let html = lectureHtmlCache.get(cacheKey);
@@ -741,6 +868,7 @@ async function loadLectureView(idx, hashPart) {
   } else {
     buildSidebar(item.toc);
     showView('lecture');
+    syncLectureCompletionButtons(idx);
   }
 
   const hash = resolveLectureHash(idx, hashPart, item);
@@ -1015,6 +1143,159 @@ function initServiceWorker() {
   navigator.serviceWorker.register(swUrl).catch(() => {});
 }
 
+/**
+ * Navigate to a lecture (and optional anchor) from a search result.
+ * Calls ensureLectureLoaded then scrolls.
+ */
+function navigateToLectureSearch(lecId, anchorId) {
+  const idx = appState.items.findIndex(it => it.lec.id === lecId);
+  if (idx < 0) return;
+
+  const targetHash = (!anchorId || anchorId === lecId) ? lecId : anchorId;
+  location.hash = targetHash;
+}
+
+function closeSearchResults() {
+  const el = document.getElementById('searchResults');
+  if (el) el.classList.add('hidden');
+  document.getElementById('searchInput')?.setAttribute('aria-expanded', 'false');
+}
+
+function initSearch() {
+  const input = document.getElementById('searchInput');
+  const results = document.getElementById('searchResults');
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (!input || !results) return;
+
+  let debounceTimer = null;
+
+  function renderResults(q) {
+    if (!q || !q.trim()) {
+      results.classList.add('hidden');
+      input.setAttribute('aria-expanded', 'false');
+      clearBtn?.classList.add('hidden');
+      return;
+    }
+    clearBtn?.classList.remove('hidden');
+
+    search(q, 15).then(matches => {
+      if (input.value.trim() !== q.trim()) return; // stale response
+
+      if (!matches.length) {
+        results.innerHTML = `<div class="p-lg text-center text-on-surface-variant font-label-md">لا نتائج لـ "${esc(q)}"</div>`;
+        results.classList.remove('hidden');
+        input.setAttribute('aria-expanded', 'true');
+        return;
+      }
+
+      const seen = new Set();
+      let html = '';
+      for (const { entry } of matches) {
+        const key = entry.id;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        const icon = entry.kind === 'lecture' ? 'description'
+          : entry.kind === 'part' ? 'chapter'
+          : entry.kind === 'section' ? 'format_list_bulleted'
+          : 'article';
+
+        const ctx = entry.kind === 'lecture' ? `محاضرة ${entry.lecNum}`
+          : entry.kind !== 'content' ? (entry.context || `محاضرة ${entry.lecNum}`)
+          : `${entry.context || `محاضرة ${entry.lecNum}`}`;
+
+        const label = entry.title || entry.text || '';
+        const snip = snippet(entry, q, 60);
+
+        html += `
+          <button type="button" class="search-result-item flex items-start gap-md w-full text-right px-lg py-md hover:bg-surface-container-high transition-all border-b border-outline-variant last:border-b-0 cursor-pointer"
+            data-lec-id="${escAttr(entry.lecId)}"
+            data-anchor="${escAttr(entry.id)}"
+            role="option"
+            aria-label="${escAttr(label)}">
+            <span class="material-symbols-outlined text-primary shrink-0 mt-xs" aria-hidden="true">${icon}</span>
+            <div class="min-w-0 flex-1">
+              <div class="font-label-md text-label-md text-on-surface truncate">${esc(label)}</div>
+              <div class="font-code-sm text-code-sm text-on-surface-variant truncate">${esc(ctx)}</div>
+              <div class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-xs">${esc(snip)}</div>
+            </div>
+          </button>`;
+      }
+
+      results.innerHTML = html;
+      results.classList.remove('hidden');
+      input.setAttribute('aria-expanded', 'true');
+
+      // Click handlers
+      results.querySelectorAll('.search-result-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lecId = btn.dataset.lecId;
+          const anchor = btn.dataset.anchor;
+          closeSearchResults();
+          input.value = '';
+          clearBtn?.classList.add('hidden');
+          navigateToLectureSearch(lecId, anchor);
+        });
+      });
+    }).catch(err => {
+      console.warn('Search error:', err);
+    });
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value;
+    debounceTimer = setTimeout(() => renderResults(q), 150);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim()) renderResults(input.value);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSearchResults();
+      input.blur();
+    }
+    if (e.key === 'Enter') {
+      const first = results.querySelector('.search-result-item');
+      if (first) first.click();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#searchContainer')) closeSearchResults();
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    input.value = '';
+    closeSearchResults();
+    clearBtn.classList.add('hidden');
+    input.focus();
+  });
+
+  // Navbar search button
+  document.getElementById('navbarSearchBtn')?.addEventListener('click', () => {
+    if (currentView !== 'home') goToSubjectHome();
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 100);
+  });
+
+  // Keyboard shortcut: Ctrl+Shift+F
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+      e.preventDefault();
+      if (currentView !== 'home') goToSubjectHome();
+      setTimeout(() => {
+        input.focus();
+        input.select();
+      }, 100);
+    }
+  });
+}
+
 async function init() {
   initTheme();
   initLaserPointer();
@@ -1023,8 +1304,10 @@ async function init() {
   initJumpSummary();
   bindJumpSummaryClicks();
   initLectureWidthToggle();
+  initLectureCompletionButtons();
   if (LECTURE_NOTES_ENABLED) initLectureNotes();
   initMobileStudyUi();
+  initSearch();
   document.getElementById('backToHomeBtn')?.addEventListener('click', goToSubjectHome);
   document.getElementById('backToHubBtn')?.addEventListener('click', goToHubHome);
   document.getElementById('brandBtn')?.addEventListener('click', handleBrandClick);
@@ -1050,6 +1333,15 @@ async function init() {
       appState.items.push(createItemStub(files[i], i, manifest));
     }
 
+    appState.subjectKey = resolveSubjectKeyFromPath(location.pathname);
+    appState.progressTracker = createProgressTracker({ subjectKey: appState.subjectKey });
+    if (appState.progressUnsubscribe) appState.progressUnsubscribe();
+    appState.progressUnsubscribe = appState.progressTracker.onChange(() => {
+      renderSubjectProgressTracker();
+      renderHomeGrid();
+      syncLectureCompletionButtons(currentLectureIndex);
+    });
+
     initServiceWorker();
 
     if (!appState.items.length) {
@@ -1058,6 +1350,7 @@ async function init() {
     } else {
       renderHomeGrid();
     }
+    renderSubjectProgressTracker();
 
     try {
       await loadReviews();

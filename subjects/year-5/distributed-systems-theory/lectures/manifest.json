@@ -5,11 +5,48 @@
     "year": "2025-2026",
     "academicYear": 5,
     "theme": "amber-default",
+    "enabledLectures":true,
     "department": "تصميم"
   },
   "title": "نظم موزعة — Distributed Systems",
   "subtitle": "مفاهيم وتصميم الأنظمة الموزعة",
-  "files": [],
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2.md",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٣"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٥"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",

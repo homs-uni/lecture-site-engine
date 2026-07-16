@@ -10,7 +10,11 @@ export function subsectionLevel(text) {
 
 export function extractSubsections(body) {
   const subs = [];
-  for (const line of body.split('\n')) {
+  // Split on \r\n or \n — Windows-authored .md files (CRLF) left a trailing
+  // \r on every line when we split on '\n' only, which silently broke the
+  // heading regex below (its trailing $ could never match past the stray \r),
+  // so numbered ### headings in CRLF files never became sidebar subsections.
+  for (const line of body.split(/\r?\n/)) {
     const m = line.match(/^### (\d+(?:\.\d+)*\.?\s*.+)$/);
     if (m) {
       const text = m[1].trim();

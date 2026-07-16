@@ -18,6 +18,7 @@ import { patchSubjectIndexHtml, patchSubjectStoragePrefix } from './lib/patch-su
 import { patchBuildMeta } from './lib/patch-build-meta.mjs';
 import { generateServiceWorker } from './lib/generate-sw.mjs';
 import { lectureSummaryFromLec } from './lib/lecture-summary.mjs';
+import { generateSearchIndex } from './lib/generate-search-index.mjs';
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -202,12 +203,15 @@ async function main() {
   const builtFiles = [];
   /** @type {Map<string, { parsedAt: string, summary: ReturnType<typeof lectureSummaryFromLec>, jsonName: string }>} */
   const parsedByJson = new Map();
+  /** @type {import('./lib/generate-search-index.mjs').Lecture[]} */
+  const allParsedLecs = [];
 
   for (const name of mdFiles) {
     const text = normalizeLectureMd(await readFile(path.join(subjectDir, 'lectures', name), 'utf8'));
     const doc = parser.parseDocument(text);
     const lec = doc.lectures[0];
     if (lec) lec.id = name.replace(/\.md$/i, '');
+    if (lec) allParsedLecs.push(lec);
     const sectionIndex = lec ? parser.buildSectionIndex(lec) : {};
     const parsedAt = new Date().toISOString();
     const jsonName = name.replace(/\.md$/i, '.json');
@@ -273,6 +277,14 @@ async function main() {
     settings: manifest.settings || {},
   };
   await writeFile(path.join(outDir, 'build-report.json'), JSON.stringify(report, null, 2));
+
+  // Search index (all lecture text for client-side search)
+  const searchIndex = generateSearchIndex(allParsedLecs);
+  await writeFile(
+    path.join(lecturesOut, 'search-index.json'),
+    JSON.stringify(searchIndex),
+  );
+  console.log(`  indexed → lectures/search-index.json (${searchIndex.entries.length} entries)`);
 
   await patchBuildMeta(outDir, buildId);
   await generateServiceWorker(outDir, {

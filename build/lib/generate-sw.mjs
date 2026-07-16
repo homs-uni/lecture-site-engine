@@ -47,6 +47,7 @@ export async function generateServiceWorker(outDir, { buildId, cachePrefix }) {
     './js/lecture-routing.js',
     './js/equations.js',
     './js/guide-config.js',
+    './js/progress_tracker.js',
     './css/styles.css',
     './css/tailwind-config.js',
     './themes/apply-theme.js',

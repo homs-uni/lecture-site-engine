@@ -9,7 +9,43 @@
   },
   "title": "البرمجة المتقدمة 2 — Advanced Programming 2",
   "subtitle": "Python Data Science Machine Learning Games",
-  "files": [],
+  "files": [
+    {
+      "path": "par9.md",
+      "num": 9,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٩"
+    },
+    {
+      "path": "par10.md",
+      "num": 10,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١٠"
+    },
+    {
+      "path": "par11.md",
+      "num": 11,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ١١"
+    },
+    {
+      "path": "par12.md",
+      "num": 12,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ١٢"
+    },
+    {
+      "path": "par13.md",
+      "num": 13,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ١٣"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",
