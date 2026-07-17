@@ -4,7 +4,7 @@
   "description": "Parser, renderer, build pipeline, and prompts for faculty study-guide sites",
   "type": "module",
   "scripts": {
-    "test": "node renderer/smoke-test.mjs && node build/lib/scaffold-subject.test.mjs && node build/lib/normalize-lecture-md.test.mjs && node build/lib/lecture-routing.test.mjs",
+    "test": "node renderer/smoke-test.mjs && node build/lib/scaffold-subject.test.mjs && node build/lib/normalize-lecture-md.test.mjs && node build/lib/lecture-routing.test.mjs && node build/lib/exam-core.test.mjs && node build/lib/quiz-stats.test.mjs",
     "cms:config": "node build/generate-cms-config.mjs",
     "cms:local": "LOCAL_BACKEND=true node build/generate-cms-config.mjs",
     "admin:generate": "node build/generate-admin.mjs",

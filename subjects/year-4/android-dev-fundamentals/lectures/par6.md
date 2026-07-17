@@ -1,5 +1,5 @@
-# المحاضرة 6 — Jetpack Compose: التفكير التصريحي والتخطيطات والـ Modifiers (Compose UI)
-> **المادة:** أساسيات تطوير تطبيقات أندرويد (النظري الكامل) (نظري) | **الموضوع:** User Interface Development with Jetpack Compose -1-
+# المحاضرة — Compose UI: User Interface Development with Jetpack Compose -1-
+> **المادة:** أساسيات تطوير تطبيقات أندرويد (النظري الكامل) (نظري) | **الموضوع:** Thinking in Compose، Declarative Paradigm، Composable Functions، Compose Phases، Layouts، Modifiers
 
 ---
 
@@ -7,430 +7,302 @@
 
 | المرحلة | الأدوات | المخرجات |
 | --- | --- | --- |
-| أساسيات Kotlin | `val/var`، `functions`، `null safety` | فهم صياغة الكود الأساسية |
-| مكونات التطبيق | `Activity`، `AndroidManifest.xml` | هيكل تطبيق يعمل |
-| **بناء الواجهة التصريحية (Compose UI)** ← أنت هنا | `@Composable`، `Column/Row/Box`، `Modifier` | واجهة مستخدم تتفاعل مع الحالة تلقائياً |
-| الحالة والتنقل (لاحقاً) | `remember`، `mutableStateOf`، `NavController` | تطبيق متعدد الشاشات يدير حالته |
+| Kotlin Basics & OOP | `val/var`، `class`، `functions` | فهم لغة Kotlin الأساسية |
+| App Fundamentals | `Activity`، `AndroidManifest.xml` | بنية تطبيق أندرويد كاملة |
+| Compose UI ← أنت هنا | `@Composable`، `Column/Row/Box`، `Modifier` | بناء واجهات مستخدم تصريحية (declarative) |
+| Compose State & Navigation | `remember`، `NavController` | واجهات تفاعلية متعددة الشاشات |
 
-> **نوع هذه المحاضرة:** Compose UI — تُبنى على مفاهيم `@Composable` و `Recomposition` و مراحل Compose الثلاث (Composition, Layout, Drawing).
-
----
-
-## الجزء الأول: الشرح التفصيلي
-
-### 1. التفكير بطريقة Compose (Thinking in Compose)
-
-#### النص الأصلي يقول (English):
-> "Jetpack Compose is a modern, declarative UI Toolkit for building native UI and is officially recommended by Android. It simplifies and accelerates writing and maintaining your app UI by providing a declarative API that lets you render your app UI without imperatively mutating frontend views. It quickly bring your app to life with less code, powerful tools, and intuitive Kotlin APIs. Jetpack Compose provides pre-built UI components so you can implement your app's UI with graphics, animations, and other visual elements with minimal code."
-
-#### الشرح المبسّط:
-`Jetpack Compose` هي أداة رسمية من Google لبناء واجهات المستخدم في أندرويد، لكنها تعتمد أسلوباً مختلفاً تماماً عن الطريقة القديمة (نظام `View` و XML). بدلاً من أن تخبر النظام "اذهب وغيّر هذا الزر"، أنت فقط **تصف** كيف يجب أن تبدو الشاشة بناءً على البيانات الحالية، و Compose يتكفّل بالباقي.
-
-**لماذا؟** لأن التطبيقات الحديثة معقدة جداً، وإدارة كل عنصر يدوياً (كما في XML) تُنتج كوداً طويلاً وعرضة للأخطاء. Compose يقلل الكود ويجعل الواجهة أكثر توقعاً واتساقاً.
-
-#### 💡 التشبيه:
-> تخيّل أنك تطلب من رسّام أن "يرسم مشهد غروب الشمس" (تصريحي) بدلاً من أن تُملي عليه كل ضربة فرشاة بالتفصيل (أمر إجرائي).
-> **وجه الشبه:** وصف النتيجة النهائية = الأسلوب التصريحي، تنفيذ كل خطوة يدوياً = الأسلوب الإجرائي.
+> **نوع هذه المحاضرة:** نظرية بالكامل مع أمثلة كود توضيحية — تُقدّم فلسفة Compose التصريحية (declarative) ومراحل عمله الثلاث (Composition, Layout, Drawing)، إضافة إلى تخطيطات UI الأساسية (Column, Row, Box) ونظام الـ Modifiers.
 
 ---
 
-### 2. النموذج البرمجي التصريحي (The Declarative Programming Paradigm)
+## الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
+
+### 1. Thinking in Compose (ما هو Jetpack Compose؟)
 
 #### النص الأصلي يقول (English):
-> "Historically, an Android view hierarchy has been representable as a tree of UI widgets. As the state of the app changes... the UI hierarchy needs to be updated to display the current data. The most common way of updating the UI is to walk the tree using functions like findViewById(), and change nodes by calling methods like button.setText(String)... Manipulating views manually increases the likelihood of errors."
+> Jetpack Compose is a modern, declarative UI Toolkit for building native UI and is officially recommended by Android. It simplifies and accelerates writing and maintaining your app UI by providing a declarative API that lets you render your app UI without imperatively mutating frontend views. It quickly bring your app to life with less code, powerful tools, and intuitive Kotlin APIs. Jetpack Compose provides pre-built UI components so you can implement your app's UI with graphics, animations, and other visual elements with minimal code.
+
+#### الترجمة الحرفية:
+> Jetpack Compose هو أداة بناء واجهات مستخدم (UI Toolkit) حديثة وتصريحية (declarative) لبناء واجهات مستخدم أصلية (native)، وهو موصى به رسمياً من أندرويد. إنه يبسّط ويسرّع كتابة وصيانة واجهة تطبيقك من خلال توفير واجهة برمجية تصريحية (declarative API) تتيح لك عرض واجهة تطبيقك دون تعديل عناصر الواجهة الأمامية (frontend views) بشكل إجرائي (imperatively). إنه يُحيي تطبيقك بسرعة بكود أقل، وأدوات قوية، وواجهات برمجية Kotlin بديهية. يوفّر Jetpack Compose مكونات واجهة مستخدم جاهزة مسبقاً حتى تتمكن من تنفيذ واجهة تطبيقك بالرسومات والأنيميشن وعناصر بصرية أخرى بأقل قدر من الكود.
 
 #### الشرح المبسّط:
-في النظام القديم (`View System`)، واجهة التطبيق تُمثَّل كشجرة من العناصر (Widgets). عند تغيّر البيانات (مثلاً المستخدم ضغط زراً)، على المبرمج أن يبحث يدوياً عن العنصر المطلوب بواسطة `findViewById()` ثم يُعدّل حالته الداخلية مباشرة (مثل `button.setText(...)`).
+`Jetpack Compose` هو الطريقة الحديثة الرسمية لبناء واجهات المستخدم في أندرويد، وهو يستبدل الطريقة القديمة القائمة على ملفات `XML` بكتابة الواجهة مباشرة بلغة Kotlin. سبب وجوده هو تقليل الكود المتكرر (boilerplate) وتقليل الأخطاء التي كانت تحدث عند تعديل الواجهة يدوياً في النظام القديم؛ فبدلاً من أن يكتب المبرمج تعليمات "اذهب وغيّر هذا العنصر"، يصف فقط "كيف يجب أن تبدو الواجهة" ويتكفّل Compose بالباقي. يرتبط هذا المفهوم بكل ما سيأتي لاحقاً في المحاضرة، لأن كل شيء (Composable Functions، Phases، Layouts، Modifiers) هو أداة تخدم هذه الفكرة المركزية: وصف الواجهة تصريحياً لا بناؤها إجرائياً. **تشبيه يومي:** فكّري في الفرق بين إعطاء طاهٍ وصفة طبخ كاملة (تصريحي — "هذه هي النتيجة التي أريدها") وبين الوقوف بجانبه وتوجيهه خطوة بخطوة ("أضف الآن ملعقة ملح، الآن حرّك...") وهو النمط الإجرائي القديم.
 
-**لماذا هذا خطر؟** لأنه إذا كانت نفس البيانات معروضة في أكثر من مكان، قد ينسى المبرمج تحديث أحدها، أو قد يحاول تعديل عنصر أُزيل بالفعل من الشجرة، مما يُسبب حالة غير متسقة (`illegal state`).
-
-#### الفهم الخاطئ الشائع ❌: البيانات تُحدَّث تلقائياً في XML بمجرد تغييرها في الكود.
-#### الفهم الصحيح ✅: في `View System` يجب استدعاء `setter` صراحةً لكل عنصر عرض في كل مرة تتغيّر فيها البيانات.
+**لماذا؟** لأن الصناعة بأكملها لاحظت أن التعامل اليدوي مع شجرة الواجهات (View Hierarchy) يزيد احتمال الأخطاء ويصعّب الصيانة، فكان الحل هو نمط تصريحي يتولى فيه النظام نفسه معرفة ما الذي تغيّر وكيفية تحديثه.
 
 ---
 
-### 2.1. التحول نحو النموذج التصريحي
+### 2. مشكلة النمط الإجرائي (Imperative) في بناء الواجهات
 
 #### النص الأصلي يقول (English):
-> "Over the last several years, the entire industry has started shifting to a declarative UI model... The technique works by conceptually regenerating the entire screen from scratch, then applying only the necessary changes... To mitigate this cost, Compose intelligently chooses which parts of the UI need to be redrawn at any given time."
+> Historically, an Android view hierarchy has been representable as a tree of UI widgets. As the state of the app changes because of things like user interactions, the UI hierarchy needs to be updated to display the current data. The most common way of updating the UI is to walk the tree using functions like findViewById(), and change nodes by calling methods like button.setText(String), container.addChild(View), or img.setImageBitmap(Bitmap). These methods change the internal state of the widget. Manipulating views manually increases the likelihood of errors. If a piece of data is rendered in multiple places, you might forget to update one of the views that shows it. This can also lead to illegal states, when two updates conflict in an unexpected way.
+
+#### الترجمة الحرفية:
+> تاريخياً، كان من الممكن تمثيل شجرة الواجهة (view hierarchy) في أندرويد كشجرة من عناصر واجهة المستخدم (UI widgets). عندما تتغيّر حالة التطبيق بسبب أشياء مثل تفاعلات المستخدم، تحتاج شجرة الواجهة إلى التحديث لعرض البيانات الحالية. الطريقة الأكثر شيوعاً لتحديث الواجهة هي المرور عبر الشجرة باستخدام دوال مثل findViewById()، وتغيير العُقد عن طريق استدعاء دوال مثل button.setText(String)‏، container.addChild(View)‏، أو img.setImageBitmap(Bitmap). هذه الدوال تغيّر الحالة الداخلية للعنصر (widget). التعامل اليدوي مع العناصر (views) يزيد من احتمالية حدوث الأخطاء. إذا كانت قطعة من البيانات تُعرض في أماكن متعددة، فقد تنسى تحديث أحد العناصر التي تعرضها. يمكن أن يؤدي هذا أيضاً إلى حالات غير صحيحة (illegal states)، عندما يتعارض تحديثان بشكل غير متوقع.
 
 #### الشرح المبسّط:
-النموذج التصريحي يعمل بفكرة "أعِد بناء الشاشة بالكامل من الصفر" في كل مرة تتغيّر فيها البيانات، لكن بدلاً من رسم كل شيء فعلياً من جديد (وهو مكلف جداً من ناحية الوقت والطاقة)، فإن Compose "ذكي" بما يكفي ليكتشف فقط الأجزاء التي تغيّرت ويُحدّثها فقط.
+في النظام القديم (`View System`)، كانت الواجهة تُبنى كشجرة من عناصر (widgets)، وكل عنصر يحتفظ بحالته الداخلية بنفسه، فيضطر المبرمج إلى البحث يدوياً عن كل عنصر باستخدام `findViewById()` وتعديله بنفسه عند حدوث أي تغيير في البيانات. المشكلة الجوهرية هنا هي أنه إذا كانت نفس البيانات تظهر في أكثر من مكان في الشاشة، يصبح من السهل جداً أن ينسى المبرمج تحديث أحد هذه الأماكن، فتظهر الشاشة ببيانات متضاربة أو "حالة غير صحيحة" (illegal state). هذه المشكلة هي السبب المباشر وراء ظهور Compose، لأنها توضح لماذا لم تعد الطريقة اليدوية كافية مع تعقيد التطبيقات الحديثة. **تشبيه يومي:** تخيّلي لوحة إعلانات بها نفس الرقم مكتوب في 3 أماكن مختلفة يدوياً بالطباشير — إذا تغيّر الرقم، عليكِ محو وكتابة الرقم الجديد في الأماكن الثلاثة بنفسك، وإن نسيتِ مكاناً واحداً ستظهر معلومة خاطئة على اللوحة.
 
-**لماذا؟** لأن إعادة رسم الشاشة بالكامل في كل تفاعل صغير (كضغطة زر) سيكون بطيئاً جداً ويستهلك البطارية، لذلك يحتاج Compose لآلية تحسين اسمها `Recomposition الانتقائي`.
-
-#### مهم للامتحان ⚠️:
-> "التصريحية" لا تعني حرفياً إعادة رسم كل شيء من جديد فعلياً على الشاشة، بل هي نموذج **تصوّري** (conceptual) يُحسّنه Compose داخلياً عبر التتبع الذكي للتغييرات.
+**لماذا؟** لأن الاعتماد الكامل على المبرمج لتتبّع كل مكان يظهر فيه جزء من البيانات يدوياً هو مصدر شبه مضمون للأخطاء البشرية كلما كبر حجم التطبيق.
 
 ---
 
-### 2.2. مثال مقارن: XML/Kotlin مقابل Jetpack Compose
+### 3. الحل: النمط التصريحي (Declarative UI Model)
 
 #### النص الأصلي يقول (English):
-> "In this imperative approach, you must manually locate the button, set its properties, and update its state when clicked... In this declarative approach: No need to find views manually – The UI is defined directly in Kotlin. State management is built-in – Compose automatically updates UI when the state changes."
+> Over the last several years, the entire industry has started shifting to a declarative UI model. This model simplifies the engineering associated with building and updating user interfaces. The technique works by conceptually regenerating the entire screen from scratch, then applying only the necessary changes. This approach avoids the complexity of manually updating a stateful view hierarchy. One challenge with regenerating the entire screen is that it is potentially expensive, in terms of time, computing power, and battery usage. To mitigate this cost, Compose intelligently chooses which parts of the UI need to be redrawn at any given time.
+
+#### الترجمة الحرفية:
+> على مدى السنوات القليلة الماضية، بدأت الصناعة بأكملها التحوّل نحو نموذج واجهة مستخدم تصريحي (declarative). هذا النموذج يبسّط الهندسة المرتبطة ببناء وتحديث واجهات المستخدم. تعمل هذه التقنية عن طريق إعادة توليد الشاشة بأكملها من الصفر بشكل مفاهيمي (conceptually)، ثم تطبيق التغييرات الضرورية فقط. هذا النهج يتجنّب تعقيد التحديث اليدوي لشجرة واجهة ذات حالة (stateful view hierarchy). أحد التحديات في إعادة توليد الشاشة بأكملها هو أن ذلك قد يكون مكلفاً من ناحية الوقت وقوة الحوسبة واستهلاك البطارية. للتخفيف من هذه التكلفة، يختار Compose بذكاء أي أجزاء من الواجهة يجب إعادة رسمها في أي لحظة معينة.
 
 #### الشرح المبسّط:
-**الطريقة الإجرائية (XML + Kotlin):**
+الفكرة الأساسية في النمط التصريحي هي أن المبرمج لا يهتم "بكيفية" تحديث الواجهة، بل يصف فقط "كيف يجب أن تبدو" اعتماداً على البيانات الحالية، وكأن الشاشة بأكملها تُعاد كتابتها من الصفر في كل مرة. لكن إعادة رسم الشاشة كاملة في كل تغيير سيكون مكلفاً جداً من ناحية الأداء والبطارية، لذلك لا يقوم Compose فعلياً بإعادة رسم كل شيء، بل "يتظاهر" مفاهيمياً بذلك بينما هو في الحقيقة يحسب بذكاء أي الأجزاء فقط تحتاج تحديثاً حقيقياً (هذه هي فكرة `Recomposition` التي سنراها لاحقاً). هذا يربط مباشرة بمشكلة القسم السابق: بدلاً من أن يتتبع المبرمج يدوياً كل مكان تظهر فيه البيانات، يتكفّل Compose بهذا التتبع تلقائياً. **تشبيه يومي:** تخيّلي أنكِ بدل مسح ألواح الطباشير المكتوبة والكتابة عليها يدوياً، عندكِ آلة ذكية تطبع لوحة جديدة بالكامل كلما تغيّر الرقم، لكنها ذكية بما يكفي لتغيير الملصق فقط في الأماكن التي تغيّر فيها الرقم فعلاً بدل طباعة اللوحة بأكملها من جديد.
 
-#### 💻 الكود: تعريف زر في XML وتحديثه إجرائياً
+**لماذا؟** لأن الموازنة بين بساطة "أعد كل شيء من الصفر" وكفاءة الأداء تتطلب ذكاءً داخلياً يحدد التغييرات الفعلية فقط، وهذا بالضبط ما يوفّره محرّك Compose.
 
-#### ما هذا الكود؟
-> يُعرّف زراً في ملف XML، ثم يبحث عنه في Kotlin ويُغيّر نصّه عند الضغط عليه يدوياً.
+---
 
-```xml
-<!-- Define a button widget in the layout file -->
-<Button
-    android:id="@+id/myButton"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Click Me!"
-    android:background="@color/blue"
-    android:textColor="@color/white" />
+### 4. مثال مقارن: XML/Kotlin التقليدي مقابل Jetpack Compose
+
+#### النص الأصلي يقول (English):
+> Example using XML and Kotlin: `<Button android:id="@+id/myButton" .../>` then `val button: Button = findViewById(R.id.myButton); button.setOnClickListener { button.text = "Clicked!" }`. Example using Jetpack Compose: `@Composable fun MyButton() { var clicked by remember { mutableStateOf(false) }; Button(onClick = { clicked = true }) { Text(text = if (clicked) "Clicked!" else "Click Me!") } }`. In this declarative approach: No need to find views manually – The UI is defined directly in Kotlin. State management is built-in – Compose automatically updates UI when the state changes.
+
+#### الترجمة الحرفية:
+> مثال باستخدام XML وKotlin: تعريف زر في ملف XML، ثم في Kotlin: البحث عن الزر باستخدام findViewById، ثم عند الضغط عليه يتم تغيير نصه يدوياً إلى "Clicked!". مثال باستخدام Jetpack Compose: دالة `MyButton` تحمل حالة `clicked` باستخدام `remember` و`mutableStateOf`، وعند الضغط على الزر يتم تغيير هذه الحالة، فيتغيّر النص المعروض تلقائياً بناءً عليها. في هذا النهج التصريحي: لا حاجة للبحث عن العناصر يدوياً — الواجهة مُعرَّفة مباشرة في Kotlin. إدارة الحالة مدمجة — يقوم Compose تلقائياً بتحديث الواجهة عندما تتغيّر الحالة.
+
+#### الشرح المبسّط:
+هذا المثال يجسّد عملياً الفرق النظري السابق: في XML/Kotlin يجب أولاً كتابة الزر في ملف منفصل (`XML`)، ثم "البحث" عنه بـ `findViewById()`، ثم تغيير نصه يدوياً داخل `setOnClickListener` — أي أن المبرمج يتحكم إجرائياً في كل خطوة. أما في Compose فكل شيء يوجد داخل دالة Kotlin واحدة مزينة بـ `@Composable`، والمتغيّر `clicked` (باستخدام `remember` و`mutableStateOf`) هو "الحالة" (state) التي يعتمد عليها النص المعروض؛ فبمجرد تغيّر قيمة `clicked` تُعاد قراءة الدالة تلقائياً ويظهر النص الجديد دون أن يكتب المبرمج أي سطر لتحديث الزر يدوياً. هذا يوضح عملياً معنى عبارة "إدارة الحالة مدمجة" (state management is built-in) التي وردت في النص. **تشبيه يومي:** الطريقة القديمة أشبه بلوحة إعلانات ورقية تحتاج يداً بشرية لتغيير الرقم عليها، بينما Compose أشبه بشاشة رقمية متصلة بقاعدة بيانات — بمجرد تغيّر الرقم في قاعدة البيانات (الحالة)، تتحدث الشاشة نفسها تلقائياً دون تدخل يدوي.
+
+**لماذا؟** لأن ربط عنصر الواجهة مباشرة بمتغيّر حالة (state) بدل ربطه بأمر يدوي (`setText`) يزيل الحاجة الكاملة لتتبّع "من يجب تحديثه الآن؟" لأن كل شيء يعتمد على حالة واحدة مصدر للحقيقة.
+
+---
+
+### 5. التحوّل التصريحي: تدفق البيانات والأحداث (Data & Events Flow)
+
+#### النص الأصلي يقول (English):
+> With many imperative object-oriented UI toolkits, you initialize the UI by instantiating a tree of widgets... In Compose's declarative approach, widgets are relatively stateless and don't expose setter or getter functions. In fact, widgets are not exposed as objects. You update UI by calling the same composable function with different arguments... When the user interacts with the UI, the UI raises events such as onClick. Those events should notify the app logic, which can then change the app's state. When the state changes, the composable functions are called again with the new data. This causes the UI elements to be redrawn--this process is called recomposition. The app logic provides data to the top-level composable function. That function uses the data to describe the UI by calling other composables, and passes the appropriate data to those composables, and on down the hierarchy. The user interacted with a UI element, causing an event to be triggered. The app logic responds to the event, then the composable functions are automatically called again with new parameters, if necessary.
+
+#### الترجمة الحرفية:
+> في العديد من أدوات بناء الواجهات الكائنية-التوجه الإجرائية، تقوم بتهيئة الواجهة بإنشاء نُسخ من شجرة عناصر (widgets)... في نهج Compose التصريحي، العناصر (widgets) عديمة الحالة نسبياً ولا تُظهر دوال getter أو setter. في الواقع، العناصر لا تُعرَض ككائنات (objects). تحدّث الواجهة عن طريق استدعاء نفس الدالة القابلة للتركيب (composable function) بمعاملات مختلفة... عندما يتفاعل المستخدم مع الواجهة، تُطلق الواجهة أحداثاً مثل onClick. يجب أن تُبلغ هذه الأحداث منطق التطبيق، الذي يمكنه عندها تغيير حالة التطبيق. عندما تتغيّر الحالة، تُستدعى الدوال القابلة للتركيب مرة أخرى بالبيانات الجديدة. هذا يتسبب في إعادة رسم عناصر الواجهة — تُسمى هذه العملية إعادة التركيب (recomposition). منطق التطبيق يزوّد الدالة القابلة للتركيب من المستوى الأعلى بالبيانات. تلك الدالة تستخدم البيانات لوصف الواجهة عن طريق استدعاء دوال قابلة للتركيب أخرى، وتمرّر البيانات المناسبة لتلك الدوال، وهكذا نزولاً في التسلسل الهرمي. تفاعل المستخدم مع عنصر واجهة، مما تسبب في إطلاق حدث. يستجيب منطق التطبيق للحدث، ثم تُستدعى الدوال القابلة للتركيب تلقائياً مرة أخرى بمعاملات جديدة، إن لزم الأمر.
+
+#### الشرح المبسّط:
+هنا يصف النص دورة كاملة ثنائية الاتجاه: البيانات تتدفق من الأعلى إلى الأسفل (من دالة `composable` رئيسية عبر الدوال الفرعية) بينما الأحداث (مثل الضغط `onClick`) تتدفق من الأسفل إلى الأعلى (من العنصر الذي تفاعل معه المستخدم إلى منطق التطبيق). النقطة الجوهرية أن `widgets` في Compose "عديمة الحالة" (stateless) ولا تُعرض ككائنات لها getter/setter كما في النظام القديم؛ التحديث لا يتم بتغيير خاصية على كائن، بل باستدعاء نفس الدالة مرة أخرى بمعطيات جديدة، وهذا ما يُسمى `Recomposition`. هذا يربط مباشرة بالمثال السابق (مثال الزر): الضغط غيّر الحالة `clicked`، فاستُدعيت دالة `MyButton` من جديد تلقائياً، وهذا بالضبط ما يعنيه "recomposition". **تشبيه يومي:** تخيّلي دائرة كهربائية بها زر (الحدث يصعد لأعلى ليخبر المصدر) ولمبة تعتمد على حالة المصدر (البيانات تنزل لأسفل لتضيء اللمبة) — لا أحد يذهب فعلياً ليغيّر اللمبة يدوياً، بل تتغيّر تلقائياً كنتيجة لتغيّر الحالة في المصدر.
+
+**لماذا؟** لأن فصل اتجاه البيانات (نزولاً) عن اتجاه الأحداث (صعوداً) يخلق نظاماً يمكن التنبؤ به دائماً — طالما تعرف الحالة الحالية، تعرف شكل الواجهة، بدون الحاجة لتتبع تاريخ كل تفاعل حدث سابقاً.
+
+---
+
+### 6. جدول المقارنة: Imperative (View System) مقابل Declarative (Jetpack Compose)
+
+#### النص الأصلي يقول (English):
+> View System vs Jetpack Compose table: Imperative UI vs Declarative UI | Manual UI updates vs State-driven UI | Mutable View hierarchy vs UI described with composable functions | High risk of inconsistent UI state vs Consistent UI via recomposition | UI split across XML and Kotlin vs UI defined entirely in Kotlin | More boilerplate code vs Less boilerplate code | Explicit UI update management vs Automatic selective recomposition.
+
+#### الترجمة الحرفية:
+> جدول View System مقابل Jetpack Compose: واجهة إجرائية مقابل واجهة تصريحية | تحديثات يدوية للواجهة مقابل واجهة مبنية على الحالة | شجرة عناصر قابلة للتغيير مقابل واجهة موصوفة بدوال قابلة للتركيب | خطورة عالية لعدم اتساق حالة الواجهة مقابل واجهة متسقة عبر إعادة التركيب | الواجهة موزّعة بين XML وKotlin مقابل واجهة معرَّفة بالكامل في Kotlin | كود متكرر أكثر مقابل كود متكرر أقل | إدارة صريحة لتحديث الواجهة مقابل إعادة تركيب انتقائية تلقائية.
+
+#### الشرح المبسّط:
+هذا الجدول هو تلخيص مباشر لكل ما شُرح في الأقسام السابقة (1 إلى 5) في صف واحد مقارن: النظام القديم (`View System`) إجرائي، يدوي، معرّض للأخطاء، موزّع بين ملفين (XML وKotlin)، فيه كود متكرر أكثر، ويتطلب من المبرمج إدارة صريحة لكل تحديث. أما `Jetpack Compose` فتصريحي، معتمد على الحالة (state-driven)، متسق بفضل `recomposition`، معرّف بالكامل في Kotlin، وكل هذا يقلل الكود ويقلل الأخطاء. الفائدة من وجود هذا الجدول هنا هو أنه غالباً ما يظهر في أسئلة الامتحان كمقارنة مباشرة، لذا حفظ هذه الأزواج (imperative↔declarative، manual↔state-driven، إلخ) مهم جداً. **تشبيه يومي:** كأنكِ تقارنين بين دفتر حسابات ورقي (يجب عليكِ تحديث كل رقم يدوياً في كل مكان يظهر فيه) وبين جدول Excel به معادلات (تُحدَّث كل الخلايا المرتبطة تلقائياً بمجرد تغيير خلية واحدة).
+
+**لماذا؟** لأن تلخيص المفاهيم في جدول مقارن يسهّل استرجاعها بسرعة وقت المراجعة، ولأنه يجمع كل الفروقات الجوهرية بين النظامين في مكان واحد.
+
+---
+
+### 7. مثال دالة قابلة للتركيب (Greeting) — البنية الأساسية
+
+#### النص الأصلي يقول (English):
+> Using Compose, you can build your user interface by defining a set of composable functions that take in data and emit UI elements. Example: a Greeting widget, which takes in a String and emits a Text widget which displays a greeting message. `@Composable fun Greeting(name: String) { Text("Hello $name") }`. A composable function that is passed data and uses it to render a text widget on the screen.
+
+#### الترجمة الحرفية:
+> باستخدام Compose، يمكنك بناء واجهة المستخدم بتعريف مجموعة من الدوال القابلة للتركيب (composable functions) التي تستقبل بيانات وتُصدر (emit) عناصر واجهة. مثال: عنصر Greeting الذي يستقبل نصاً (String) ويُصدر عنصر Text يعرض رسالة ترحيب. دالة قابلة للتركيب تُمرَّر لها بيانات وتستخدمها لعرض عنصر نصي على الشاشة.
+
+#### الشرح المبسّط:
+هذا المثال هو أبسط شكل ممكن لدالة `@Composable`: تأخذ معامل واحد (`name`) وتستخدمه مباشرة لعرض نص على الشاشة عبر استدعاء `Text()`. هذا يجسّد عملياً فكرة "أخذ بيانات وإصدار عناصر واجهة" التي شُرحت نظرياً في القسم الأول؛ فبدل أن ترجع الدالة قيمة كما في البرمجة العادية، هي "تصف" ماذا يجب أن يظهر على الشاشة. هذا المثال البسيط سيُستخدم كأساس لفهم القسم التالي (خصائص الدوال القابلة للتركيب) وأمثلة `ArtistCard` لاحقاً في المحاضرة. **تشبيه يومي:** فكّري في هذه الدالة كقالب بطاقة معايدة جاهز يطبع اسمك تلقائياً بمجرد أن تعطيه اسمك — أنتِ لا تصممين البطاقة من الصفر كل مرة، بل تمررين "الاسم" فقط والقالب يتكفل بالباقي.
+
+**لماذا؟** لأن أبسط الأمثلة هي أفضل طريقة لفهم الميكانيكية الأساسية قبل الانتقال لأمثلة أكثر تعقيداً تحتوي على عدة عناصر متداخلة.
+
+---
+
+### 8. الخصائص الأربع للدالة القابلة للتركيب (Annotation, Data Input, UI Display, No Return Value)
+
+#### النص الأصلي يقول (English):
+> A few noteworthy things about this function: Annotation: The function is annotated with the @Composable annotation. All composable functions must have this annotation. This annotation informs the Compose compiler that this function is intended to convert data into UI. Data input: The function takes in data. Composable functions can accept parameters, which let the app logic describe the UI. UI display: The function displays text in the UI. It does so by calling the Text() composable function, which actually creates the text UI element. Composable functions emit UI hierarchy by calling other composable functions. No return value: The function doesn't return anything. Compose functions that emit UI don't need to return anything, because they describe the target screen state instead of constructing UI widgets.
+
+#### الترجمة الحرفية:
+> بضعة أمور جديرة بالملاحظة حول هذه الدالة: التعليق التوضيحي (Annotation): الدالة مُعلَّمة بـ @Composable annotation. يجب أن تحمل كل الدوال القابلة للتركيب هذا التعليق. هذا التعليق يُخبر مترجم (compiler) Compose أن هذه الدالة مخصصة لتحويل البيانات إلى واجهة. إدخال البيانات (Data input): الدالة تستقبل بيانات. يمكن للدوال القابلة للتركيب استقبال معاملات، تتيح لمنطق التطبيق وصف الواجهة. عرض الواجهة (UI display): الدالة تعرض نصاً في الواجهة. تفعل ذلك عن طريق استدعاء دالة Text()‏ القابلة للتركيب، والتي تُنشئ فعلياً عنصر النص. الدوال القابلة للتركيب تُصدر تسلسلاً هرمياً للواجهة عن طريق استدعاء دوال قابلة للتركيب أخرى. عدم وجود قيمة إرجاع (No return value): الدالة لا تُرجع أي شيء. دوال Compose التي تُصدر واجهة لا تحتاج لإرجاع أي شيء، لأنها تصف حالة الشاشة المستهدفة بدلاً من بناء عناصر واجهة.
+
+#### الشرح المبسّط:
+هذه النقاط الأربع هي "بطاقة هوية" أي دالة `@Composable` صحيحة، ومن المهم حفظها لأنها غالباً ما تُختبر في أسئلة MCQ. أولاً، التعليق `@Composable` إلزامي لأنه يخبر المترجم أن هذه الدالة ليست دالة عادية بل تصف واجهة. ثانياً، تستقبل الدالة بيانات (parameters) لتخصيص ما تعرضه. ثالثاً، هي "تُصدر" (emit) عناصر واجهة باستدعاء دوال قابلة للتركيب أخرى (مثل `Text()`)، وليس ببناء كائنات مباشرة. رابعاً — وهذه أهم نقطة قد تُربك المبتدئين قادمين من دوال Kotlin العادية — لا تُرجع الدالة أي قيمة (`Unit` ضمنياً)، لأن دورها ليس "حساب نتيجة" بل "وصف كيف يجب أن تبدو الشاشة"، وهذا يربط مباشرة بالنمط التصريحي الذي شُرح في بداية المحاضرة. **تشبيه يومي:** دالة `@Composable` أشبه بمعلّم يصف للفنان لوحة يريدها ("ارسم شمساً هنا، وشجرة هناك") بدل أن يرسمها بنفسه ويسلّمها جاهزة — المعلّم لا "يُرجع" لوحة، بل يصف كيف يجب أن تكون.
+
+**لماذا؟** لأن غياب قيمة الإرجاع يعكس فلسفة العمل: الدالة توصف بدل أن تبني/تُرجع، وهذا هو جوهر الفرق بين composable function ودالة Kotlin عادية.
+
+---
+
+### 9. مراحل Jetpack Compose الثلاث — نظرة عامة (Composition, Layout, Drawing)
+
+#### النص الأصلي يقول (English):
+> Compose has three main phases of a frame: Composition: What UI to show. Compose runs composable functions and creates a description of your UI. Layout: Where to place UI. This phase consists of two steps: measurement and placement. Layout elements measure and place themselves and any child elements in 2D coordinates, for each node in the layout tree. Drawing: How it renders. UI elements draw into a Canvas, usually a device screen.
+
+#### الترجمة الحرفية:
+> يملك Compose ثلاث مراحل رئيسية لكل إطار (frame): التركيب (Composition): ما هي الواجهة التي ستُعرض. يُشغّل Compose الدوال القابلة للتركيب وينشئ وصفاً لواجهتك. التخطيط (Layout): أين توضع الواجهة. تتكون هذه المرحلة من خطوتين: القياس (measurement) والوضع (placement). عناصر التخطيط تقيس وتضع نفسها وأي عناصر فرعية في إحداثيات ثنائية الأبعاد، لكل عُقدة في شجرة التخطيط. الرسم (Drawing): كيف يتم عرضها. تُرسم عناصر الواجهة داخل لوحة (Canvas)، غالباً شاشة الجهاز.
+
+#### الشرح المبسّط:
+كل إطار (frame) يظهر على الشاشة في Compose يمرّ بثلاث مراحل متتالية إلزامية: أولاً `Composition` تحدد "ماذا" سيُعرض (تشغيل الدوال القابلة للتركيب وبناء شجرة وصفية للواجهة)، ثم `Layout` يحدد "أين" يوضع كل عنصر (بخطوتين: قياس الحجم ثم تحديد موقع كل عنصر بإحداثيات x,y)، وأخيراً `Drawing` يحدد "كيف" يُرسم كل شيء فعلياً على الشاشة (`Canvas`). هذا التسلسل الثلاثي هو الآلية الداخلية التي تجعل النمط التصريحي (الذي شُرح سابقاً) يعمل فعلياً بكفاءة، لأن كل مرحلة تعتمد على مخرجات المرحلة التي قبلها ولا تكرر عملها. **تشبيه يومي:** بناء منزل يمرّ بثلاث مراحل مشابهة: أولاً تحديد "ماذا" سيُبنى (مخطط الغرف — Composition)، ثم "أين" (تحديد أبعاد ومواقع كل غرفة بالضبط على الأرض — Layout)، وأخيراً "كيف" يظهر فعلياً (تنفيذ البناء والدهان — Drawing).
+
+**لماذا؟** لأن فصل "ماذا/أين/كيف" إلى ثلاث مراحل منفصلة يسمح لـ Compose بتحسين الأداء في كل مرحلة على حدة، وتخطي أي مرحلة إن لم تتغير مدخلاتها.
+
+---
+
+### 10. مرحلة التركيب (Composition Phase) بالتفصيل
+
+#### النص الأصلي يقول (English):
+> In the composition phase, the Compose runtime executes composable functions and outputs a tree structure that represents your UI. This UI tree consists of layout nodes that contain all the information needed for the next phases. In these examples, each composable function in the code maps to a single layout node in the UI tree. In more complex examples, composables can contain logic and control flow, and produce a different tree given different states.
+
+#### الترجمة الحرفية:
+> في مرحلة التركيب (composition phase)، يُنفّذ محرّك Compose (runtime) الدوال القابلة للتركيب ويُخرِج بنية شجرية تمثّل واجهتك. تتكوّن شجرة الواجهة هذه من عُقد تخطيط (layout nodes) تحتوي على كل المعلومات اللازمة للمراحل التالية. في هذه الأمثلة، كل دالة قابلة للتركيب في الكود تُقابل عُقدة تخطيط واحدة في شجرة الواجهة. في أمثلة أكثر تعقيداً، يمكن للدوال القابلة للتركيب أن تحتوي على منطق وتدفق تحكم (control flow)، وأن تُنتج شجرة مختلفة اعتماداً على حالات مختلفة.
+
+#### الشرح المبسّط:
+في هذه المرحلة، لا يُرسم أي شيء بعد على الشاشة؛ كل ما يحدث هو أن Compose يُشغّل الكود (دوال `Row`، `Image`، `Column`، `Text` مثلاً) وينشئ شجرة بيانات تصف العلاقة الهرمية بين العناصر (من هو أب من، من هو ابن من)، تماماً كما يظهر في المثال: `Row { Image(..); Column { Text(..); Text(..) } }` يصبح شجرة فيها `Row` هو الجذر، وله ابنان `Image` و`Column`، ولـ`Column` ابنان هما نصّان `Text`. المهم هنا أن الشجرة قد تتغيّر شكلها بناءً على الحالة (state) الحالية — إن كان هناك `if/else` داخل الدالة القابلة للتركيب، فإن الشجرة الناتجة تختلف حسب أي فرع تم تنفيذه. هذه الشجرة الناتجة هي بالضبط ما ستحتاجه المرحلة التالية (`Layout`) لتحديد الأحجام والمواقع. **تشبيه يومي:** هذه المرحلة أشبه بكتابة قائمة تسلسل هرمي لموظفي شركة (من يتبع من) قبل أن تقرري أين يجلس كل واحد فعلياً في المبنى — أنتِ فقط تحددين العلاقات، وليس المواقع بعد.
+
+**لماذا؟** لأن فصل "بناء العلاقة الهرمية" عن "حساب الأحجام والمواقع" يسمح لـ Compose بإعادة تشغيل جزء صغير من الشجرة فقط عند تغيّر الحالة، بدل إعادة حساب كل شيء من جديد.
+
+---
+
+### 11. مرحلة التخطيط (Layout Phase) — خوارزمية القياس والوضع
+
+#### النص الأصلي يقول (English):
+> In the layout phase, Compose uses the UI tree produced in the composition phase as input. The collection of layout nodes contain all the information needed to decide on each node's size and location in 2D space. During the layout phase, the tree is traversed using the following three step algorithm: Measure children: A node measures its children if any exist. Decide own size: Based on these measurements, a node decides on its own size. Place children: Each child node is placed relative to a node's own position. At the end of this phase, each layout node has: An assigned width and height. An x, y coordinate where it should be drawn.
+
+#### الترجمة الحرفية:
+> في مرحلة التخطيط، يستخدم Compose شجرة الواجهة المُنتَجة في مرحلة التركيب كمدخل. تحتوي مجموعة عُقد التخطيط على كل المعلومات اللازمة لتحديد حجم وموقع كل عُقدة في الفضاء ثنائي الأبعاد. خلال مرحلة التخطيط، يتم اجتياز الشجرة باستخدام خوارزمية من ثلاث خطوات التالية: قياس الأبناء: تقيس العُقدة أبناءها إن وُجدوا. تحديد حجمها الخاص: بناءً على هذه القياسات، تحدد العُقدة حجمها الخاص. وضع الأبناء: يوضع كل عُقدة ابن نسبةً لموقع العُقدة نفسها. في نهاية هذه المرحلة، تمتلك كل عُقدة تخطيط: عرضاً وارتفاعاً محددَين. إحداثيات x وy تُرسم عندها.
+
+```algorithm
+1 | قياس الأبناء (Measure children) | Layout Node | العُقدة تطلب من كل أبنائها أن يقيسوا أنفسهم أولاً
+2 | تحديد الحجم الخاص (Decide own size) | Layout Node | بناءً على قياسات الأبناء، تحدد العُقدة حجمها الخاص (عرض وارتفاع)
+3 | وضع الأبناء (Place children) | Layout Node | تضع العُقدة كل ابن في إحداثيات x,y نسبةً لموقعها هي
 ```
-```kotlin
-// Locate the button by its id
-val button: Button = findViewById(R.id.myButton)
-// Manually update its text when clicked
-button.setOnClickListener {
-    button.text = "Clicked!"
-}
-```
 
-#### شرح كل سطر:
-1. `android:id="@+id/myButton"` → معرّف فريد للزر — يُستخدم لاحقاً للبحث عنه.
-2. `findViewById(R.id.myButton)` → يبحث يدوياً عن الزر داخل الشجرة — عملية إجرائية صريحة.
-3. `button.setOnClickListener { ... }` → يُسجّل استجابة للحدث.
-4. `button.text = "Clicked!"` → يُغيّر الحالة الداخلية للزر مباشرة (mutation).
+#### الشرح المبسّط:
+مرحلة `Layout` تأخذ الشجرة الناتجة من `Composition` وتحدد لكل عنصر فيها "كم حجمه" و"أين موقعه بالضبط" على الشاشة، وذلك عبر خوارزمية من ثلاث خطوات متكررة لكل عُقدة: أولاً تسأل العقدة أبناءها أن يقيسوا أنفسهم، ثانياً تستخدم هذه القياسات لتقرر حجمها هي، وثالثاً تضع كل ابن في مكانه بالضبط بناءً على موقعها هي. النقطة الجوهرية هنا هي الترتيب الزمني العكسي: "القياس" يبدأ من الجذر نازلاً للأبناء، لكن "تحديد الحجم والوضع الفعلي" يحدث من الأبناء صاعداً للجذر — أي أن الأب لا يعرف حجمه إلا بعد أن يعرف أحجام كل أبنائه أولاً. هذا مهم جداً لفهم المثال العملي في القسم التالي. **تشبيه يومي:** كأنكِ تحاولين تعبئة صناديق داخل صندوق أكبر — يجب أن تعرفي حجم كل صندوق صغير أولاً (قياس الأبناء) قبل أن تقرري حجم الصندوق الكبير الذي يسعهم جميعاً (تحديد الحجم الخاص)، ثم ترتبين الصناديق الصغيرة بداخله (وضع الأبناء).
 
-**المكتبات المطلوبة (Imports):**
-> `import androidx.appcompat.widget.Button`
-
-**الناتج المتوقع (لقطة الشاشة):**
-> زر أزرق يحمل نص "Click Me!"، وبعد الضغط يتحول النص إلى "Clicked!".
+**لماذا؟** لأن حجم أي حاوية (Row/Column) يعتمد منطقياً على محتوياتها، فلا بد أن تُعرف أحجام المحتويات أولاً قبل أن تستطيع الحاوية معرفة حجمها هي.
 
 ---
 
-**الطريقة التصريحية (Jetpack Compose):**
+### 12. مثال تتبّع تنفيذ لخوارزمية القياس (Row → Image + Column → Text, Text)
 
-#### 💻 الكود: زر تفاعلي بأسلوب Compose
+#### النص الأصلي يقول (English):
+> Example1: The Row measures its children, Image and Column. The Image is measured. It doesn't have any children, so it decides its own size and reports the size back to the Row. The Column is measured next. It measures its own children (two Text composables) first. The first Text is measured... reports its size back to the Column. The second Text is measured... reports it back to the Column. The Column uses the child measurements to decide its own size. It uses the maximum child width and the sum of the height of its children. The Column places its children relative to itself, putting them beneath each other vertically. The Row uses the child measurements to decide its own size. It uses the maximum child height and the sum of the widths of its children. It then places its children. Each node was visited only once. Briefly, parents measure before their children, but are sized and placed after their children.
 
-#### ما هذا الكود؟
-> يبني نفس الزر لكن بأسلوب تصريحي: يصف "ما الذي يجب عرضه" اعتماداً على متغيّر حالة `clicked`.
+#### الترجمة الحرفية:
+> مثال1: يقيس Row أبناءه، Image وColumn. يُقاس Image. ليس له أبناء، لذا يحدد حجمه الخاص ويُبلّغ الحجم مرة أخرى إلى Row. يُقاس Column بعد ذلك. يقيس أبناءه (عنصرا Text) أولاً. يُقاس النص الأول... يُبلّغ حجمه مرة أخرى إلى Column. يُقاس النص الثاني... يُبلّغه مرة أخرى إلى Column. يستخدم Column قياسات الأبناء لتحديد حجمه الخاص. يستخدم أقصى عرض للأبناء ومجموع ارتفاعات أبنائه. يضع Column أبناءه نسبة لنفسه، واضعاً إياهم تحت بعضهم رأسياً. يستخدم Row قياسات الأبناء لتحديد حجمه الخاص. يستخدم أقصى ارتفاع للأبناء ومجموع عروض أبنائه. ثم يضع أبناءه. تمت زيارة كل عُقدة مرة واحدة فقط. باختصار، الآباء يقيسون قبل أبنائهم، لكن يُحدَّد حجمهم وموقعهم بعد أبنائهم.
+
+| الخطوة | العملية | الحالة |
+| --- | --- | --- |
+| 1 | Row يطلب من Image القياس | Image يُقاس، لا أبناء له |
+| 2 | Image يُبلغ حجمه لـ Row | Row يعرف حجم Image فقط حتى الآن |
+| 3 | Row يطلب من Column القياس | Column يطلب من أبنائه (Text, Text) القياس أولاً |
+| 4 | Text الأول يُقاس ويُبلغ حجمه | Column يعرف حجم Text الأول |
+| 5 | Text الثاني يُقاس ويُبلغ حجمه | Column يعرف حجمي كلا النصين |
+| 6 | Column يحدد حجمه (أقصى عرض + مجموع الارتفاعات) | Column لديه الآن حجم محدد |
+| 7 | Column يضع أبناءه عمودياً تحت بعضهم | مواقع Text, Text محددة |
+| 8 | Row يحدد حجمه (أقصى ارتفاع + مجموع العروض) | Row لديه الآن حجم محدد |
+| 9 | Row يضع أبناءه (Image, Column) | كل العُقد لها الآن حجم وموقع |
+
+**النتيجة:** كل عُقدة في الشجرة زُرت مرة واحدة فقط خلال المرور بالخوارزمية، مما يجعل عملية القياس والوضع في Compose تمر بشجرة الواجهة بمسار واحد فقط (single pass) وهو ما يحسّن الأداء بشكل كبير.
+
+#### الشرح المبسّط:
+هذا المثال يجسّد عملياً خوارزمية الخطوات الثلاث من القسم السابق على شجرة حقيقية بها `Row` كجذر، وابناه `Image` و`Column`، ويحتوي `Column` بدوره على نصين. لاحظي أن `Column` لا يستطيع معرفة حجمه (عرضه وارتفاعه) قبل أن يعرف حجم النصّين بداخله أولاً؛ وبالمثل لا يستطيع `Row` تحديد حجمه قبل معرفة حجمي `Image` و`Column`. هذا يفسر لماذا "الآباء يُقاسون قبل أبنائهم لكن يُحدَّد حجمهم بعد أبنائهم" — وهي جملة أساسية للحفظ لأنها كثيراً ما تُختبر. المهم أيضاً أن كل عُقدة تُزار مرة واحدة فقط، مما يجعل هذا "تمريرة واحدة" (single-pass algorithm) بدل تكرار الزيارة، وهذا يفسر جزئياً لماذا Compose سريع نسبياً رغم كل هذا التسلسل. **تشبيه يومي:** كأنكِ تحسبين تكلفة فاتورة طلب طعام لعائلة (Row) — لا يمكنكِ معرفة المجموع الكلي قبل معرفة سعر كل طبق فردي أولاً (الأبناء)، فتحسبين كل طبق أولاً، ثم تجمعين المجموع الكلي (حجم الأب).
+
+**لماذا؟** لأن اجتياز الشجرة بمسار واحد فقط (بدل مسارات متعددة) هو تحسين أداء جوهري — كل عُقدة تُحسب مرة واحدة تماماً، لا أكثر.
+
+---
+
+### 13. مثال كود كامل لترتيب مراحل القياس والوضع (SearchResult)
+
+#### النص الأصلي يقول (English):
+> Example2: `@Composable fun SearchResult() { Row { Image(...); Column { Text("Hello"); Text("World") } } }`. SearchResult function yields the following UI tree. The UI tree layout follows this order: 1. The root node Row is asked to measure. 2. The root node Row asks its first child, Image, to measure. 3. Image is a leaf node, so it reports a size and returns placement instructions. 4. The root node Row asks its second child, Column, to measure. 5. The Column node asks its first Text child to measure. 6. The first Text node is a leaf node, so it reports a size and returns placement instructions. 7. The Column node asks its second Text child to measure. 8. The second Text node is a leaf node, so it reports a size and returns placement instructions. 9. Now that the Column node has measured, sized, and placed its children, it can determine its own size and placement. 10. Now that the root node Row has measured, sized, and placed its children, it can determine its own size and placement.
+
+#### الترجمة الحرفية:
+> مثال2: دالة SearchResult تحتوي Row بداخله Image وColumn، وColumn بداخله نصان "Hello" و"World". تُنتج دالة SearchResult شجرة الواجهة التالية. تتبع شجرة تخطيط الواجهة هذا الترتيب: 1. العُقدة الجذرية Row يُطلب منها القياس. 2. العُقدة الجذرية Row تطلب من ابنها الأول، Image، القياس. 3. Image عُقدة ورقية (leaf node)، لذا يُبلّغ حجماً ويُعيد تعليمات الوضع. 4. العُقدة الجذرية Row تطلب من ابنها الثاني، Column، القياس. 5. عُقدة Column تطلب من ابنها الأول Text القياس. 6. عُقدة Text الأولى ورقية، لذا تُبلّغ حجماً وتُعيد تعليمات الوضع. 7. عُقدة Column تطلب من ابنها الثاني Text القياس. 8. عُقدة Text الثانية ورقية، لذا تُبلّغ حجماً وتُعيد تعليمات الوضع. 9. الآن وقد قاست عُقدة Column أبناءها وحدّدت حجمهم ووضعتهم، يمكنها تحديد حجمها وموقعها الخاص. 10. الآن وقد قاست العُقدة الجذرية Row أبناءها وحدّدت حجمهم ووضعتهم، يمكنها تحديد حجمها وموقعها الخاص.
 
 ```kotlin
+// Composable function describing a Row containing an Image and a Column of two Texts
 @Composable
-fun MyButton() {
-    // Declare a state variable that survives recomposition
-    var clicked by remember { mutableStateOf(false) }
-    // Describe a Button and what it should show based on state
-    Button(onClick = { clicked = true }) {
-        Text(text = if (clicked) "Clicked!" else "Click Me!")
+fun SearchResult() {
+    Row {
+        // Image leaf node — no children
+        Image(painter = painterResource(id = R.drawable.dog), contentDescription = "")
+        // Column contains two Text leaf nodes
+        Column {
+            Text("Hello")
+            Text("World")
+        }
     }
 }
 ```
 
 #### شرح كل سطر:
-1. `@Composable` → يُعلم مترجم Compose أن هذه الدالة تُنتج واجهة.
-2. `var clicked by remember { mutableStateOf(false) }` → متغيّر حالة يحتفظ بقيمته عبر عمليات `Recomposition`.
-3. `Button(onClick = { clicked = true })` → عند الضغط، تُغيَّر الحالة فقط، **وليس** الزر نفسه.
-4. `Text(text = if (clicked) ...)` → النص يُشتق تلقائياً من الحالة الحالية، دون أي بحث يدوي.
+1. `@Composable` → تعليق توضيحي إلزامي — يخبر مترجم Compose أن هذه دالة تصف واجهة
+2. `fun SearchResult()` → تعريف الدالة القابلة للتركيب، بدون معاملات هنا ولا قيمة إرجاع
+3. `Row { ... }` → عُقدة الجذر التي ترتّب أبناءها أفقياً
+4. `Image(...)` → عُقدة ورقية (leaf node) — لا أبناء لها، أول ابن لـ Row
+5. `Column { ... }` → الابن الثاني لـ Row، يحتوي بدوره على أبناء
+6. `Text("Hello")` و`Text("World")` → عُقدتان ورقيتان، أبناء Column
+
+**المكتبات المطلوبة (Imports):**
+> `import androidx.compose.foundation.layout.Row`، `import androidx.compose.foundation.layout.Column`، `import androidx.compose.material3.Text`، `import androidx.compose.foundation.Image`
 
 **الناتج المتوقع (لقطة الشاشة):**
-> زر يعرض "Click Me!" ثم يتحول تلقائياً إلى "Clicked!" بعد الضغط، دون أي استدعاء يدوي لتعديل الزر.
+> صورة كلب على اليسار، وبجانبها كلمتا "Hello" فوق "World" مرتبتان عمودياً.
 
-#### ⚖️ المقايضة: الأسلوب الإجرائي مقابل التصريحي
-
-| | الأسلوب الإجرائي (View System) | الأسلوب التصريحي (Compose) |
-| --- | --- | --- |
-| المزايا | تحكم دقيق مباشر بكل عنصر | كود أقل، أخطاء أقل، اتساق تلقائي |
-| العيوب | كود مطوّل، خطر عدم الاتساق | يحتاج فهم مفاهيم جديدة (State, Recomposition) |
-| متى تختاره | مشاريع قديمة قائمة على XML | أي مشروع جديد يوصى به رسمياً من Google |
-
----
-
-### 3. تحوّل النموذج التصريحي: تدفق البيانات والأحداث (The Declarative Paradigm Shift)
-
-#### النص الأصلي يقول (English):
-> "In Compose's declarative approach, widgets are relatively stateless and don't expose setter or getter functions... You update UI by calling the same composable function with different arguments... When the user interacts with the UI, the UI raises events such as onClick. Those events should notify the app logic, which can then change the app's state. When the state changes, the composable functions are called again with the new data. This causes the UI elements to be redrawn--this process is called recomposition."
-
-#### الشرح المبسّط:
-في Compose، العناصر (Widgets) لا تحتفظ بحالتها الخاصة ولا تملك دوال `get/set`. بدلاً من ذلك:
-- منطق التطبيق (App Logic) يُرسل **البيانات** للأسفل عبر شجرة الدوال القابلة للتركيب (Composables).
-- عندما يتفاعل المستخدم (كالضغط)، تُرسل **الأحداث** للأعلى إلى منطق التطبيق.
-- منطق التطبيق يُغيّر الحالة، فتُستدعى دوال Composable من جديد بالبيانات الجديدة — وهذا يُسمى **Recomposition**.
-
-**لماذا؟** هذا يضمن اتجاهاً واحداً واضحاً لتدفق البيانات (Unidirectional Data Flow)، ما يمنع التضارب والحالات غير المتسقة.
-
-#### ⚙️ الخطوات / الخوارزمية: دورة تدفق البيانات والأحداث في Compose
-
-#### ما هدف هذه العملية؟
-> توضيح كيف تنتقل البيانات من الأعلى للأسفل، والأحداث من الأسفل للأعلى، عبر شجرة الواجهة.
-
-```algorithm
-1 | توفير البيانات | App Logic | تُمرَّر البيانات إلى الدالة القابلة للتركيب العليا (Top-level Composable)
-2 | بناء الشجرة | Composable Functions | كل دالة تستدعي دوال أخرى وتمرر لها الجزء المناسب من البيانات
-3 | تفاعل المستخدم | UI Element | يُطلق حدثاً مثل onClick صعوداً نحو منطق التطبيق
-4 | تحديث الحالة | App Logic | يستجيب للحدث ويُغيّر متغيّر الحالة (State)
-5 | إعادة التركيب | Compose Runtime | تُستدعى الدوال القابلة للتركيب مجدداً بالبيانات الجديدة (Recomposition)
-```
-
-#### نقاط التنفيذ:
-- اتجاه البيانات دائماً من الأعلى للأسفل (down)، واتجاه الأحداث دائماً من الأسفل للأعلى (up).
-- لا يحدث Recomposition لكل الشجرة، بل فقط للأجزاء المتأثرة فعلياً بتغيّر الحالة.
-
-#### 📊 المخطط: تدفق البيانات والأحداث (Screen → NewsFeed → Story Widgets)
-
+#### 📊 المخطط: شجرة SearchResult
 #### ما هذا المخطط؟
-> يوضّح مثال المحاضرة (صفحة 8-9) لشجرة واجهة تضم `Screen`، `NewsFeed`، وثلاثة `Story Widget`، مع اتجاهي البيانات والأحداث.
+> يوضّح هذا المخطط شجرة الواجهة (UI tree) الناتجة من تشغيل دالة SearchResult في مرحلة Composition، والتي تُستخدم كمدخل لمرحلة Layout.
 
 #### وصف العُقد:
 | # | العُقدة | النوع `kind` | الشرح |
 | --- | --- | --- | --- |
-| 1 | Screen | composable | الجذر الأعلى للشاشة |
-| 2 | NewsFeed | composable | يستقبل البيانات من Screen |
-| 3 | Story Widget (×3) | composable | عناصر فرعية، كل واحد يمثل خبراً/قصة |
+| 1 | SearchResult | root function | الدالة الرئيسية التي تصف كل الواجهة |
+| 2 | Row | container | يرتّب أبناءه أفقياً |
+| 3 | Image | leaf | عُقدة ورقية — لا أبناء |
+| 4 | Column | container | يرتّب أبناءه عمودياً |
+| 5 | Text ("Hello") | leaf | عُقدة ورقية |
+| 6 | Text ("World") | leaf | عُقدة ورقية |
 
 #### وصف الروابط:
 | من | إلى | التسمية | نوع السهم | الشرح |
 | --- | --- | --- | --- | --- |
-| Screen | NewsFeed | Data ↓ | اتجاه واحد للأسفل | تمرير البيانات |
-| Story Widget | NewsFeed | Event ↑ | اتجاه واحد للأعلى | مثلاً ضغط المستخدم على قصة واحدة (كما في الشريحة 9 حيث تُظهر Story Widget الأولى باللون الأخضر) |
-| NewsFeed | Screen | Event ↑ | اتجاه واحد للأعلى | إشعار الحدث للأعلى إذا لزم |
+| SearchResult | Row | يحتوي | احتواء | Row هو الجذر داخل الدالة |
+| Row | Image | ابن أول | ترتيب | يُقاس أولاً |
+| Row | Column | ابن ثانٍ | ترتيب | يُقاس ثانياً |
+| Column | Text("Hello") | ابن أول | ترتيب | يُقاس أولاً داخل Column |
+| Column | Text("World") | ابن ثانٍ | ترتيب | يُقاس ثانياً داخل Column |
 
 ```diagram
 type: flowchart
-title: Data and Event Flow in Compose
-direction: TD
-nodes:
-  - id: screen
-    label: Screen
-    kind: composable
-    level: 0
-  - id: newsfeed
-    label: NewsFeed
-    kind: composable
-    level: 1
-  - id: story1
-    label: Story Widget 1
-    kind: composable
-    level: 2
-  - id: story2
-    label: Story Widget 2
-    kind: composable
-    level: 2
-  - id: story3
-    label: Story Widget 3
-    kind: composable
-    level: 2
-edges:
-  - from: screen
-    to: newsfeed
-  - from: newsfeed
-    to: story1
-  - from: newsfeed
-    to: story2
-  - from: newsfeed
-    to: story3
-```
-
----
-
-### 4. مقارنة شاملة: Imperative UI مقابل Declarative UI
-
-#### النص الأصلي يقول (English):
-> "View System | Jetpack Compose — Imperative UI | Declarative UI — Manual UI updates | State-driven UI — Mutable View hierarchy | UI described with composable functions — High risk of inconsistent UI state | Consistent UI via recomposition — UI split across XML and Kotlin | UI defined entirely in Kotlin — More boilerplate code | Less boilerplate code — Explicit UI update management | Automatic selective recomposition"
-
-#### الشرح المبسّط:
-هذا الجدول يلخص كل الفروقات الجوهرية بين الأسلوبين في نقاط مباشرة (انظر جدول المقارنات في الملخص أدناه).
-
-**لماذا هذا الجدول مهم؟** لأنه يظهر بوضوح لماذا اختارت Google التحول نحو Compose: تقليل الكود المتكرر، وتقليل مخاطر الأخطاء البشرية.
-
----
-
-### 5. مثال على دالة قابلة للتركيب (An Example Composable Function)
-
-#### النص الأصلي يقول (English):
-> "Using Compose, you can build your user interface by defining a set of composable functions that take in data and emit UI elements. Example: a Greeting widget, which takes in a String and emits a Text widget which displays a greeting message."
-
-#### الشرح المبسّط:
-كل واجهة في Compose تُبنى من دوال صغيرة تأخذ بيانات (Input) وتُخرج عناصر واجهة (UI Elements). المثال الكلاسيكي هو دالة `Greeting` التي تأخذ اسماً وتعرض رسالة ترحيب.
-
-#### 💻 الكود: دالة Greeting البسيطة
-
-#### ما هذا الكود؟
-> دالة قابلة للتركيب تستقبل `String` وتعرضه ضمن نص ترحيبي باستخدام `Text`.
-
-```kotlin
-@Composable
-fun Greeting(name: String) {
-    // Emit a Text composable with a greeting message
-    Text("Hello $name")
-}
-```
-
-#### شرح كل سطر:
-1. `@Composable` → يجعل الدالة جزءاً من نظام Compose، وتُصبح قابلة للاستدعاء من دوال Composable أخرى فقط.
-2. `fun Greeting(name: String)` → تأخذ بيانات إدخال (String) — هذا هو "دخل البيانات".
-3. `Text("Hello $name")` → تستدعي دالة Composable أخرى (`Text`) لعرض النتيجة على الشاشة — هذا هو "عرض الواجهة".
-
-**الناتج المتوقع (لقطة الشاشة):**
-> نص "Hello World" معروض إذا استُدعيت الدالة بـ `Greeting("World")`.
-
-#### 💡 التشبيه:
-> الدالة القابلة للتركيب أشبه بقالب طلب في مطعم: تُعطيه اسم الزبون (البيانات) فيُخرج بطاقة ترحيب مطبوعة (واجهة)، دون أن يهتم القالب بمن سيقرأ البطاقة لاحقاً.
-> **وجه الشبه:** اسم الزبون = البيانات المُدخلة (String)، البطاقة المطبوعة = عنصر Text المعروض.
-
-#### 5.1. ملاحظات مهمة حول الدالة القابلة للتركيب
-
-#### النص الأصلي يقول (English):
-> "Annotation: The function is annotated with the @Composable annotation... Data input: The function takes in data... UI display: The function displays text in the UI... No return value: The function doesn't return anything. Compose functions that emit UI don't need to return anything, because they describe the target screen state instead of constructing UI widgets."
-
-#### الشرح المبسّط:
-| الخاصية | الشرح |
-| --- | --- |
-| `@Composable` Annotation | إلزامية لكل دالة تُنتج واجهة، تُخبر مترجم Compose بذلك |
-| دخل البيانات | تقبل بارامترات عادية مثل أي دالة Kotlin |
-| عرض الواجهة | تستدعي دوال Composable أخرى (مثل `Text()`) |
-| بدون قيمة إرجاع | تُرجع `Unit` — لأنها تصف الشاشة وليست تُنشئ كائناً يُعاد استخدامه |
-
-#### نقطة مهمة ⚠️:
-> عدم إرجاع قيمة لا يعني أن الدالة "لا تفعل شيئاً" — بل تعني أنها تصف الشاشة المستهدفة (Target Screen State) مباشرة، بدلاً من بناء كائن View وإرجاعه.
-
----
-
-### 6. مراحل Jetpack Compose الثلاث (Jetpack Compose Phases)
-
-#### النص الأصلي يقول (English):
-> "Compose has three main phases of a frame: Composition: What UI to show... Layout: Where to place UI... Drawing: How it renders... UI elements draw into a Canvas, usually a device screen."
-
-#### الشرح المبسّط:
-كل إطار (Frame) في Compose يمر بثلاث مراحل متتالية:
-1. **Composition** — تحديد "ماذا" سيُعرض.
-2. **Layout** — تحديد "أين" سيوضع كل عنصر.
-3. **Drawing** — تحديد "كيف" سيُرسم فعلياً على الشاشة.
-
-**لماذا هذا التقسيم؟** لأن فصل المراحل يسمح لـ Compose بتحسين الأداء: قد لا يحتاج لإعادة تنفيذ كل المراحل الثلاث في كل مرة — فقط المرحلة المتأثرة فعلياً بالتغيير.
-
-#### 💡 التشبيه:
-> كأنك تُخرج كتاباً للطباعة: أولاً تُقرر "ماذا" ستكتب (المحتوى)، ثم "أين" يوضع كل فقرة وصورة في الصفحة (التخطيط)، ثم أخيراً "كيف" تُطبع الحبر فعلياً على الورق (الرسم).
-> **وجه الشبه:** المحتوى = Composition، تصميم الصفحة = Layout، الطباعة الفعلية = Drawing.
-
-#### 📊 المخطط: مراحل Compose الثلاث
-
-#### ما هذا المخطط؟
-> يوضح تسلسل تحويل البيانات إلى واجهة معروضة عبر ثلاث مراحل متتابعة.
-
-#### وصف العُقد:
-| # | العُقدة | النوع `kind` | الشرح |
-| --- | --- | --- | --- |
-| 1 | Data | input | البيانات الأولية القادمة من منطق التطبيق |
-| 2 | Composition | phase | تنفيذ الدوال القابلة للتركيب وإنتاج شجرة UI |
-| 3 | Layout | phase | قياس ووضع كل عقدة في إحداثيات 2D |
-| 4 | Drawing | phase | رسم كل عقدة فعلياً على الشاشة |
-| 5 | UI | output | الواجهة النهائية المعروضة للمستخدم |
-
-#### وصف الروابط:
-| من | إلى | التسمية | نوع السهم | الشرح |
-| --- | --- | --- | --- | --- |
-| Data | Composition | يغذي | اتجاه واحد | البيانات تدخل مرحلة التركيب |
-| Composition | Layout | ينتج شجرة | اتجاه واحد | شجرة UI تُمرَّر لمرحلة التخطيط |
-| Layout | Drawing | يُحدد الإحداثيات | اتجاه واحد | الأحجام والمواضع تُمرَّر لمرحلة الرسم |
-| Drawing | UI | يرسم | اتجاه واحد | الناتج يُعرض فعلياً |
-
-```diagram
-type: flowchart
-title: Jetpack Compose Frame Phases
-direction: TD
-nodes:
-  - id: data
-    label: Data
-    kind: input
-    level: 0
-  - id: composition
-    label: Composition
-    kind: phase
-    level: 1
-  - id: layout
-    label: Layout
-    kind: phase
-    level: 2
-  - id: drawing
-    label: Drawing
-    kind: phase
-    level: 3
-  - id: ui
-    label: UI
-    kind: output
-    level: 4
-edges:
-  - from: data
-    to: composition
-  - from: composition
-    to: layout
-  - from: layout
-    to: drawing
-  - from: drawing
-    to: ui
-```
-
----
-
-### 6.1. مرحلة التركيب (Composition)
-
-#### النص الأصلي يقول (English):
-> "In the composition phase, the Compose runtime executes composable functions and outputs a tree structure that represents your UI. This UI tree consists of layout nodes that contain all the information needed for the next phases... In more complex examples, composables can contain logic and control flow, and produce a different tree given different states."
-
-#### الشرح المبسّط:
-في هذه المرحلة، يُنفّذ Compose الدوال القابلة للتركيب (`Row { Image(); Column { Text(); Text() } }`) وينتج منها **شجرة عُقد تخطيط** (Layout Nodes Tree)، حيث كل دالة composable في الكود = عقدة واحدة في الشجرة.
-
-**لماذا مهم؟** لأن الشجرة الناتجة تحتوي كل المعلومات اللازمة للمرحلتين التاليتين (Layout و Drawing)، وقد تختلف الشجرة نفسها حسب الحالة (State) إن كان هناك منطق شرطي داخل الكود.
-
-#### 📊 المخطط: مثال شجرة Composition
-
-#### ما هذا المخطط؟
-> يوضّح كيف يتحول الكود `Row { Image(); Column { Text(); Text() } }` إلى شجرة عُقد.
-
-#### وصف العُقد:
-| # | العُقدة | النوع `kind` | الشرح |
-| --- | --- | --- | --- |
-| 1 | Row | layout_node | العقدة الجذر |
-| 2 | Image | layout_node | طفل أول لـ Row |
-| 3 | Column | layout_node | طفل ثانٍ لـ Row |
-| 4 | Text (الأول) | layout_node | طفل أول لـ Column |
-| 5 | Text (الثاني) | layout_node | طفل ثانٍ لـ Column |
-
-#### وصف الروابط:
-| من | إلى | التسمية | نوع السهم | الشرح |
-| --- | --- | --- | --- | --- |
-| Row | Image | طفل | اتجاه واحد | Image عنصر فرعي مباشر لـ Row |
-| Row | Column | طفل | اتجاه واحد | Column عنصر فرعي مباشر لـ Row |
-| Column | Text 1 | طفل | اتجاه واحد | أول نص داخل Column |
-| Column | Text 2 | طفل | اتجاه واحد | ثاني نص داخل Column |
-
-```diagram
-type: class
-title: Composition Output Tree Example
+title: SearchResult UI Tree
 direction: TD
 nodes:
   - id: row
     label: Row
-    kind: layout_node
+    kind: container
     level: 0
   - id: image
     label: Image
-    kind: layout_node
+    kind: leaf
     level: 1
   - id: column
     label: Column
-    kind: layout_node
+    kind: container
     level: 1
   - id: text1
-    label: Text
-    kind: layout_node
+    label: Text("Hello")
+    kind: leaf
     level: 2
   - id: text2
-    label: Text
-    kind: layout_node
+    label: Text("World")
+    kind: leaf
     level: 2
 edges:
   - from: row
@@ -443,231 +315,86 @@ edges:
     to: text2
 ```
 
+#### الشرح المبسّط:
+هذا المثال هو تطبيق حرفي على نفس الترتيب الرقمي (1 إلى 10) الذي وصفته الشرائح: القياس ينزل من `Row` إلى `Image` ثم `Column` ثم نصوصه، لكن تحديد الحجم والوضع الفعلي يصعد بترتيب عكسي بدءاً من العُقد الورقية (`Image`، النصوص) وانتهاءً بـ`Row` نفسه في الخطوة الأخيرة (10). هذا يربط مباشرة بالقسم السابق الذي شرح نفس الفكرة بمثال مختلف؛ الفائدة من رؤية المثالين معاً هو ترسيخ فهم أن "رقم الخطوة" في القياس لا يساوي "رقم الخطوة" في تحديد الحجم/الوضع — وهذا فرق دقيق يظهر غالباً في أسئلة تتبّع التنفيذ (trace) بالامتحان. **تشبيه يومي:** كأنكِ تُنزلين طلبية تسوق تدريجياً من سلة كبيرة (Row) إلى أصغر عنصر بداخلها، ثم تصعدين بترتيب عكسي وأنتِ تعبئين الفواتير الفرعية أولاً قبل الفاتورة الإجمالية.
+
+**لماذا؟** لأن هذا المثال بالتحديد (بأرقام مرقّمة 1-10 واضحة) هو أكثر مثال يُستخدم في الامتحانات لاختبار فهم ترتيب مرحلة Layout، لذا يجب حفظ تسلسله بدقة.
+
 ---
 
-### 6.2. مرحلة التخطيط (Layout)
+### 14. مرحلة الرسم (Drawing Phase)
 
 #### النص الأصلي يقول (English):
-> "In the layout phase, Compose uses the UI tree produced in the composition phase as input... During the layout phase, the tree is traversed using the following three step algorithm: Measure children... Decide own size... Place children... At the end of this phase, each layout node has: An assigned width and height, An x, y coordinate where it should be drawn."
+> In the drawing phase, the tree is traversed again from top to bottom, and each node draws itself on the screen in turn. Example: The Row draws any content it might have, such as a background color. The Image draws itself. The Column draws itself. The first and second Text draw themselves, respectively.
 
-#### الشرح المبسّط:
-تُستخدم شجرة Composition كمُدخل، وتمر كل عقدة بثلاث خطوات: **قياس الأبناء**، ثم **تحديد حجمها هي**، ثم **وضع الأبناء** بالنسبة لموقعها. في النهاية كل عقدة تعرف حجمها (width/height) وموقعها (x, y).
-
-**لماذا هذا الترتيب تحديداً؟** لأن حجم أي عنصر أب غالباً يعتمد على أحجام أبنائه (مثال: Column يجب أن يعرف ارتفاع كل Text بداخله ليحسب ارتفاعه هو)، لذا يجب قياس الأبناء أولاً.
-
-#### ⚙️ الخطوات / الخوارزمية: خوارزمية التخطيط (Measure → Size → Place)
-
-#### ما هدف هذه العملية؟
-> تحديد حجم وموضع كل عقدة في الشجرة بمرور واحد فقط (single pass) لتحقيق أفضل أداء.
+#### الترجمة الحرفية:
+> في مرحلة الرسم، تُجتاز الشجرة مرة أخرى من الأعلى إلى الأسفل، وترسم كل عُقدة نفسها على الشاشة بدورها. مثال: يرسم Row أي محتوى قد يملكه، مثل لون خلفية. يرسم Image نفسه. يرسم Column نفسه. يرسم النصان الأول والثاني نفسيهما، على التوالي.
 
 ```algorithm
-1 | قياس الأبناء | Layout Node | يطلب من كل طفل قياس نفسه أولاً (إن وجد)
-2 | تحديد الحجم الخاص | Layout Node | يستخدم قياسات الأبناء ليقرر حجمه هو
-3 | وضع الأبناء | Layout Node | يضع كل طفل في إحداثيات نسبية لموقعه هو
+1 | Row يرسم محتواه الخاص (مثل خلفية) | Canvas | يبدأ الرسم من الجذر
+2 | Image يرسم نفسه | Canvas | يُرسم أول ابن
+3 | Column يرسم نفسه (إن كان له محتوى خاص) | Canvas | يُرسم الابن الثاني
+4 | Text الأول والثاني يرسمان نفسيهما | Canvas | تُرسم العُقد الورقية أخيراً
 ```
 
-#### نقاط التنفيذ:
-- كل عقدة تُزار مرة واحدة فقط (single pass) — هذا يُحسّن الأداء بشكل كبير.
-- الآباء "يُقاسون" قبل أبنائهم، لكنهم "يُحدَّد حجمهم ويوضعون" بعد أبنائهم.
+#### الشرح المبسّط:
+على عكس مرحلة `Layout` التي تسير بترتيب معقد (قياس نازل، ثم حجم/وضع صاعد)، مرحلة `Drawing` أبسط بكثير: تُجتاز الشجرة من الأعلى للأسفل مرة واحدة فقط، وكل عُقدة ترسم نفسها بالترتيب الذي تظهر فيه (الجذر أولاً، ثم أبناؤه بالترتيب). هذا منطقي لأنه بحلول هذه المرحلة، كل عُقدة تعرف بالفعل حجمها وموقعها الدقيق (من مرحلة Layout)، فلا حاجة لأي حسابات معقدة، فقط رسم فعلي على `Canvas`. هذا يُكمل السلسلة الكاملة الآن: Composition (ماذا) → Layout (أين) → Drawing (كيف)، وهي الدورة التي تتكرر (مفاهيمياً) عند كل تغيّر في حالة التطبيق. **تشبيه يومي:** بعد أن يُحدَّد "مخطط" المنزل وأماكن كل غرفة بالضبط (Layout)، تأتي مرحلة الطلاء والتأثيث الفعلي (Drawing) — وهذه المرحلة بسيطة ومباشرة لأن كل القرارات الصعبة (الأحجام والمواقع) اتُّخذت مسبقاً.
 
-#### مهم للامتحان ⚠️:
-> تذكّر القاعدة الذهبية: **Parents measure before their children, but are sized and placed after their children.**
-
-#### 🔍 تتبع التنفيذ: قياس شجرة Row(Image, Column(Text, Text))
-
-**المدخل:** شجرة composition من المثال: `Row { Image; Column { Text("Hello"); Text("World") } }`
-
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | Row يطلب قياس Image | Image يُقاس |
-| 2 | Image بلا أبناء → يقرر حجمه ويُبلغ Row | حجم Image معروف |
-| 3 | Row يطلب قياس Column | Column يبدأ القياس |
-| 4 | Column يطلب قياس Text الأول | Text الأول يقرر حجمه ويُبلغ Column |
-| 5 | Column يطلب قياس Text الثاني | Text الثاني يقرر حجمه ويُبلغ Column |
-| 6 | Column يحسب حجمه (أقصى عرض + مجموع الارتفاعات) ويضع أبناءه عمودياً | حجم وموضع Column محددان |
-| 7 | Row يحسب حجمه (أقصى ارتفاع + مجموع العروض) ويضع أبناءه | حجم وموضع Row محددان |
-
-**النتيجة:** كل عقدة في الشجرة أصبح لديها width, height, x, y محددة بمرور واحد فقط.
+**لماذا؟** لأن فصل "تحديد الموقع" عن "الرسم الفعلي" يعني أن الرسم نفسه عملية أبسط وأسرع، لأنها لا تحتاج لأي قرارات، فقط تنفيذ.
 
 ---
 
-### 6.3. مثال تطبيقي على مراحل Layout: دالة SearchResult
+### 15. التدفق أحادي الاتجاه وتحسين الأداء (Unidirectional Data Flow & Skipping)
 
 #### النص الأصلي يقول (English):
-> "SearchResult function yields the following UI tree... 1. The root node Row is asked to measure. 2. The root node Row asks its first child, Image, to measure. 3. Image is a leaf node... 9. Now that the Column node has measured, sized, and placed its children, it can determine its own size and placement. 10. Now that the root node Row has measured, sized, and placed its children, it can determine its own size and placement."
+> The order of these phases is generally the same, allowing data to flow in one direction from composition to layout to drawing to produce a frame (also known as unidirectional data flow). BoxWithConstraints, LazyColumn, and LazyRow are notable exceptions, where the composition of its children depends on the parent's layout phase. Conceptually, each of these phases happens for every frame; however to optimize performance, Compose avoids repeating work that would compute the same results from the same inputs in all of these phases. Compose skips running a composable function if it can reuse a former result, and Compose UI doesn't re-layout or re-draw the entire tree if it doesn't have to. This optimization is possible because Compose tracks state reads within the different phases.
+
+#### الترجمة الحرفية:
+> ترتيب هذه المراحل ثابت بشكل عام، مما يسمح للبيانات بالتدفق في اتجاه واحد من التركيب إلى التخطيط إلى الرسم لإنتاج إطار (يُعرف أيضاً بتدفق البيانات أحادي الاتجاه — unidirectional data flow). تُعد BoxWithConstraints وLazyColumn وLazyRow استثناءات ملحوظة، حيث يعتمد تركيب أبنائها على مرحلة تخطيط الأب. من الناحية المفاهيمية، تحدث كل هذه المراحل لكل إطار؛ لكن لتحسين الأداء، يتجنب Compose تكرار العمل الذي من شأنه حساب نفس النتائج من نفس المدخلات في كل هذه المراحل. يتخطى Compose تشغيل دالة قابلة للتركيب إن كان بإمكانه إعادة استخدام نتيجة سابقة، ولا تُعيد واجهة Compose تخطيط أو رسم الشجرة بأكملها إن لم تكن مضطرة لذلك. هذا التحسين ممكن لأن Compose يتتبع قراءات الحالة (state reads) ضمن المراحل المختلفة.
 
 #### الشرح المبسّط:
-هذا مثال عملي كامل مرقّم بعشر خطوات، يُظهر بالتفصيل ترتيب استدعاءات (measure → size → place) عبر شجرة `SearchResult` (`Row` يحوي `Image` و `Column` يحوي نصين).
+هذا القسم يجمع كل ما سبق بفكرتين مهمتين: الأولى أن المراحل الثلاث تسير بترتيب ثابت واتجاه واحد (Composition → Layout → Drawing) وهذا يُسمى "تدفق بيانات أحادي الاتجاه"، باستثناءات نادرة مثل `LazyColumn` حيث يعتمد التركيب فعلياً على نتيجة التخطيط. الفكرة الثانية والأهم هي أن Compose لا يُعيد فعلياً تنفيذ كل هذه المراحل من الصفر عند كل تغيير — فهو "يتذكر" (بفضل تتبعه لقراءات الحالة/`state reads`) أي الدوال يعتمد ناتجها على الحالة التي تغيّرت فعلاً، ويتخطى (`skip`) تشغيل أي دالة أخرى لم تتأثر. هذا يربط تماماً بما قيل في بداية المحاضرة عن أن Compose "يعيد توليد الشاشة مفاهيمياً" لكنه ذكي بما يكفي ليطبّق فقط التغييرات الضرورية. **تشبيه يومي:** كأنكِ تراجعين دفتر ملاحظات كامل من الصفحة الأولى للأخيرة كل مرة تفتحينه (مفاهيمياً)، لكن في الواقع عقلك يتذكر أنكِ راجعتِ الصفحات 1-10 سابقاً ولم يتغيّر فيها شيء، فتقفزين مباشرة للصفحة الوحيدة التي أضفتِ فيها ملاحظة جديدة.
 
-#### 💻 الكود: دالة SearchResult
+**لماذا؟** لأن إعادة حساب كل الشاشة عند كل تغيّر صغير سيكون مكلفاً جداً للأداء والبطارية، فتتبّع "من قرأ أي حالة" يسمح لـ Compose بتحديد أضيق نطاق ممكن يحتاج فعلاً لإعادة العمل.
 
-#### ما هذا الكود؟
-> يبني صفاً أفقياً (Row) يحوي صورة كلب وعمود نصي يحتوي على "Hello" و "World".
+---
+
+### 16. Layouts in Compose — الحاجة إلى ترتيب صريح
+
+#### النص الأصلي يقول (English):
+> The Jetpack Compose implementation of the layout system has two main goals: High performance. Ability to easily write custom layouts. Composable functions are the basic building block of Compose. A composable function is a function emitting Unit that describes some part of your UI. A composable function might emit several UI elements. However, if you don't provide guidance on how they should be arranged, Compose might arrange the elements in a way you don't like. Example, this code generates two text elements: `Text("Alfred Sisley"); Text("3 minutes ago")`. Without guidance on how you want them arranged, Compose stacks the text elements on top of each other, making them unreadable. Compose provides a collection of ready-to-use layouts to help you arrange your UI elements, and makes it easy to define your own, more-specialized layouts.
+
+#### الترجمة الحرفية:
+> يمتلك تنفيذ Jetpack Compose لنظام التخطيط هدفين رئيسيين: أداء عالٍ. القدرة على كتابة تخطيطات مخصصة بسهولة. الدوال القابلة للتركيب هي لبنة البناء الأساسية في Compose. الدالة القابلة للتركيب هي دالة تُصدر Unit تصف جزءاً من واجهتك. قد تُصدر الدالة القابلة للتركيب عدة عناصر واجهة. لكن، إن لم تقدّم توجيهاً حول كيفية ترتيبها، قد يرتّب Compose العناصر بطريقة لا تعجبك. مثال، هذا الكود يُنشئ عنصرَي نص: Text("Alfred Sisley")‏، Text("3 minutes ago"). بدون توجيه حول كيفية ترتيبها، يُكدّس Compose عنصري النص فوق بعضهما، مما يجعلهما غير قابلين للقراءة. يوفّر Compose مجموعة من التخطيطات الجاهزة للاستخدام لمساعدتك على ترتيب عناصر واجهتك، ويجعل من السهل تعريف تخطيطاتك المتخصصة الخاصة.
+
+#### الشرح المبسّط:
+هذا القسم يفتح موضوعاً جديداً مبنياً على ما سبق: الآن وقد فهمنا كيف تعمل المراحل الثلاث، نحتاج لفهم كيف نُخبر Compose "أين" يجب أن يضع عناصر متعددة. المشكلة الموضحة هنا هي أنه بدون تحديد ترتيب صريح، يضع Compose كل العناصر التي تُصدرها الدالة القابلة للتركيب فوق بعضها البعض تماماً (متراكبة)، لأنه لا توجد أي معلومة تخبره "ضع هذا تحت ذاك" أو "ضعهما جنباً إلى جنب". هذا يمهّد مباشرة لضرورة استخدام `Column`، `Row`، `Box` التي ستُشرح في القسم التالي، وهي أدوات الترتيب الجاهزة (ready-to-use layouts) المذكورة في نهاية النص. **تشبيه يومي:** كأنكِ رميتِ ورقتين على طاولة دون أن تحددي أين تضعينهما بالضبط — ستقعان فوق بعضهما بالصدفة، ولن تستطيعي قراءة كليهما إلا إذا رتبتِهما بنفسكِ بجانب بعض أو فوق بعض بترتيب واضح.
+
+**لماذا؟** لأن الدوال القابلة للتركيب "تصف" العناصر فقط، لكن لا تحمل أي معنى ضمني عن "كيف تُرتَّب بصرياً" ما لم تُغلَّف بحاوية ترتيب صريحة مثل Column أو Row.
+
+---
+
+### 17. حاويات الترتيب القياسية: Column وRow وBox
+
+#### النص الأصلي يقول (English):
+> In many cases, you can just use Compose's standard layout elements. Often these building blocks are all you need. You can write your own composable function to combine these layouts into a more elaborate layout that suits your app. Use Column to place items vertically on the screen. Use Row to place items horizontally on the screen. Both Column and Row support configuring the alignment of the elements they contain. Use Box to put elements on top of another. Box also supports configuring specific alignment of the elements it contains.
+
+#### الترجمة الحرفية:
+> في العديد من الحالات، يمكنكِ فقط استخدام عناصر التخطيط القياسية في Compose. غالباً ما تكون هذه اللبنات كل ما تحتاجينه. يمكنكِ كتابة دالتك القابلة للتركيب الخاصة لدمج هذه التخطيطات في تخطيط أكثر تفصيلاً يناسب تطبيقك. استخدمي Column لوضع العناصر عمودياً على الشاشة. استخدمي Row لوضع العناصر أفقياً على الشاشة. يدعم كل من Column وRow تهيئة محاذاة العناصر التي يحتويانها. استخدمي Box لوضع عناصر فوق بعضها البعض. يدعم Box أيضاً تهيئة محاذاة محددة للعناصر التي يحتويها.
 
 ```kotlin
-@Composable
-fun SearchResult() {
-    // A horizontal row containing an image and a column
-    Row {
-        // Display a dog image with no content description
-        Image(painter = painterResource(id = R.drawable.dog), contentDescription = "")
-        // A vertical column with two text lines
-        Column {
-            Text("Hello")
-            Text("World")
-        }
-    }
-}
-```
-
-#### شرح كل سطر:
-1. `Row { ... }` → يضع أبناءه أفقياً جنباً إلى جنب.
-2. `Image(painter = ..., contentDescription = "")` → يعرض صورة؛ `contentDescription` فارغة لأن الصورة زخرفية فقط هنا.
-3. `Column { ... }` → يضع أبناءه عمودياً.
-4. `Text("Hello")` و `Text("World")` → عنصرا نص متتاليان داخل العمود.
-
-**الناتج المتوقع (لقطة الشاشة):**
-> صف يحتوي صورة كلب على اليسار، وعمود على اليمين يحتوي "Hello" فوق "World".
-
-#### 🔍 تتبع التنفيذ: ترتيب استدعاءات measure/size/place لـ SearchResult
-
-**المدخل:** شجرة composition: `Row(Image, Column(Text, Text))`
-
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | Row: measure | يبدأ القياس |
-| 2 | Image: measure | ورقة (leaf) — يقيس نفسه فوراً |
-| 3 | Image: size + place | يُبلغ حجمه وموضعه لـ Row |
-| 4 | Column: measure | يبدأ قياس نفسه عبر أبنائه |
-| 5 | Text الأول: measure | ورقة — يقيس نفسه |
-| 6 | Text الأول: size + place | يُبلغ حجمه لـ Column |
-| 7 | Text الثاني: measure | ورقة — يقيس نفسه |
-| 8 | Text الثاني: size + place | يُبلغ حجمه لـ Column |
-| 9 | Column: size + place | يحدد حجمه وموضعه بعد معرفة أبنائه |
-| 10 | Row: size + place | يحدد حجمه وموضعه النهائي بعد كل الأبناء |
-
-**النتيجة:** ترتيب الاستدعاءات = measure(Row) → measure(Image) → size/place(Image) → measure(Column) → measure(Text1) → size/place(Text1) → measure(Text2) → size/place(Text2) → size/place(Column) → size/place(Row).
-
----
-
-### 6.4. مرحلة الرسم (Drawing)
-
-#### النص الأصلي يقول (English):
-> "In the drawing phase, the tree is traversed again from top to bottom, and each node draws itself on the screen in turn... 1. The Row draws any content it might have, such as a background color. 2. The Image draws itself. 3. The Column draws itself. 4. The first and second Text draw themselves, respectively."
-
-#### الشرح المبسّط:
-بعد أن عرفت كل عقدة حجمها وموضعها، تُزار الشجرة مرة أخرى من الأعلى للأسفل، وكل عقدة "تُرسم" فعلياً بالترتيب: الأب أولاً (كخلفيته مثلاً)، ثم كل طفل بدوره.
-
-**لماذا الأب يُرسم قبل أبنائه هنا (بعكس الـ Layout)؟** لأن أي محتوى للأب (كلون خلفية) يجب أن يظهر خلف محتوى أبنائه، وليس فوقه.
-
-#### 6.5. ملاحظات ختامية حول المراحل الثلاث
-
-#### النص الأصلي يقول (English):
-> "The order of these phases is generally the same, allowing data to flow in one direction... BoxWithConstraints, LazyColumn, and LazyRow are notable exceptions... Compose skips running a composable function if it can reuse a former result, and Compose UI doesn't re-layout or re-draw the entire tree if it doesn't have to."
-
-#### الشرح المبسّط:
-ترتيب المراحل الثلاث ثابت عادةً (Composition → Layout → Drawing) — وهذا ما يُسمى **تدفق البيانات أحادي الاتجاه** (Unidirectional Data Flow). لكن هناك استثناءات مثل `BoxWithConstraints`، `LazyColumn`، و `LazyRow`، حيث تعتمد عملية Composition لأبنائها على نتيجة Layout الخاصة بالأب.
-
-**لماذا هذا مهم للأداء؟** لأن Compose يتجنب إعادة تنفيذ عمل كان سينتج نفس النتيجة (بفضل تتبع قراءات الحالة `State Reads`)، فهو ينفذ الحد الأدنى فقط من العمل اللازم لتحديث الواجهة.
-
-#### الدرس المستفاد:
-> الأداء العالي في Compose ليس صدفة، بل نتيجة تصميم متعمد: تتبّع القراءات (state reads) في كل مرحلة يسمح بتخطي إعادة التنفيذ غير الضرورية.
-
----
-
-### 7. التخطيطات في Compose (Layouts in Compose)
-
-#### النص الأصلي يقول (English):
-> "The Jetpack Compose implementation of the layout system has two main goals: High performance, Ability to easily write custom layouts... A composable function might emit several UI elements. However, if you don't provide guidance on how they should be arranged, Compose might arrange the elements in a way you don't like."
-
-#### الشرح المبسّط:
-نظام التخطيط في Compose صُمم لهدفين: أداء عالٍ، وسهولة كتابة تخطيطات مخصصة. لكن إن كتبت دالة composable تُصدر عدة عناصر دون توجيه صريح لكيفية ترتيبها، فإن Compose سيرتبها بطريقة غير متوقعة (غالباً فوق بعضها البعض).
-
-#### 💻 الكود: ArtistCard بدون تخطيط محدد
-
-#### ما هذا الكود؟
-> يُظهر مشكلة عدم تحديد التخطيط: نصان يُكتبان دون Row أو Column فيتراكبان فوق بعضهما.
-
-```kotlin
-@Composable
-fun ArtistCard() {
-    // Two Text elements with no arrangement guidance
-    Text("Alfred Sisley")
-    Text("3 minutes ago")
-}
-```
-
-#### شرح كل سطر:
-1. `Text("Alfred Sisley")` → عنصر نص أول.
-2. `Text("3 minutes ago")` → عنصر نص ثانٍ، لكن بدون Row/Column سيتراكب فوق الأول.
-
-**الناتج المتوقع (لقطة الشاشة):**
-> النصان يظهران متراكبَين فوق بعضهما البعض بشكل غير مقروء (كما في شريحة 23 من المحاضرة).
-
-#### 🛠️ استكشاف الأخطاء
-
-| الخطأ | السبب | الحل |
-| --- | --- | --- |
-| النصوص تتراكب فوق بعضها | عدم استخدام أي حاوية تخطيط (Row/Column/Box) | لفّ العناصر داخل `Column` أو `Row` حسب الاتجاه المطلوب |
-
----
-
-### 7.1. مكونات التخطيط القياسية: Column، Row، Box
-
-#### النص الأصلي يقول (English):
-> "Use Column to place items vertically on the screen... Use Row to place items horizontally on the screen... Use Box to put elements on top of another. Box also supports configuring specific alignment of the elements it contains."
-
-#### الشرح المبسّط:
-Compose يوفر ثلاثة مكونات تخطيط أساسية جاهزة:
-
-| الأداة | الوظيفة | ملاحظة |
-| --- | --- | --- |
-| `Column` | يضع العناصر عمودياً (فوق بعضها) | يدعم `verticalArrangement` و `horizontalAlignment` |
-| `Row` | يضع العناصر أفقياً (جنباً إلى جنب) | يدعم `horizontalArrangement` و `verticalAlignment` |
-| `Box` | يضع العناصر فوق بعضها البعض (تراكب) | يدعم محاذاة عناصره عبر `contentAlignment` |
-
-#### 💡 التشبيه:
-> `Column` مثل رفّ كتب عمودي، `Row` مثل صف كراسي بجانب بعضها، أما `Box` فمثل طبقات من الشفافيات فوق بعضها البعض.
-> **وجه الشبه:** ترتيب الكتب على الرف = Column، صف الكراسي = Row، الطبقات الشفافة المتراكبة = Box.
-
-#### 💻 الكود: ArtistCardColumn — ترتيب عمودي
-
-#### ما هذا الكود؟
-> يستخدم `Column` لوضع اسم الفنان ووقت آخر ظهور له عمودياً.
-
-```kotlin
+// Places items vertically
 @Composable
 fun ArtistCardColumn() {
-    // Place children vertically, one below the other
     Column {
         Text("Alfred Sisley")
         Text("3 minutes ago")
     }
 }
-```
 
-#### شرح كل سطر:
-1. `Column { ... }` → حاوية تُرتّب أبناءها عمودياً بالتسلسل الذي كُتبوا به.
-2. `Text("Alfred Sisley")` ثم `Text("3 minutes ago")` → يظهران أحدهما تحت الآخر.
-
-**الناتج المتوقع (لقطة الشاشة):**
-> "Alfred Sisley" في السطر الأول، و"3 minutes ago" أسفله مباشرة.
-
-#### 💻 الكود: ArtistCardRow — صورة + عمود نصي أفقياً
-
-#### ما هذا الكود؟
-> يستخدم `Row` لوضع صورة الفنان بجانب عمود يحوي اسمه وآخر ظهور له، مع محاذاة عمودية للمنتصف.
-
-```kotlin
-class Artist {
-    val image: ImageBitmap = ImageBitmap(0, 0)
-    val name = ""
-    val lastSeenOnline = ""
-}
-
+// Places items horizontally, aligned vertically to center
 @Composable
 fun ArtistCardRow(artist: Artist) {
-    // Align children vertically to the center of the row
     Row(verticalAlignment = Alignment.CenterVertically) {
         Image(bitmap = artist.image, contentDescription = "Artist image")
         Column {
@@ -676,78 +403,10 @@ fun ArtistCardRow(artist: Artist) {
         }
     }
 }
-```
 
-#### شرح كل سطر:
-1. `class Artist { ... }` → كائن بيانات بسيط يحمل صورة، اسم، ووقت آخر ظهور.
-2. `Row(verticalAlignment = Alignment.CenterVertically)` → يضع الصورة والعمود جنباً إلى جنب، ويُحاذيهما رأسياً في المنتصف.
-3. `Image(bitmap = artist.image, ...)` → يعرض صورة الفنان.
-4. `Column { Text(artist.name); Text(artist.lastSeenOnline) }` → عمود فرعي داخل الصف يحوي نصين.
-
-**الناتج المتوقع (لقطة الشاشة):**
-> صورة دائرية على اليسار، وبجانبها اسم الفنان فوق نص "3 minutes ago".
-
----
-
-### 7.2. التحكم بترتيب الأبناء: horizontalArrangement و verticalAlignment
-
-#### النص الأصلي يقول (English):
-> "To set children's position within a Row, set the horizontalArrangement and verticalAlignment arguments. For a Column, set the verticalArrangement and horizontalAlignment arguments."
-
-#### الشرح المبسّط:
-لكل من `Row` و `Column` محوران: محور رئيسي (اتجاه الترتيب) ومحور عرضي (المحاذاة). الجدول التالي يلخص الفرق:
-
-| الحاوية | محور الترتيب (Arrangement) | محور المحاذاة (Alignment) |
-| --- | --- | --- |
-| `Row` | `horizontalArrangement` (كيف تتوزع أفقياً: البداية، النهاية، بينهما...) | `verticalAlignment` (المحاذاة الرأسية) |
-| `Column` | `verticalArrangement` | `horizontalAlignment` |
-
-#### 💻 الكود: ArtistCardArrangement — التحكم بالتوزيع والمحاذاة
-
-#### ما هذا الكود؟
-> يستخدم `Arrangement.End` لدفع العناصر نحو نهاية الصف، مع محاذاة عمودية للمنتصف.
-
-```kotlin
-@Composable
-fun ArtistCardArrangement(artist: Artist) {
-    Row(
-        // Center children vertically
-        verticalAlignment = Alignment.CenterVertically,
-        // Push all children toward the end of the row
-        horizontalArrangement = Arrangement.End
-    ) {
-        Image(bitmap = artist.image, contentDescription = "Artist image")
-        Column { /* ... */ }
-    }
-}
-```
-
-#### شرح كل سطر:
-1. `verticalAlignment = Alignment.CenterVertically` → يُحاذي كل الأبناء عمودياً في منتصف ارتفاع الصف.
-2. `horizontalArrangement = Arrangement.End` → يدفع كل الأبناء نحو الحافة اليمنى (النهاية) بدلاً من البداية الافتراضية.
-
-**الناتج المتوقع (لقطة الشاشة):**
-> الصورة والعمود يظهران متجمّعين نحو الطرف الأيمن من الشاشة بدلاً من الطرف الأيسر.
-
----
-
-### 7.3. استخدام Box والتراكب
-
-#### النص الأصلي يقول (English):
-> "Use Box to put elements on top of another. Box also supports configuring specific alignment of the elements it contains."
-
-#### الشرح المبسّط:
-`Box` يسمح بوضع عنصر فوق آخر — مفيد جداً لحالات مثل وضع أيقونة "علامة صح" فوق زاوية صورة الملف الشخصي.
-
-#### 💻 الكود: ArtistAvatar — صورة مع علامة تحقق
-
-#### ما هذا الكود؟
-> يضع أيقونة "علامة صح" فوق صورة الفنان باستخدام `Box`.
-
-```kotlin
+// Overlays items on top of each other
 @Composable
 fun ArtistAvatar(artist: Artist) {
-    // Overlap children on top of each other
     Box {
         Image(bitmap = artist.image, contentDescription = "Artist image")
         Icon(Icons.Filled.Check, contentDescription = "Check mark")
@@ -756,34 +415,82 @@ fun ArtistAvatar(artist: Artist) {
 ```
 
 #### شرح كل سطر:
-1. `Box { ... }` → حاوية تراكب — كل الأبناء يُوضعون فوق بعضهم افتراضياً بمحاذاة أعلى-يسار ما لم يُحدَّد غير ذلك.
-2. `Image(...)` → صورة الفنان كخلفية.
-3. `Icon(Icons.Filled.Check, ...)` → أيقونة تحقق تظهر فوق الصورة.
+1. `Column { ... }` → يرتّب العناصر بداخله عمودياً (الواحد تحت الآخر)
+2. `Row(verticalAlignment = Alignment.CenterVertically) { ... }` → يرتّب العناصر أفقياً، مع محاذاة رأسية للمنتصف
+3. `Image(bitmap = artist.image, ...)` → يعرض صورة الفنان، ابن أول لـ Row
+4. `Column { Text(artist.name); Text(artist.lastSeenOnline) }` → عمود متداخل داخل Row، يحتوي نصين
+5. `Box { ... }` → يضع كل أبنائه فوق بعضهم البعض (متراكبين)
+6. `Icon(Icons.Filled.Check, ...)` → أيقونة توضع فوق الصورة داخل Box
+
+**المكتبات المطلوبة (Imports):**
+> `import androidx.compose.foundation.layout.Column`، `import androidx.compose.foundation.layout.Row`، `import androidx.compose.foundation.layout.Box`، `import androidx.compose.ui.Alignment`
 
 **الناتج المتوقع (لقطة الشاشة):**
-> صورة دائرية للفنان مع علامة صح صغيرة في الزاوية السفلية اليمنى (كما في شريحة 26).
+> Column: اسم الفنان فوق وقت آخر ظهور. Row: صورة الفنان بجانب عمود يحوي الاسم والوقت. Box: صورة الفنان مع علامة صح (✓) متراكبة فوقها في الزاوية.
+
+#### 💡 التشبيه:
+> Column وRow وBox أشبه بثلاثة أنواع من الرفوف: Column رف عمودي (كتب فوق بعضها)، Row رف أفقي (كتب جنباً إلى جنب)، وBox صندوق شفاف تضعين فيه أشياء متراكبة فوق بعضها.
+> **وجه الشبه:** اتجاه الترتيب في كل رف = اتجاه ترتيب العناصر داخل كل حاوية Compose.
+
+#### الشرح المبسّط:
+هذه الحاويات الثلاث هي الحل المباشر لمشكلة القسم السابق (تراكب العناصر بدون توجيه): `Column` يرتّب أبناءه عمودياً، `Row` أفقياً، و`Box` يجعلهم متراكبين فوق بعضهم عن قصد (بعكس المشكلة السابقة، هنا التراكب مقصود ومفيد، مثل وضع أيقونة صح فوق صورة). لاحظي أن كلاً من `Column` و`Row` يدعمان معاملات محاذاة (`verticalAlignment` في Row، و`horizontalAlignment` في Column ستُشرح لاحقاً) تسمح بالتحكم الدقيق في موضع العناصر ضمن المحور العمودي أو الأفقي. مثال `ArtistCardRow` يجمع كل هذا عملياً: `Row` يحوي صورة، ثم `Column` متداخلاً بداخله يحوي نصين، مما يوضح أن هذه الحاويات يمكن تعشيشها (nesting) داخل بعضها لبناء تخطيطات أكثر تعقيداً. **تشبيه يومي:** فكّري في بطاقة عمل: الاسم والمنصب مكتوبان الواحد تحت الآخر (Column)، بينما الشعار والاسم قد يكونان جنباً إلى جنب (Row)، وطابع الشركة قد يكون موضوعاً شفافاً فوق النص كله (Box).
+
+**لماذا؟** لأن معظم واجهات التطبيقات الحقيقية هي مزيج من هذه الأنماط الثلاثة البسيطة متداخلة ببعضها، فمعرفتها الجيدة تكفي لبناء تخطيطات معقدة نسبياً دون تعلم أدوات إضافية.
 
 ---
 
-### 8. الـ Modifiers في Compose (Compose Modifiers)
+### 18. تهيئة الترتيب الداخلي: horizontalArrangement وverticalArrangement
 
 #### النص الأصلي يقول (English):
-> "Modifiers allow you to decorate or augment a composable. Modifiers let you do these sorts of things: Change the composable's size, layout, behavior, and appearance; Add information, like accessibility labels; Process user input; Add high-level interactions, like making an element clickable, scrollable, draggable, or zoomable."
+> To set children's position within a Row, set the horizontalArrangement and verticalAlignment arguments. For a Column, set the verticalArrangement and horizontalAlignment arguments.
 
-#### الشرح المبسّط:
-`Modifier` هو كائن Kotlin يُستخدم "لتزيين" أو "تعديل" سلوك أي عنصر composable: تغيير الحجم، إضافة حشو (padding)، جعله قابلاً للنقر، إلخ.
-
-**لماذا كائن منفصل بدل بارامترات مباشرة؟** لأن هذا يسمح بإعادة استخدام نفس مجموعة التعديلات على عناصر مختلفة، وتركيبها بحرية (chaining) دون الحاجة لتضخيم توقيع كل دالة composable ببارامترات لا نهائية.
-
-#### 💻 الكود: Greeting مع Modifier.padding
-
-#### ما هذا الكود؟
-> يضيف حشوة (padding) مقدارها 24dp حول عمود يحوي رسالة ترحيب.
+#### الترجمة الحرفية:
+> لتحديد موضع الأبناء داخل Row، حدّدي معاملَي horizontalArrangement وverticalAlignment. بالنسبة لـColumn، حدّدي معاملَي verticalArrangement وhorizontalAlignment.
 
 ```kotlin
+// Row with custom horizontal arrangement and vertical alignment
+@Composable
+fun ArtistCardArrangement(artist: Artist) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End
+    ) {
+        Image(bitmap = artist.image, contentDescription = "Artist image")
+        Column { /*...*/ }
+    }
+}
+```
+
+#### شرح كل سطر:
+1. `verticalAlignment = Alignment.CenterVertically` → يحاذي كل الأبناء عمودياً في منتصف ارتفاع Row
+2. `horizontalArrangement = Arrangement.End` → يدفع كل الأبناء نحو النهاية (اليمين في LTR) أفقياً داخل Row
+
+#### ⚖️ المقايضة: Alignment مقابل Arrangement
+| | Alignment | Arrangement |
+| --- | --- | --- |
+| المزايا | يتحكم بمحاذاة كل عنصر على المحور العمودي (في Row) أو الأفقي (في Column) | يتحكم بكيفية توزيع المساحة بين العناصر على المحور الرئيسي (الأفقي في Row، العمودي في Column) |
+| العيوب | لا يتحكم بالتباعد بين العناصر نفسها | لا يتحكم بمحاذاة العناصر على المحور العمودي/الأفقي المقابل |
+| متى تختاره | عندما تريدين محاذاة العناصر على المحور العرضي (cross axis) | عندما تريدين التحكم بتوزيع المساحة على المحور الرئيسي (main axis) |
+
+#### الشرح المبسّط:
+هذا القسم يوسّع مفهوم المحاذاة الذي ذُكر بإيجاز في القسم السابق: في `Row`، المحور الأفقي هو "المحور الرئيسي" فتتحكمين فيه بـ`horizontalArrangement`، بينما المحور العمودي هو "المحور العرضي" فتتحكمين فيه بـ`verticalAlignment` — والعكس تماماً صحيح في `Column`. هذا التمييز بين Arrangement (توزيع على المحور الرئيسي، مثل `Arrangement.End` لدفع العناصر لليمين) وAlignment (محاذاة على المحور العرضي، مثل `CenterVertically` لتوسيط عمودي) هو نقطة دقيقة يخطئ فيها الطلاب كثيراً، لذا يجب التمييز بينهما بوضوح: Arrangement يتعلق بـ"أين تذهب العناصر على طول المحور الطويل"، وAlignment يتعلق بـ"أين تقف العناصر على المحور العرضي القصير". **تشبيه يومي:** تخيّلي صفاً من الطلاب يقفون في طابور أفقي (Row) — `horizontalArrangement` يحدد "أين يقف الطابور بأكمله" (يسار، وسط، يمين، أو موزع)، بينما `verticalAlignment` يحدد "هل يقف كل طالب منتصباً أم منحنياً قليلاً" أي محاذاته على المحور العرضي (الطول).
+
+**لماذا؟** لأن كل محور (رئيسي وعرضي) يحتاج نوع تحكم مختلف تماماً: التوزيع (Arrangement) على الطول، والمحاذاة (Alignment) على العرض، ولا يمكن استبدال أحدهما بالآخر.
+
+---
+
+### 19. Compose Modifiers — ما هي وماذا تفعل؟
+
+#### النص الأصلي يقول (English):
+> Modifiers allow you to decorate or augment a composable. Modifiers let you do these sorts of things: Change the composable's size, layout, behavior, and appearance. Add information, like accessibility labels. Process user input. Add high-level interactions, like making an element clickable, scrollable, draggable, or zoomable. Modifiers are standard Kotlin objects. Create a modifier by calling one of the Modifier class functions.
+
+#### الترجمة الحرفية:
+> تسمح لكِ الـModifiers بتزيين أو تعزيز عنصر قابل للتركيب. تتيح لكِ الـModifiers فعل هذه الأنواع من الأشياء: تغيير حجم العنصر القابل للتركيب، تخطيطه، سلوكه، ومظهره. إضافة معلومات، مثل تسميات إمكانية الوصول (accessibility labels). معالجة إدخال المستخدم. إضافة تفاعلات عالية المستوى، مثل جعل عنصر قابلاً للنقر، أو التمرير، أو السحب، أو التكبير/التصغير. الـModifiers هي كائنات Kotlin قياسية. أنشئي modifier عن طريق استدعاء إحدى دوال صنف Modifier.
+
+```kotlin
+// Applies padding to the Column using a Modifier
 @Composable
 private fun Greeting(name: String) {
-    // Add 24dp of padding around the column
     Column(modifier = Modifier.padding(24.dp)) {
         Text(text = "Hello,")
         Text(text = name)
@@ -792,130 +499,97 @@ private fun Greeting(name: String) {
 ```
 
 #### شرح كل سطر:
-1. `Modifier.padding(24.dp)` → يُنشئ Modifier يضيف مسافة فارغة مقدارها 24dp حول العنصر.
-2. `Column(modifier = ...)` → يُمرَّر الـ Modifier كبارامتر للحاوية.
+1. `Column(modifier = Modifier.padding(24.dp))` → يُمرَّر `Modifier` مع تباعد 24dp إلى Column كمعامل modifier
+2. `Text(text = "Hello,")` و`Text(text = name)` → نصان بداخل Column يرثان التباعد المطبق على الحاوية الأب
 
 **الناتج المتوقع (لقطة الشاشة):**
-> نص "Hello, Android" داخل مربع أرجواني بحشوة واضحة من كل الجهات (شريحة 27).
+> نص "Hello," فوق اسم المستخدم، مع مسافة فارغة 24dp من كل جوانب الشاشة قبل بدء النص.
+
+#### الشرح المبسّط:
+`Modifier` هو مفهوم منفصل تماماً عن الحاويات (`Column/Row/Box`) التي شُرحت سابقاً؛ فبينما تحدد الحاويات "كيف يُرتَّب أكثر من عنصر بالنسبة لبعضهم"، يحدد الـ`Modifier` خصائص "عنصر واحد" بذاته — حجمه، مظهره، سلوكه عند اللمس، أو حتى معلومات إمكانية الوصول (accessibility) له. أهم نقطة هنا هي أن `Modifier` ليس شيئاً خاصاً أو سحرياً، بل هو "كائن Kotlin قياسي" (standard Kotlin object) يُنشأ باستدعاء دوال جاهزة من صنف `Modifier` مثل `Modifier.padding(24.dp)`. في المثال، `Modifier.padding(24.dp)` يُمرَّر إلى `Column` نفسها كمعامل، ويؤثر على المسافة حول محتوى العمود بأكمله. **تشبيه يومي:** فكّري في الـModifier كإطار صورة (frame) يمكن إضافته حول لوحة فنية — الإطار لا يغيّر اللوحة نفسها، لكنه يضيف حداً حولها (padding)، ويمكن أن يجعلها قابلة للتعليق بمسمار (clickable) أو يضيف لها بطاقة وصفية (accessibility label).
+
+**لماذا؟** لأن فصل "وصف المحتوى" (composable function نفسها) عن "كيفية تزيينه/سلوكه" (Modifier) يجعل الكود أكثر مرونة وقابلية لإعادة الاستخدام — يمكن تطبيق نفس الدالة القابلة للتركيب بمزيّنات مختلفة في أماكن مختلفة.
 
 ---
 
-### 8.1. تسلسل (تشبيك) الـ Modifiers Chaining
+### 20. سلسلة الـModifiers وترتيبها (Chaining & Order Matters)
 
 #### النص الأصلي يقول (English):
-> "Multiple modifiers can be chained together to decorate or augment a composable. This chain is created via the Modifier interface which represents an ordered, immutable list of single Modifier.Elements... It's a best practice to have all of your composables accept a modifier parameter, and pass that modifier to its first child that emits UI."
+> Multiple modifiers can be chained together to decorate or augment a composable. This chain is created via the Modifier interface which represents an ordered, immutable list of single Modifier.Elements. padding puts space around an element. fillMaxWidth makes the composable fill the maximum width given to it from its parent. It's a best practice to have all of your composables accept a modifier parameter, and pass that modifier to its first child that emits UI. Each Modifier.Element represents an individual behavior... Their ordering matters: modifier elements that are added first will be applied first.
 
-#### الشرح المبسّط:
-يمكن ربط عدة Modifiers ببعضها البعض بسلسلة (chain) باستخدام النقطة `.`، وهذه السلسلة عبارة عن قائمة مرتبة وغير قابلة للتغيير (`immutable`) من عناصر `Modifier.Element`.
-
-**لماذا الترتيب مهم؟** لأن كل Modifier يُطبَّق بالترتيب الذي كُتب به — تبديل الترتيب قد يُغيّر النتيجة تماماً (كما سنرى في مثال `clickable` و `padding`).
-
-#### 💻 الكود: Greeting مع تسلسل padding و fillMaxWidth
-
-#### ما هذا الكود؟
-> يجمع Modifier.padding و Modifier.fillMaxWidth في سلسلة واحدة.
+#### الترجمة الحرفية:
+> يمكن ربط عدة modifiers معاً لتزيين أو تعزيز عنصر قابل للتركيب. تُنشأ هذه السلسلة عبر واجهة Modifier التي تمثّل قائمة مرتّبة وغير قابلة للتغيير (immutable) من عناصر Modifier.Element فردية. padding يضيف مساحة حول عنصر. fillMaxWidth يجعل العنصر القابل للتركيب يملأ أقصى عرض مُعطى له من والده. من أفضل الممارسات أن تقبل كل عناصرك القابلة للتركيب معامل modifier، وأن تُمرّري ذلك الـmodifier إلى ابنها الأول الذي يُصدر واجهة. كل Modifier.Element يمثّل سلوكاً فردياً... ترتيبها مهم: عناصر الـmodifier التي تُضاف أولاً تُطبَّق أولاً.
 
 ```kotlin
+// clickable applied BEFORE padding — the entire area including padding responds to clicks
+val onClick = {}
 @Composable
-private fun Greeting(name: String) {
+fun ArtistCard(/*...*/) {
+    val padding = 16.dp
     Column(
-        modifier = Modifier
-            // Add space around the element first
-            .padding(24.dp)
-            // Then make it fill the max available width
+        Modifier
+            .clickable(onClick = onClick)
+            .padding(padding)
             .fillMaxWidth()
     ) {
-        Text(text = "Hello,")
-        Text(text = name)
+        // rest of the implementation
     }
 }
 ```
+
+```kotlin
+// padding applied BEFORE clickable — the padding area no longer responds to clicks
+val onClick = {}
+@Composable
+fun ArtistCard(/*...*/) {
+    val padding = 16.dp
+    Column(
+        Modifier
+            .padding(padding)
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+    ) {
+        // rest of the implementation
+    }
+}
+```
+
+#### 🔄 قبل / بعد: ترتيب clickable وpadding
+**قبل (clickable أولاً):**
+```kotlin
+Modifier.clickable(onClick = onClick).padding(padding).fillMaxWidth()
+```
+**بعد (padding أولاً):**
+```kotlin
+Modifier.padding(padding).clickable(onClick = onClick).fillMaxWidth()
+```
+**ماذا تغيّر؟** في الحالة الأولى، كامل المساحة (بما فيها منطقة الـpadding) تستجيب للنقر؛ في الحالة الثانية، منطقة الـpadding حول الحواف لم تعد تستجيب للنقر.
 
 #### شرح كل سطر:
-1. `.padding(24.dp)` → يضيف حشوة حول العنصر.
-2. `.fillMaxWidth()` → يجعل العنصر يملأ أقصى عرض متاح من والده.
+1. `.clickable(onClick = onClick)` → يجعل العنصر يستجيب للمس ويُظهر تأثير تموّج (ripple)
+2. `.padding(padding)` → يضيف مسافة فارغة حول العنصر بمقدار 16.dp
+3. `.fillMaxWidth()` → يملأ العنصر أقصى عرض متاح من الأب
 
-**المكتبات المطلوبة (Imports):**
-> `import androidx.compose.foundation.layout.padding`
-> `import androidx.compose.foundation.layout.fillMaxWidth`
+#### الفهم الخاطئ الشائع ❌: ترتيب الـModifiers لا يهم، فهي تُطبَّق كلها في النهاية بنفس النتيجة بغض النظر عن الترتيب.
+#### الفهم الصحيح ✅: الترتيب حاسم — كل modifier "يغلّف" النتيجة السابقة، فتغيير الترتيب يغيّر أي منطقة تتأثر بأي سلوك (كما في مثال clickable/padding أعلاه).
 
-**الناتج المتوقع (لقطة الشاشة):**
-> نفس مربع الترحيب لكن الآن يمتد ليملأ عرض الشاشة بالكامل (شريحة 28).
+#### الشرح المبسّط:
+بما أن `Modifier` كائن Kotlin قياسي كما شُرح في القسم السابق، يمكن ربط عدة استدعاءات منه بسلسلة (`chaining`) باستخدام النقطة `.`، وكل حلقة في هذه السلسلة تُسمى `Modifier.Element`. النقطة الأهم هنا — وهي مصدر خطأ شائع جداً — أن ترتيب هذه السلسلة يُغيّر النتيجة الفعلية، لأن كل عنصر يُطبَّق "على نتيجة العنصر الذي قبله" وليس على العنصر الأصلي مباشرة. في المثال، وضع `clickable` قبل `padding` يجعل منطقة الـpadding جزءاً من "المنطقة القابلة للنقر"، بينما عكس الترتيب يجعل الـpadding "خارج" منطقة الاستجابة للنقر لأن `padding` طُبِّق أولاً وحدّد حدوداً جديدة قبل أن يصل `clickable`. **تشبيه يومي:** تخيّلي أنكِ تلبسين طبقات ملابس بترتيب مختلف — إن لبستِ سترة واقية من المطر ثم فوقها سترة صوفية، تبقين محميتين من المطر بالكامل؛ لكن إن عكستِ الترتيب (الصوفية أولاً ثم الواقية من المطر فوقها)، تكونين محمية من المطر لكن بشكل مختلف تماماً في كيفية تأثير كل طبقة على الأخرى.
 
-#### مهم للامتحان ⚠️:
-> أفضل الممارسات: كل composable يجب أن يقبل بارامتر `modifier` ويُمرره لأول عنصر فرعي يُصدر واجهة — هذا يجعل مكوناتك قابلة لإعادة الاستخدام والتخصيص من الخارج.
+**لماذا؟** لأن كل `Modifier.Element` يُطبَّق على "النتيجة المُغلَّفة" من العنصر السابق في السلسلة، وليس على العنصر الأصلي بمعزل عن الباقي، فترتيب التغليف يحدد أي طبقة "تحيط" بأي طبقة أخرى.
 
 ---
 
-### 8.2. ترتيب الـ Modifiers يُغيّر السلوك الفعلي
+### 21. رفع الـModifiers لتحسين الأداء (Modifier Hoisting)
 
 #### النص الأصلي يقول (English):
-> "Each Modifier.Element represents an individual behavior, like layout, drawing and graphics behaviors, all gesture-related, focus and semantics behaviors, as well as device input events. Their ordering matters: modifier elements that are added first will be applied first."
+> Sometimes it can be beneficial to reuse the same modifier chain instances in multiple composables, by extracting them into variables and hoisting them into higher scopes. `val greetingContainerModifier = Modifier.padding(24.dp).fillMaxWidth()`. It can improve your app's performance for a few reasons: The re-allocation of the modifiers won't be repeated when recomposition occurs for composables that use them. Modifier chains could potentially be very long and complex, so reusing the same instance of a chain can alleviate the workload Compose runtime needs to do when comparing them.
 
-#### الشرح المبسّط:
-تغيير ترتيب استدعاءات `.clickable()` و `.padding()` يُغيّر أي منطقة تستجيب فعلياً للنقر.
-
-#### 🔄 قبل / بعد: ترتيب clickable و padding
-
-**قبل (clickable ثم padding):**
-```kotlin
-val onClick = {}
-@Composable
-fun ArtistCard(/*...*/) {
-    val padding = 16.dp
-    Column(
-        Modifier
-            .clickable(onClick = onClick)
-            .padding(padding)
-            .fillMaxWidth()
-    ) {
-        // rest of the implementation
-    }
-}
-```
-
-**بعد (padding ثم clickable):**
-```kotlin
-val onClick = {}
-@Composable
-fun ArtistCard(/*...*/) {
-    val padding = 16.dp
-    Column(
-        Modifier
-            .padding(padding)
-            .clickable(onClick = onClick)
-            .fillMaxWidth()
-    ) {
-        // rest of the implementation
-    }
-}
-```
-
-**ماذا تغيّر؟** في الحالة الأولى، **كل** المساحة بما فيها الحشوة تستجيب للنقر. في الحالة الثانية، منطقة الحشوة نفسها **لا** تستجيب للنقر — فقط المحتوى الداخلي يستجيب.
-
-#### الفهم الخاطئ الشائع ❌: ترتيب الـ Modifiers لا يهم طالما كل الـ Modifiers مذكورة.
-#### الفهم الصحيح ✅: كل Modifier يُطبَّق بالترتيب الذي كُتب به تماماً، وتبديل الترتيب يُغيّر السلوك الفعلي (كمنطقة النقر أو المساحة المرئية).
-
-#### 🤔 تفعيل الفهم (اسأل نفسك):
-> **سؤال:** إذا وضعت `.fillMaxWidth()` قبل `.padding()`، فهل ستختلف مساحة العرض النهائية عن وضعها بعده؟
-> **لماذا هذا مهم؟** لأن فهم ترتيب التطبيق يمنعك من أخطاء تصميم واجهة صعبة التتبع لاحقاً.
-
----
-
-### 8.3. إعادة استخدام سلاسل الـ Modifiers لتحسين الأداء
-
-#### النص الأصلي يقول (English):
-> "Sometimes it can be beneficial to reuse the same modifier chain instances in multiple composables, by extracting them into variables and hoisting them into higher scopes... It can improve your app's performance for a few reasons: The re-allocation of the modifiers won't be repeated when recomposition occurs... Modifier chains could potentially be very long and complex, so reusing the same instance of a chain can alleviate the workload Compose runtime needs to do when comparing them."
-
-#### الشرح المبسّط:
-بدلاً من إنشاء سلسلة Modifier جديدة في كل مرة يُعاد فيها تنفيذ composable، يمكن استخراجها إلى متغيّر عام (Hoisting) يُعاد استخدامه.
-
-**لماذا يُحسّن الأداء؟** لأن (1) لا حاجة لإعادة تخصيص الذاكرة لنفس السلسلة عند كل Recomposition، و(2) مقارنة السلاسل الطويلة يصبح أسرع عندما تكون نفس الكائن (Instance) لا نسخة جديدة.
-
-#### 💻 الكود: استخراج Modifier إلى متغيّر عام
+#### الترجمة الحرفية:
+> أحياناً يكون مفيداً إعادة استخدام نفس نُسخ سلسلة الـmodifier في عدة عناصر قابلة للتركيب، عن طريق استخراجها إلى متغيّرات ورفعها (hoisting) إلى نطاقات أعلى. يمكن أن يُحسّن ذلك أداء تطبيقكِ لبضعة أسباب: لن تتكرر إعادة تخصيص (re-allocation) الـmodifiers عند حدوث إعادة تركيب (recomposition) للعناصر القابلة للتركيب التي تستخدمها. يمكن أن تكون سلاسل الـmodifier طويلة ومعقدة جداً، لذا فإن إعادة استخدام نفس نسخة السلسلة يمكن أن يخفف من عبء العمل الذي يحتاجه محرّك Compose عند مقارنتها.
 
 ```kotlin
-// Hoist the modifier chain to a top-level variable for reuse
+// Hoisted modifier chain reused across recompositions
 val greetingContainerModifier = Modifier.padding(24.dp).fillMaxWidth()
 
 @Composable
@@ -930,34 +604,83 @@ private fun Greeting(name: String) {
 ```
 
 #### شرح كل سطر:
-1. `val greetingContainerModifier = Modifier.padding(24.dp).fillMaxWidth()` → يُنشئ السلسلة مرة واحدة فقط خارج الدالة.
-2. `Column(modifier = greetingContainerModifier)` → يُعيد استخدام نفس الكائن (Instance) في كل مرة، دون إعادة تخصيصه.
+1. `val greetingContainerModifier = Modifier.padding(24.dp).fillMaxWidth()` → يُنشأ الـmodifier مرة واحدة خارج الدالة القابلة للتركيب
+2. `Column(modifier = greetingContainerModifier)` → تُستخدم نفس النسخة (instance) في كل مرة تُستدعى فيها Greeting، بدل إنشاء نسخة جديدة كل مرة
 
-#### الدرس المستفاد:
-> عند وجود عدة composables تحتاج نفس تسلسل الـ Modifiers، استخرجها لمتغيّر مشترك (hoisting) لتحسين الأداء بدلاً من تكرار كتابتها.
+#### مهم للامتحان ⚠️:
+> رفع الـModifier إلى متغيّر خارجي يمنع إعادة تخصيصه (re-allocation) في كل عملية recomposition، وهذا تحسين أداء مباشر مرتبط بمفهوم "تخطي إعادة العمل" الذي شُرح سابقاً في مرحلة الرسم والتركيب.
+
+#### الشرح المبسّط:
+هذا القسم يربط مباشرة بمفهوم `recomposition` والتحسينات المذكورة سابقاً في قسم "التدفق أحادي الاتجاه"؛ فبدل أن تُنشئي سلسلة `Modifier` جديدة من الصفر في كل مرة تُستدعى فيها الدالة القابلة للتركيب (وهو ما يحدث كثيراً بسبب recomposition)، يمكنكِ "رفع" (hoist) هذه السلسلة إلى متغيّر خارج الدالة، فتُنشأ مرة واحدة فقط وتُعاد استخدامها. الفائدة مضاعفة: توفير عبء إعادة إنشاء الكائن، وتوفير عبء مقارنة السلاسل الطويلة عند تحديد ما إذا كانت الدالة تحتاج إعادة تشغيل. **تشبيه يومي:** كأنكِ تحضّرين خلطة توابل جاهزة مسبقاً في وعاء واحد بدل أن تخلطي نفس التوابل من الصفر في كل مرة تطبخين فيها نفس الطبق — الخلطة الجاهزة تُستخدم مباشرة وتوفر الوقت والجهد المتكرر.
+
+**لماذا؟** لأن الأداء في Compose يعتمد جزئياً على تقليل الأعمال المتكررة غير الضرورية، ورفع الـmodifiers إلى نطاق أعلى هو مثال ملموس على هذا التحسين العام الذي شرحته المحاضرة نظرياً سابقاً.
 
 ---
 
-### 8.4. Modifiers مدمجة شائعة: padding و size
+### 22. تطبيق شامل للـModifiers في تخطيط ArtistCard
 
 #### النص الأصلي يقول (English):
-> "By default, layouts provided in Compose wrap their children. However, you can set a size by using the size modifier... Note that the size you specified might not be respected if it does not satisfy the constraints coming from the layout's parent. If you require the composable size to be fixed regardless of the incoming constraints, use the requiredSize modifier."
+> Example, here we chain several modifiers to customize the ArtistCard. `clickable makes a composable react to user input and shows a ripple. padding puts space around an element. fillMaxWidth makes the composable fill the maximum width given to it from its parent. size specifies an element's preferred width and height.`
 
-#### الشرح المبسّط:
-افتراضياً، التخطيطات "تلتفّ" حول محتواها (wrap content). يمكنك تحديد حجم صريح عبر `Modifier.size(width, height)`، لكن الوالد (Parent) قد "يتجاهل" هذا الحجم إن كان يتعارض مع قيوده الخاصة. إن أردت فرض الحجم بغض النظر عن القيود، استخدم `requiredSize`.
-
-#### 💻 الكود: استخدام size و requiredSize
+#### الترجمة الحرفية:
+> مثال، هنا نربط عدة modifiers لتخصيص ArtistCard. clickable يجعل العنصر القابل للتركيب يستجيب لإدخال المستخدم ويُظهر تأثير تموّج (ripple). padding يضيف مساحة حول عنصر. fillMaxWidth يجعل العنصر القابل للتركيب يملأ أقصى عرض مُعطى له من والده. size يحدد العرض والارتفاع المفضّلين لعنصر.
 
 ```kotlin
 @Composable
+fun ArtistCardModifiers(
+    artist: Artist,
+    onClick: () -> Unit
+) {
+    val padding = 16.dp
+    Column(
+        Modifier
+            .clickable(onClick = onClick)
+            .padding(padding)
+            .fillMaxWidth()
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) { /*...*/ }
+        Spacer(Modifier.size(padding))
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        ) { /*...*/ }
+    }
+}
+```
+
+#### شرح كل سطر:
+1. `fun ArtistCardModifiers(artist: Artist, onClick: () -> Unit)` → الدالة تستقبل بيانات الفنان ودالة تُستدعى عند النقر
+2. `Modifier.clickable(onClick = onClick).padding(padding).fillMaxWidth()` → سلسلة modifiers: قابلية النقر أولاً، ثم التباعد، ثم ملء العرض الأقصى
+3. `Row(verticalAlignment = Alignment.CenterVertically) { /*...*/ }` → صف يعرض تفاصيل الفنان بمحاذاة رأسية للمنتصف
+4. `Spacer(Modifier.size(padding))` → مسافة فارغة بحجم padding بين Row وCard
+5. `Card(elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) { /*...*/ }` → بطاقة برفع (elevation) 4dp تحوي محتوى إضافياً
+
+**المكتبات المطلوبة (Imports):**
+> `import androidx.compose.foundation.clickable`، `import androidx.compose.foundation.layout.*`، `import androidx.compose.material3.Card`، `import androidx.compose.material3.CardDefaults`
+
+#### الشرح المبسّط:
+هذا المثال يجمع كل مفاهيم الـModifiers السابقة (السلسلة، الترتيب، النطاق) في تطبيق عملي واحد لبطاقة فنان كاملة: `Column` خارجي قابل للنقر (`clickable`) بأكمله، بداخله `Row` لعرض معلومات الفنان، ثم `Spacer` (مسافة فارغة صريحة بحجم محدد)، ثم `Card` لعرض محتوى إضافي برفع بصري (elevation) يعطي إحساساً بالعمق. هذا يوضح كيف تتضافر الحاويات (`Column`/`Row`) مع الـModifiers لبناء واجهة حقيقية متكاملة، تماماً كما ظهرت في الأمثلة السابقة لكن بمستوى أعلى من التعقيد والاكتمال. **تشبيه يومي:** هذا المثال أشبه ببناء بطاقة تعريف موظف كاملة: إطار خارجي قابل للنقر بالكامل (لفتح التفاصيل)، بداخله صورة واسم مرتبان أفقياً، ثم مسافة فاصلة، ثم قسم إضافي مرفوع بصرياً (كأنه بطاقة داخل بطاقة).
+
+**لماذا؟** لأن الأمثلة الواقعية تحتاج دائماً لدمج عدة أدوات معاً (حاويات + modifiers + مكونات جاهزة مثل Card)، وهذا المثال يجسّد كيف تبدو واجهة أندرويد حقيقية مبنية بـCompose.
+
+---
+
+### 23. Modifiers مدمجة: padding, size, requiredSize, fillMax*
+
+#### النص الأصلي يقول (English):
+> By default, layouts provided in Compose wrap their children. However, you can set a size by using the size modifier. Note that the size you specified might not be respected if it does not satisfy the constraints coming from the layout's parent. If you require the composable size to be fixed regardless of the incoming constraints, use the requiredSize modifier. If you want a child layout to fill all the available height allowed by the parent, add the fillMaxHeight modifier (Compose also provides fillMaxSize and fillMaxWidth).
+
+#### الترجمة الحرفية:
+> بشكل افتراضي، تلتف التخطيطات المتوفرة في Compose حول أبنائها. لكن، يمكنكِ تحديد حجم باستخدام modifier اسمه size. لاحظي أن الحجم الذي حدّدتِه قد لا يُحترَم إن لم يُلبِّ القيود (constraints) القادمة من والد التخطيط. إن كنتِ تحتاجين أن يكون حجم العنصر القابل للتركيب ثابتاً بغض النظر عن القيود الواردة، استخدمي modifier اسمه requiredSize. إن أردتِ أن يملأ تخطيط ابن كل الارتفاع المتاح المسموح به من الوالد، أضيفي modifier اسمه fillMaxHeight (يوفّر Compose أيضاً fillMaxSize وfillMaxWidth).
+
+```kotlin
+// size may be overridden by parent constraints; requiredSize forces exact size regardless
+@Composable
 fun ArtistCard(/*...*/) {
     Row(
-        // Fix the row's overall size
         modifier = Modifier.size(width = 400.dp, height = 100.dp)
     ) {
         Image(
             /*...*/
-            // Force this exact size regardless of parent constraints
             modifier = Modifier.requiredSize(150.dp)
         )
         Column { /*...*/ }
@@ -966,52 +689,37 @@ fun ArtistCard(/*...*/) {
 ```
 
 #### شرح كل سطر:
-1. `Modifier.size(width = 400.dp, height = 100.dp)` → يحدد حجماً مقترحاً، لكنه قد يُقيَّد من الوالد الأعلى.
-2. `Modifier.requiredSize(150.dp)` → يفرض الحجم فعلياً حتى لو تجاوز قيود الوالد.
+1. `Modifier.size(width = 400.dp, height = 100.dp)` → يحدد للـRow حجماً مقترحاً (قد يُقيَّد من الوالد)
+2. `Modifier.requiredSize(150.dp)` → يفرض على Image حجماً ثابتاً 150dp×150dp بغض النظر عن قيود الوالد
 
-#### ⚖️ المقايضة: size مقابل requiredSize
-
-| | `size` | `requiredSize` |
+#### 🛠️ استكشاف الأخطاء
+| الخطأ | السبب | الحل |
 | --- | --- | --- |
-| المزايا | يحترم قيود الوالد ويتكيّف معها | يضمن حجماً ثابتاً دائماً |
-| العيوب | قد يُتجاهل الحجم المطلوب إن تعارض مع قيود الأب | قد يتسبب في تجاوز حدود الوالد (Overflow) |
-| متى تختاره | في تخطيطات مرنة عادية | عند الحاجة لحجم دقيق وثابت (كأيقونة موحدة الحجم) |
+| العنصر لا يظهر بالحجم المحدد في `.size()` | الوالد يفرض قيوداً (constraints) أصغر أو أكبر لا تسمح بهذا الحجم | استخدمي `.requiredSize()` لفرض الحجم بغض النظر عن قيود الوالد |
+| العنصر لا يملأ الارتفاع رغم الحاجة لذلك | نسيان إضافة `fillMaxHeight()` | أضيفي `Modifier.fillMaxHeight()` (أو `fillMaxSize()`/`fillMaxWidth()` حسب الحاجة) |
+
+#### الشرح المبسّط:
+هذا القسم يفصّل الفرق الدقيق بين ثلاثة modifiers متشابهة الاسم لكنها مختلفة السلوك: `size()` يقترح حجماً لكنه "يحترم" قيود الوالد إن تعارضا (فقد لا يُطبَّق كاملاً)، بينما `requiredSize()` يفرض الحجم بشكل صارم بغض النظر عما يريده الوالد. أما عائلة `fillMax*` (`fillMaxWidth`، `fillMaxHeight`، `fillMaxSize`) فتجعل العنصر يستهلك أقصى مساحة متاحة له من الوالد بدل الالتفاف فقط حول محتواه (وهو السلوك الافتراضي المذكور في بداية النص: "التخطيطات تلتف حول أبنائها افتراضياً"). فهم هذا الفرق مهم لأنه يظهر غالباً في أسئلة تصحيح الكود حين يتوقع الطالب أن `size()` يعمل دائماً بينما القيود الأبوية قد تتجاوزه فعلياً. **تشبيه يومي:** `size()` أشبه بطلب حجز طاولة لأربعة أشخاص في مطعم، لكن إن كان المطعم مزدحماً فقد يعطونكِ طاولة لثلاثة فقط (يحترم القيود)؛ بينما `requiredSize()` أشبه بحجز VIP مضمون الحجم بغض النظر عن ازدحام المطعم.
+
+**لماذا؟** لأن نظام القيود (constraints) في Compose يتدفق من الوالد إلى الابن، وبعض الـmodifiers مصممة لتحترم هذا التدفق (`size`) بينما بعضها الآخر مصمم لتجاوزه عمداً (`requiredSize`) حين يكون ذلك ضرورياً.
 
 ---
 
-### 8.5. Modifiers ملء المساحة: fillMaxWidth / fillMaxHeight / fillMaxSize
+### 24. Modifiers للموضع: paddingFromBaseline وoffset
 
 #### النص الأصلي يقول (English):
-> "If you want a child layout to fill all the available height allowed by the parent, add the fillMaxHeight modifier (Compose also provides fillMaxSize and fillMaxWidth)."
+> If you want to add padding above a text baseline such that you achieve a specific distance from the top of the layout to the baseline, use the paddingFromBaseline modifier. To position a layout relative to its original position, add the offset modifier and set the offset in the x and y axis. Offsets can be positive as well as non-positive. The difference between padding and offset is that adding an offset to a composable does not change its measurements. The offset modifier is applied horizontally according to the layout direction. In a left-to-right context, a positive offset shifts the element to the right, while in a right-to-left context, it shifts the element to the left.
 
-#### الشرح المبسّط:
-مجموعة من Modifiers الجاهزة لجعل العنصر يملأ المساحة المتاحة من والده في اتجاه واحد أو أكثر.
-
-| المصطلح | التعريف | مثال/ملاحظة |
-| --- | --- | --- |
-| `fillMaxWidth()` | يملأ أقصى عرض متاح | يُستخدم غالباً لعناصر تمتد أفقياً بعرض الشاشة |
-| `fillMaxHeight()` | يملأ أقصى ارتفاع متاح | مفيد داخل Row طويل |
-| `fillMaxSize()` | يملأ العرض والارتفاع معاً | يُستخدم لملء الشاشة بالكامل مثلاً |
-
----
-
-### 8.6. Modifier الإزاحة (Offset)
-
-#### النص الأصلي يقول (English):
-> "To position a layout relative to its original position, add the offset modifier and set the offset in the x and y axis. Offsets can be positive as well as non-positive. The difference between padding and offset is that adding an offset to a composable does not change its measurements... In a left-to-right context, a positive offset shifts the element to the right, while in a right-to-left context, it shifts the element to the left."
-
-#### الشرح المبسّط:
-`offset` يُزيح العنصر عن موضعه الأصلي دون التأثير على قياساته (بعكس `padding` الذي يُغيّر القياسات فعلياً).
-
-#### 💻 الكود: إزاحة نص باستخدام offset
+#### الترجمة الحرفية:
+> إن أردتِ إضافة تباعد فوق خط أساس النص (text baseline) بحيث تحققين مسافة محددة من أعلى التخطيط إلى خط الأساس، استخدمي modifier اسمه paddingFromBaseline. لوضع تخطيط نسبةً لموضعه الأصلي، أضيفي modifier اسمه offset وحدّدي الإزاحة على محوري x وy. يمكن أن تكون الإزاحات موجبة أو غير موجبة. الفرق بين padding وoffset هو أن إضافة offset لعنصر قابل للتركيب لا يغيّر قياساته. يُطبَّق modifier الـoffset أفقياً حسب اتجاه التخطيط. في سياق من اليسار لليمين، تُزيح الإزاحة الموجبة العنصر لليمين، بينما في سياق من اليمين لليسار، تُزيحه لليسار.
 
 ```kotlin
+// offset shifts the Text without changing its measured size
 @Composable
 fun ArtistCard(artist: Artist) {
     Row(/*...*/) {
         Column {
             Text(artist.name)
-            // Shift this text 4dp horizontally without changing its measured size
             Text(
                 text = artist.lastSeenOnline,
                 modifier = Modifier.offset(x = 4.dp)
@@ -1021,41 +729,30 @@ fun ArtistCard(artist: Artist) {
 }
 ```
 
-#### شرح كل سطر:
-1. `Modifier.offset(x = 4.dp)` → يُزيح النص 4dp أفقياً، لكن حجمه المقاس (measurement) يبقى كما هو.
-
 #### ⚖️ المقايضة: padding مقابل offset
-
-| | `padding` | `offset` |
+| | padding | offset |
 | --- | --- | --- |
-| المزايا | يُغيّر القياسات الفعلية للعنصر ومحيطه | يُزيح العنصر بصرياً دون التأثير على التخطيط العام |
-| العيوب | يؤثر على حساب مساحة الوالد | قد يتسبب في تراكب بصري غير مقصود مع عناصر أخرى |
-| متى تختاره | لإضافة مسافة تُحسب ضمن التخطيط | لتحريك عنصر بصرياً فقط دون كسر التخطيط الحسابي |
+| المزايا | يضيف مساحة حقيقية تُحسب ضمن قياسات العنصر، فيؤثر على العناصر المجاورة | يزيح العنصر بصرياً دون التأثير على المساحة التي يحجزها في التخطيط |
+| العيوب | يُغيّر الحجم الكلي المحسوب للعنصر، فقد يدفع عناصر أخرى | قد يتسبب في تراكب بصري مع عناصر مجاورة لأن مساحتها المحجوزة لم تتغيّر |
+| متى تختاره | عندما تريدين مسافة حقيقية تؤثر على تخطيط بقية العناصر | عندما تريدين إزاحة بصرية بسيطة دون التأثير على بقية التخطيط |
+
+#### الشرح المبسّط:
+هذا القسم يقدّم modifierين للتحكم بالموضع الدقيق: `paddingFromBaseline` مفيد خصوصاً مع النصوص لأنه يقيس المسافة من أعلى العنصر إلى خط أساس الحروف (baseline) وليس إلى حافة النص العلوية العادية، وهو تفصيل دقيق يهم مصممي الواجهات النصية. أما `offset` فهو الأهم للفهم لأنه يقدّم فرقاً جوهرياً عن `padding`: الإزاحة (offset) تحرّك العنصر بصرياً فقط دون أن "تُحسب" ضمن قياسات التخطيط، أي أن العناصر المجاورة لن "تشعر" بأن هذا العنصر تحرّك، وقد يتراكب بصرياً معها. هذا يربط مباشرة بمفهوم القياس (measurement) الذي شُرح في مرحلة Layout سابقاً: padding يُغيّر القياس الفعلي، بينما offset يغيّر الموضع البصري فقط بعد أن اكتمل القياس. **تشبيه يومي:** `padding` أشبه بتوسيع إطار صورة فعلياً (يأخذ مساحة أكبر على الحائط وتحتاج بقية الصور تعديل مواقعها)، بينما `offset` أشبه بتحريك الصورة قليلاً داخل نفس المساحة المحجوزة لها على الحائط (المساحة المحجوزة لم تتغير، فقط الصورة انزاحت بصرياً بداخلها وقد تتراكب مع إطار الصورة المجاورة).
+
+**لماذا؟** لأن الفصل بين "المساحة المحجوزة" (measurement) و"الموضع البصري النهائي" (placement) يمنح مرونة: أحياناً تريدين تغيير الاثنين معاً (padding)، وأحياناً فقط الموضع البصري دون التأثير على بقية التخطيط (offset).
 
 ---
 
-### 8.7. أمان النطاق في Compose (Scope Safety)
+### 25. أمان النطاق (Scope Safety): matchParentSize في Box
 
 #### النص الأصلي يقول (English):
-> "In Compose, there are modifiers that can only be used when applied to children of certain composables. Compose enforces this by means of custom scopes. Scope safety prevents you from adding modifiers that wouldn't work in other composables and scopes and saves time from trial and error. Scoped modifiers notify the parent about some information the parent should know about the child."
+> In Compose, there are modifiers that can only be used when applied to children of certain composables. Compose enforces this by means of custom scopes. Scope safety prevents you from adding modifiers that wouldn't work in other composables and scopes and saves time from trial and error. If you want a child layout to be the same size as a parent Box without affecting the Box size, use the matchParentSize modifier. matchParentSize is only available within a Box scope, meaning that it only applies to direct children of Box composables. If fillMaxSize were used instead of matchParentSize, the Spacer would take all the available space allowed to the parent, in turn causing the parent to expand and fill all the available space.
 
-#### الشرح المبسّط:
-بعض الـ Modifiers لا تعمل إلا داخل حاوية معينة (Scope)، مثل `matchParentSize` (لا يعمل إلا داخل `Box`) و `weight` (لا يعمل إلا داخل `Row` أو `Column`). هذا يُسمى "أمان النطاق" — Compose يمنعك من استخدام Modifier في مكان لا يُناسبه أصلاً، فيوفر عليك وقت التجربة والخطأ.
+#### الترجمة الحرفية:
+> في Compose، توجد modifiers يمكن استخدامها فقط عند تطبيقها على أبناء عناصر قابلة للتركيب معينة. يفرض Compose هذا عن طريق نطاقات مخصصة (custom scopes). أمان النطاق يمنعكِ من إضافة modifiers لن تعمل في عناصر ونطاقات قابلة للتركيب أخرى، ويوفّر وقتاً من التجربة والخطأ. إن أردتِ أن يكون تخطيط الابن بنفس حجم Box الوالد دون التأثير على حجم Box، استخدمي modifier اسمه matchParentSize. matchParentSize متاح فقط ضمن نطاق Box، مما يعني أنه يُطبَّق فقط على الأبناء المباشرين للعناصر القابلة للتركيب Box. لو استُخدم fillMaxSize بدلاً من matchParentSize، لأخذ Spacer كل المساحة المتاحة المسموح بها للوالد، مما يتسبب بدوره في توسّع الوالد ليملأ كل المساحة المتاحة.
 
-**لماذا هذا مفيد؟** لأن هذه الـ Modifiers تحتاج معلومات خاصة عن الوالد (parent data)، فمن المنطقي أن تُقيَّد بذلك السياق فقط.
-
-#### 8.7.1. matchParentSize داخل Box
-
-#### النص الأصلي يقول (English):
-> "If you want a child layout to be the same size as a parent Box without affecting the Box size, use the matchParentSize modifier. matchParentSize is only available within a Box scope, meaning that it only applies to direct children of Box composables... If fillMaxSize were used instead of matchParentSize, the Spacer would take all the available space allowed to the parent, in turn causing the parent to expand and fill all the available space."
-
-#### الشرح المبسّط:
-`matchParentSize` يجعل العنصر بنفس حجم الـ `Box` الأب **دون** أن يُؤثر على حجم ذلك الـ Box نفسه (لأن حجم Box محدد أصلاً بواسطة عناصر أخرى فيه، مثل `ArtistCard`). أما `fillMaxSize` فسيجعل العنصر يأخذ كل المساحة المتاحة، مما قد يجعل الـ Box الأب نفسه يتمدد ليملأ الشاشة.
-
-#### 🔄 قبل / بعد: matchParentSize مقابل fillMaxSize
-
-**قبل (باستخدام matchParentSize):**
 ```kotlin
+// matchParentSize keeps the Box's size dictated by ArtistCard, not by the Spacer
 @Composable
 fun MatchParentSizeComposable() {
     Box {
@@ -1069,8 +766,8 @@ fun MatchParentSizeComposable() {
 }
 ```
 
-**بعد (باستخدام fillMaxSize):**
 ```kotlin
+// fillMaxSize instead causes the Box (and Spacer) to expand to fill all available space
 @Composable
 fun MatchParentSizeComposable() {
     Box {
@@ -1084,19 +781,26 @@ fun MatchParentSizeComposable() {
 }
 ```
 
-**ماذا تغيّر؟** في النسخة الأولى، حجم `Box` يبقى محدداً بحجم `ArtistCard` فقط، والخلفية الرمادية تتبعه بالضبط. في النسخة الثانية، `Spacer` يفرض ملء كل المساحة المتاحة، فيتمدد `Box` بالكامل ليملأ الشاشة.
-
-#### 8.7.2. weight داخل Row و Column
-
-#### النص الأصلي يقول (English):
-> "By default, a composable size is defined by the content it is wrapping. You can set a composable size to be flexible within its parent using the weight Modifier that is only available in RowScope, and ColumnScope."
+#### الفهم الخاطئ الشائع ❌: fillMaxSize وmatchParentSize يعطيان نفس النتيجة داخل Box لأن كليهما "يملأ المساحة".
+#### الفهم الصحيح ✅: matchParentSize يجعل الابن بحجم Box المحدَّد أصلاً من محتوى آخر (مثل ArtistCard) دون أن يوسّع Box نفسه؛ بينما fillMaxSize يجعل الابن يأخذ كل المساحة المتاحة من الوالد الأكبر، مما قد يتسبب في توسّع Box نفسه ليملأ تلك المساحة بالكامل.
 
 #### الشرح المبسّط:
-`weight` يجعل حجم العنصر "مرناً" — يأخذ حصة نسبية من المساحة المتاحة داخل `Row` أو `Column`، مقارنة بأوزان بقية الأبناء.
+هذا مثال على "أمان النطاق" (scope safety)، وهي آلية يستخدمها Compose لمنع استخدام modifiers في سياقات غير منطقية — فمثلاً `matchParentSize` غير متاح إلا داخل `Box` تحديداً، لأنه بلا معنى في `Row` أو `Column`. الفكرة الدقيقة في `matchParentSize` هي أنه يجعل حجم العنصر (مثل `Spacer`) "يتبع" حجم `Box` المحدَّد أصلاً من مصدر آخر (هنا `ArtistCard`)، بدون أن يشارك هو نفسه في تحديد حجم ذلك `Box`. هذا يختلف جذرياً عن `fillMaxSize` الذي "يطلب" أقصى مساحة من الوالد الأكبر، وإن لم يكن لـ`Box` حجم محدد مسبقاً، فسيتوسع `Box` نفسه استجابة لهذا الطلب — وهذا بالضبط سبب اختلاف النتيجتين في المثالين أعلاه. **تشبيه يومي:** `matchParentSize` أشبه بستارة مُفصَّلة بالضبط على مقاس نافذة موجودة مسبقاً (لن تجعل النافذة نفسها أكبر)، بينما `fillMaxSize` أشبه بطلب "أعطني كل المساحة المتاحة في الغرفة" — إن لم تكن هناك حدود واضحة، فقد تتوسع الغرفة (المجازية) نفسها لتلبية هذا الطلب.
 
-#### 💻 الكود: توزيع المساحة بأوزان مختلفة
+**لماذا؟** لأن السماح باستخدام modifiers مثل `matchParentSize` في أي مكان (خارج Box) سيكون بلا معنى منطقي، فنظام النطاقات (scopes) في Compose يمنع هذا الخطأ في وقت الترجمة (compile time) بدل اكتشافه لاحقاً بالتجربة والخطأ.
+
+---
+
+### 26. أمان النطاق: weight في Row وColumn
+
+#### النص الأصلي يقول (English):
+> By default, a composable size is defined by the content it is wrapping. You can set a composable size to be flexible within its parent using the weight Modifier that is only available in RowScope, and ColumnScope.
+
+#### الترجمة الحرفية:
+> بشكل افتراضي، يُحدَّد حجم العنصر القابل للتركيب بالمحتوى الذي يلتف حوله. يمكنكِ جعل حجم عنصر قابل للتركيب مرناً ضمن والده باستخدام modifier اسمه weight المتاح فقط في RowScope وColumnScope.
 
 ```kotlin
+// weight distributes available width proportionally between children
 @Composable
 fun ArtistCard(/*...*/) {
     Row(
@@ -1104,7 +808,6 @@ fun ArtistCard(/*...*/) {
     ) {
         Image(
             /*...*/
-            // Takes twice as much space as the column below
             modifier = Modifier.weight(2f)
         )
         Column(
@@ -1117,337 +820,318 @@ fun ArtistCard(/*...*/) {
 ```
 
 #### شرح كل سطر:
-1. `Modifier.weight(2f)` على `Image` → تأخذ ضعف المساحة النسبية مقارنة بـ `Column`.
-2. `Modifier.weight(1f)` على `Column` → تأخذ حصة واحدة نسبية من المساحة، فتكون المساحة الكلية موزعة بنسبة 2:1 لصالح الصورة.
+1. `Row(modifier = Modifier.fillMaxWidth())` → Row يملأ كامل العرض المتاح أولاً حتى يكون هناك مساحة يتم توزيعها
+2. `Image(modifier = Modifier.weight(2f))` → تأخذ الصورة ضعف المساحة النسبية مقارنة بالعمود المجاور
+3. `Column(modifier = Modifier.weight(1f))` → يأخذ العمود حصة نسبية واحدة من المساحة المتبقية
 
 #### مهم للامتحان ⚠️:
-> `weight` تعمل فقط ضمن `RowScope` و `ColumnScope` — استخدامها خارج `Row`/`Column` يُسبب خطأ ترجمة (compilation error)، وهذا مثال مباشر على "أمان النطاق" (Scope Safety).
+> `weight()` يوزّع المساحة **النسبية** (بنسبة الأرقام لبعضها، مثل 2:1 هنا) وليس المساحة المطلقة، ولا يعمل إلا إذا كان الوالد (Row أو Column) قد حدد أولاً مساحة كلية له عبر شيء مثل `fillMaxWidth()`، وإلا فلا توجد "مساحة متاحة" ليوزّعها.
+
+#### الشرح المبسّط:
+`weight()` هو modifier آخر محصور بنطاق معيّن (`RowScope` و`ColumnScope` فقط)، وهو الأداة الأساسية لتوزيع المساحة بشكل نسبي (proportional) بين عدة عناصر بدل الحجم الثابت الذي يعتمد على المحتوى افتراضياً. في المثال، `Image` بوزن `2f` و`Column` بوزن `1f` يعني أن الصورة تأخذ ضعف مساحة العمود (نسبة 2 إلى 1) من إجمالي العرض المتاح — وهذا يتطلب أن يكون لدى `Row` نفسه عرض محدد أولاً (هنا عبر `fillMaxWidth()`) ليكون هناك "كعكة" (مساحة) يمكن تقسيمها بهذه النسب. هذا يربط بمفهومي `fillMaxWidth` و`matchParentSize` السابقين: كلاهما وweight تدور حول كيفية توزيع أو تحديد المساحة داخل نظام القيود في Compose. **تشبيه يومي:** فكّري في توزيع تركة مالية على وريثين بنسبة 2 إلى 1 — لا يمكن توزيع النسب قبل أن تعرفي المبلغ الكلي المتاح أولاً (fillMaxWidth)، ثم يأخذ كل وريث حصته النسبية من ذلك المبلغ الكلي (weight).
+
+**لماذا؟** لأن `weight` يحل مشكلة عملية شائعة جداً في تصميم الواجهات: توزيع مساحة الشاشة بنسب مرنة بين عدة عناصر بدل حجمٍ ثابت لا يتكيف مع أحجام الشاشات المختلفة.
 
 ---
 
 ## الجزء الثاني: ملخص منظم شامل
 
 ### أهم التعاريف والمفاهيم
-
 | المصطلح | التعريف | مثال/ملاحظة |
 | --- | --- | --- |
-| `Jetpack Compose` | مجموعة أدوات تصريحية حديثة لبناء واجهات أندرويد | يوصى بها رسمياً من Google |
-| `Declarative UI` | تصف "ماذا" تريد أن تظهر الواجهة، بدلاً من "كيف" تُبنى خطوة بخطوة | `@Composable fun Greeting(...)` |
-| `Imperative UI` | تتحكم يدوياً بكل عنصر عبر استدعاءات صريحة (setter/getter) | `findViewById()` + `button.setText()` |
-| `@Composable` | Annotation إلزامي لكل دالة تُنتج واجهة | `@Composable fun MyButton() {...}` |
-| `Recomposition` | إعادة استدعاء دوال composable عند تغيّر الحالة | يحدث تلقائياً عند تغيّر `mutableStateOf` |
-| `Composition` | أول مرحلة من مراحل Compose — "ماذا" سيُعرض | ينتج شجرة عُقد (Layout Nodes Tree) |
-| `Layout` | ثاني مرحلة — "أين" يوضع كل عنصر | measure → size → place |
-| `Drawing` | ثالث مرحلة — "كيف" يُرسم فعلياً | يرسم على Canvas |
-| `Modifier` | كائن Kotlin يُزيّن أو يُعدّل سلوك composable | `Modifier.padding(24.dp)` |
-| `Scope Safety` | تقييد بعض Modifiers لتعمل فقط داخل حاوية معينة | `weight` فقط داخل `Row`/`Column` |
+| `Jetpack Compose` | أداة بناء واجهات مستخدم تصريحية (declarative) موصى بها رسمياً من أندرويد | تستبدل نظام XML/View القديم |
+| `Declarative UI` | نمط تصف فيه الواجهة اعتماداً على الحالة الحالية بدل تعديل عناصر يدوياً | `Text(if (clicked) "Clicked!" else "Click Me!")` |
+| `@Composable` | تعليق توضيحي إلزامي لأي دالة تصف واجهة في Compose | `@Composable fun Greeting(...)` |
+| `Recomposition` | إعادة استدعاء دالة قابلة للتركيب تلقائياً عند تغيّر الحالة التي تعتمد عليها | يحدث عند تغيّر `mutableStateOf` |
+| `Composition Phase` | مرحلة تشغيل الدوال القابلة للتركيب وبناء شجرة تصف الواجهة (ماذا) | تُنتج UI tree |
+| `Layout Phase` | مرحلة قياس ووضع كل عُقدة في إحداثيات x,y (أين) | خطوات: قياس، تحديد حجم، وضع |
+| `Drawing Phase` | مرحلة رسم كل عُقدة فعلياً على Canvas (كيف) | تسير من الأعلى للأسفل |
+| `Unidirectional Data Flow` | تدفق البيانات في اتجاه واحد: Composition → Layout → Drawing | باستثناء LazyColumn وBoxWithConstraints |
+| `Modifier` | كائن Kotlin قياسي يزيّن أو يعزّز عنصراً قابلاً للتركيب (حجم، سلوك، مظهر) | `Modifier.padding(24.dp)` |
+| `Scope Safety` | آلية تقيّد بعض الـmodifiers لتُستخدم فقط ضمن نطاقات معينة (مثل BoxScope) | `matchParentSize`، `weight` |
 
 ### المكونات الرئيسية (مرجع سريع)
-
 | الأداة | الوظيفة | ملاحظة |
 | --- | --- | --- |
-| `Column` | ترتيب عمودي للأبناء | يدعم `verticalArrangement`، `horizontalAlignment` |
-| `Row` | ترتيب أفقي للأبناء | يدعم `horizontalArrangement`، `verticalAlignment` |
-| `Box` | تراكب الأبناء فوق بعضهم | يدعم `contentAlignment`، وModifier خاص `matchParentSize` |
-| `Modifier.padding` | إضافة حشو حول العنصر | يُغيّر القياسات الفعلية |
-| `Modifier.size` | تحديد حجم مقترح | قد يُتجاهل إن تعارض مع قيود الوالد |
-| `Modifier.requiredSize` | فرض حجم ثابت | يتجاوز قيود الوالد |
-| `Modifier.fillMaxWidth/Height/Size` | ملء المساحة المتاحة | اتجاه واحد أو أكثر |
-| `Modifier.offset` | إزاحة بصرية دون تغيير القياسات | يعتمد على اتجاه LTR/RTL |
-| `Modifier.weight` | توزيع نسبي للمساحة | فقط داخل `RowScope`/`ColumnScope` |
-| `Modifier.matchParentSize` | مطابقة حجم الأب دون التأثير عليه | فقط داخل `BoxScope` |
+| `Column` | يرتّب العناصر عمودياً | يدعم `verticalArrangement`، `horizontalAlignment` |
+| `Row` | يرتّب العناصر أفقياً | يدعم `horizontalArrangement`، `verticalAlignment` |
+| `Box` | يضع العناصر متراكبة فوق بعضها | يدعم `matchParentSize`، محاذاة داخلية |
+| `padding` | يضيف مساحة حول عنصر، يؤثر على القياس | يُغيّر حجم العنصر المحسوب |
+| `offset` | يزيح العنصر بصرياً دون تغيير قياسه | قد يسبب تراكباً بصرياً |
+| `size` / `requiredSize` | يحدد حجماً مقترحاً (قابل للتجاوز) أو ثابتاً (غير قابل للتجاوز) | requiredSize يتجاوز قيود الوالد |
+| `fillMaxWidth/Height/Size` | يملأ أقصى مساحة متاحة من الوالد | بعكس السلوك الافتراضي (الالتفاف حول المحتوى) |
+| `weight` | يوزّع المساحة نسبياً بين عناصر Row/Column | محصور بنطاق RowScope/ColumnScope فقط |
 
 ### جداول مقارنات سريعة
-
 | المقارنة | الأول | الثاني | الفرق |
 | --- | --- | --- | --- |
-| نظام الواجهة | `View System` (Imperative UI) | `Jetpack Compose` (Declarative UI) | تحديث يدوي مقابل تحديث معتمد على الحالة |
-| تحديث الواجهة | Manual UI updates | State-driven UI | من يقرر متى يتغيّر العنصر: المبرمج يدوياً أم الحالة تلقائياً |
-| بنية الواجهة | Mutable View hierarchy | UI described with composable functions | كائنات قابلة للتحوير مقابل دوال تصف الواجهة |
-| خطر الأخطاء | High risk of inconsistent UI state | Consistent UI via recomposition | خطر نسيان تحديث عنصر مقابل اتساق تلقائي |
-| توزع الكود | UI split across XML and Kotlin | UI defined entirely in Kotlin | لغتان مختلفتان مقابل لغة واحدة |
-| حجم الكود | More boilerplate code | Less boilerplate code | كود طويل متكرر مقابل كود مختصر |
-| إدارة التحديث | Explicit UI update management | Automatic selective recomposition | تحديث صريح يدوي مقابل تحديث انتقائي تلقائي |
-| `padding` مقابل `offset` | يُغيّر القياسات الفعلية | لا يُغيّر القياسات | التأثير على حساب مساحة الوالد |
-| `size` مقابل `requiredSize` | يحترم قيود الوالد | يفرض الحجم دوماً | مرونة مقابل صرامة |
-| `matchParentSize` مقابل `fillMaxSize` | لا يُغيّر حجم Box الأب | قد يُوسّع Box الأب | التأثير العكسي على الوالد |
+| النمط | `Imperative (View System)` | `Declarative (Compose)` | الأول يدوي وعرضة للأخطاء، الثاني تصريحي ومعتمد على الحالة |
+| الموضع | `padding` | `offset` | الأول يُحسب ضمن القياس ويؤثر على الجيران، الثاني إزاحة بصرية فقط |
+| الحجم | `size` | `requiredSize` | الأول يحترم قيود الوالد، الثاني يفرض الحجم بغض النظر عنها |
+| التوسيع | `fillMaxSize` | `matchParentSize` | الأول يطلب كل المساحة من الوالد (قد يوسّعه)، الثاني يتبع حجم Box محدد مسبقاً دون تغييره |
+| المحور | `Arrangement` | `Alignment` | الأول يوزّع على المحور الرئيسي، الثاني يحاذي على المحور العرضي |
 
-### قاموس المصطلحات (Glossary)
-
+### قاموس المصطلحات
 | الفئة | المصطلحات |
 | --- | --- |
-| مفاهيم أساسية | `Declarative Paradigm`، `Imperative Paradigm`، `Recomposition`، `Unidirectional Data Flow` |
-| مراحل Compose | `Composition`، `Layout`، `Drawing`، `Layout Node`، `single pass` |
-| مكونات تخطيط | `Row`، `Column`، `Box`، `RowScope`، `ColumnScope`، `BoxScope` |
-| Modifiers | `padding`، `size`، `requiredSize`، `fillMaxWidth/Height/Size`، `offset`، `weight`، `matchParentSize`، `clickable` |
-| استثناءات المراحل | `BoxWithConstraints`، `LazyColumn`، `LazyRow` |
+| مفاهيم أساسية | `Declarative`، `Imperative`، `Composable Function`، `Recomposition` |
+| المراحل الثلاث | `Composition`، `Layout`، `Drawing`، `Unidirectional Data Flow` |
+| الحاويات | `Column`، `Row`، `Box`، `Arrangement`، `Alignment` |
+| الـModifiers | `padding`، `offset`، `size`، `requiredSize`، `fillMaxWidth/Height/Size`، `weight`، `matchParentSize`، `clickable` |
 
 ### أبرز النقاط الذهبية
-
-1. Compose يُقلل الكود المكرر عبر الاعتماد على الحالة (State) بدلاً من التعديل اليدوي المباشر للعناصر.
-2. تدفق البيانات دائماً للأسفل (down)، وتدفق الأحداث دائماً للأعلى (up) — هذا هو أساس Unidirectional Data Flow.
-3. كل إطار في Compose يمر بثلاث مراحل ثابتة الترتيب عموماً: Composition → Layout → Drawing.
-4. في مرحلة Layout، الآباء يُقاسون قبل أبنائهم، لكن يُحدَّد حجمهم ويوضعون بعد أبنائهم (مرور واحد فقط).
-5. بدون تخطيط صريح (Row/Column/Box)، Compose قد يُرتب العناصر بطريقة غير مقروءة (تراكب فوق بعضها).
-6. ترتيب سلسلة الـ Modifiers يُغيّر السلوك الفعلي — كل Modifier يُطبَّق بترتيب كتابته.
-7. بعض الـ Modifiers مقيدة بنطاق معين (Scope Safety) مثل `weight` (Row/Column فقط) و `matchParentSize` (Box فقط).
-8. إعادة استخدام (hoisting) سلاسل الـ Modifiers في متغيرات مشتركة يُحسّن الأداء ويقلل عبء إعادة التخصيص.
+1. Compose تصريحي (declarative)، والمبرمج يصف "ماذا يجب أن تكون عليه" الواجهة بدل تعديلها يدوياً خطوة بخطوة.
+2. أي دالة `@Composable` لا تُرجع قيمة، لأنها تصف حالة الشاشة المستهدفة لا تبنيها.
+3. المراحل الثلاث (Composition → Layout → Drawing) تسير دائماً بنفس الترتيب أحادي الاتجاه.
+4. في مرحلة Layout: القياس ينزل من الأب للابن، لكن تحديد الحجم/الموضع يصعد من الابن للأب.
+5. بدون حاوية ترتيب (Column/Row/Box) تتراكب عناصر الواجهة فوق بعضها البعض تلقائياً.
+6. ترتيب الـModifiers في السلسلة يغيّر النتيجة الفعلية — كل modifier يُطبَّق على نتيجة ما قبله.
+7. `padding` يؤثر على القياس، بينما `offset` لا يؤثر عليه، فقط على الموضع البصري.
+8. بعض الـModifiers (`matchParentSize`، `weight`) محصورة بنطاقات معينة (`BoxScope`، `RowScope`/`ColumnScope`) بسبب "أمان النطاق".
 
 ### الأخطاء الشائعة عند الطلاب ⚠️
-
 | الخطأ | التصحيح |
 | --- | --- |
-| الاعتقاد أن composable تُرجع View يمكن تخزينه واستدعاء setter عليه لاحقاً | composable لا يُرجع شيئاً (Unit) — التحديث يتم عبر إعادة الاستدعاء (Recomposition) بحالة جديدة |
-| كتابة عدة `Text()` متتالية بدون Row/Column ظناً أنها ستُرتب تلقائياً | يجب دائماً استخدام حاوية تخطيط صريحة (Row/Column/Box) |
-| استخدام `weight` خارج `Row`/`Column` | `weight` مقيدة بـ Scope معين — لن تُترجم الشيفرة خارج هذا النطاق |
-| استخدام `fillMaxSize` بدلاً من `matchParentSize` داخل Box | `fillMaxSize` قد يُوسّع الـ Box الأب نفسه بعكس `matchParentSize` |
-| الاعتقاد أن ترتيب Modifiers لا يؤثر على النتيجة | الترتيب يُغيّر فعلياً منطقة النقر أو المساحة المرئية |
+| الاعتقاد أن ترتيب الـModifiers لا يؤثر على النتيجة | كل modifier يُطبَّق على نتيجة العنصر السابق له في السلسلة، فالترتيب حاسم |
+| الخلط بين `size()` و`requiredSize()` | `size()` قابل للتجاوز من قيود الوالد، `requiredSize()` يفرض الحجم دائماً |
+| الاعتقاد أن `fillMaxSize` و`matchParentSize` متكافئان داخل Box | الأول قد يوسّع Box نفسه، الثاني يتبع حجم Box المحدَّد مسبقاً فقط |
+| نسيان أن دالة composable لا تُرجع قيمة | الدالة تصف الواجهة عبر آثار جانبية (side effects عبر استدعاء composables أخرى) لا عبر return |
+| الخلط بين ترتيب القياس وترتيب تحديد الحجم/الوضع في Layout | القياس ينزل من الجذر، لكن الحجم/الوضع يُحدَّد صعوداً من الأوراق للجذر |
 
 ---
 
 ### خطوات وإجراءات المحاضرة
 
-#### ⚙️ الخطوات / الخوارزمية: بناء دالة Composable صحيحة من الصفر
-> ما هدف هذه العملية؟ توضيح الخطوات المنطقية لكتابة أي واجهة تصريحية بسيطة في Compose.
 ```algorithm
-1 | تعريف الدالة | Kotlin Function | تُكتب دالة عادية تأخذ بارامترات البيانات المطلوبة
-2 | إضافة Annotation | @Composable | تُعلّم الدالة كجزء من نظام Compose
-3 | استدعاء عناصر جاهزة | Text/Image/Button | تُستدعى دوال composable أخرى لعرض المحتوى
-4 | تنظيم العرض | Row/Column/Box | تُلف العناصر بحاوية تخطيط مناسبة
-5 | تخصيص المظهر | Modifier | يُضاف Modifier لتحديد الحجم أو الحشو أو السلوك
+1 | Composition Phase | Compose Runtime | تشغيل الدوال القابلة للتركيب وبناء شجرة تصف الواجهة (ماذا)
+2 | Layout Phase - Measure | Layout Nodes | كل عُقدة تطلب من أبنائها القياس أولاً (نزولاً من الجذر)
+3 | Layout Phase - Decide Size | Layout Nodes | كل عُقدة تحدد حجمها الخاص بناءً على قياسات أبنائها (صعوداً من الأوراق)
+4 | Layout Phase - Place | Layout Nodes | كل عُقدة تضع أبناءها في إحداثيات x,y نسبةً لموقعها
+5 | Drawing Phase | Canvas | كل عُقدة ترسم نفسها فعلياً على الشاشة، نزولاً من الجذر للأوراق
 ```
-#### نقاط التنفيذ:
-- لا تنسَ تمرير `modifier` كبارامتر لجعل الدالة قابلة لإعادة الاستخدام من الخارج.
 
-#### ⚙️ الخطوات / الخوارزمية: معالجة Recomposition عند تفاعل المستخدم
-> ما هدف هذه العملية؟ توضيح كيف يستجيب Compose لأي تفاعل من المستخدم.
 ```algorithm
-1 | إطلاق الحدث | UI Element | المستخدم يضغط زراً فيُطلق onClick
-2 | إشعار منطق التطبيق | App Logic | الحدث يصل لمنطق التطبيق
-3 | تحديث الحالة | State Variable | متغيّر الحالة (مثل mutableStateOf) يتغيّر
-4 | إعادة التركيب | Compose Runtime | الدوال composable المتأثرة تُستدعى من جديد
-5 | إعادة الرسم | UI | الشاشة تعرض النتيجة الجديدة فقط للأجزاء المتغيّرة
+1 | تغيير الحالة (State Change) | User Interaction | المستخدم يتفاعل مع عنصر واجهة، فيُطلق حدثاً مثل onClick
+2 | إبلاغ منطق التطبيق | App Logic | الحدث يُبلّغ منطق التطبيق الذي يغيّر قيمة الحالة (state)
+3 | إعادة التركيب (Recomposition) | Compose Runtime | تُستدعى الدوال القابلة للتركيب المتأثرة تلقائياً بالبيانات الجديدة فقط
+4 | تحديث الواجهة | Compose Runtime | تُعاد مراحل Layout وDrawing فقط للأجزاء التي تغيّرت
 ```
-#### نقاط التنفيذ:
-- لا يُعاد رسم الشجرة بالكامل، بل فقط الأجزاء التي قرأت الحالة المتغيّرة فعلياً.
 
----
+### أنماط الأكواد
+- كل دالة `@Composable` تبدأ بالتعليق `@Composable` وتُسمّى غالباً بأسماء تبدأ بحرف كبير (PascalCase) لتمييزها عن الدوال العادية.
+- الترتيب الشائع لمعامل `modifier`: يُمرَّر كأول أو معامل مسمّى، ويُمرَّر للابن الأول الذي يُصدر واجهة (best practice).
+- سلاسل الـModifier تُكتب غالباً كل عنصر في سطر منفصل لسهولة القراءة: `Modifier.clickable(...).padding(...).fillMaxWidth()`.
 
-### أنماط الأكواد والبنى المتكررة
+### أنماط التعامل
+- عند بناء أي بطاقة أو عنصر واجهة معقد، ابدئي بتحديد الحاوية الخارجية (Column/Row/Box) أولاً، ثم أضيفي المحتوى، ثم زيّني بالـModifiers.
+- عند الشك في ترتيب modifiers، اسألي نفسك: "ما الذي يجب أن يحيط بماذا؟" — الأول في السلسلة يُطبَّق أولاً، فيصبح الأقرب للتأثير الخارجي.
 
-| النمط | البنية الأساسية | متى تستخدمه |
-| --- | --- | --- |
-| Composable بسيط | `@Composable fun X(data: T) { Text(...) }` | لعرض بيانات ثابتة بسيطة |
-| Composable مع Modifier | `@Composable fun X(modifier: Modifier = Modifier) { ... }` | عند الحاجة لتخصيص المظهر من الخارج |
-| تخطيط مركّب | `Row { Image(); Column { Text(); Text() } }` | لبناء بطاقات معلومات مركبة (صورة + نص) |
-| سلسلة Modifiers | `Modifier.padding(x).fillMaxWidth().clickable{}` | عند الحاجة لعدة تعديلات مجتمعة على نفس العنصر |
-
-### أنماط التعامل والسلوك
-
-| السيناريو | التعامل الصحيح | لماذا؟ |
-| --- | --- | --- |
-| عرض عدة عناصر نصية معاً | لفّها ضمن `Column` أو `Row` | لتفادي التراكب غير المقصود |
-| الحاجة لتوزيع مساحة نسبي بين عناصر | استخدام `Modifier.weight()` داخل `Row`/`Column` | لأنه Modifier مخصص لهذا النطاق فقط |
-| الحاجة لتغطية خلفية بحجم عنصر آخر داخل Box | استخدام `matchParentSize` بدلاً من `fillMaxSize` | لتفادي تمدد الـ Box الأب نفسه |
-
-### الأفكار الرئيسية الشاملة
-الفكرة المحورية لهذه المحاضرة هي أن Compose يفصل بوضوح بين "وصف" الواجهة (composable functions) و"تنفيذها" الفعلي عبر ثلاث مراحل محسّنة الأداء (Composition, Layout, Drawing)، وأن كل أداة (Row/Column/Box، Modifiers) مصممة لتُبقي هذا الفصل نظيفاً وقابلاً لإعادة الاستخدام.
+### الأفكار الشاملة
+Jetpack Compose يقوم على ثلاثية مترابطة: النمط التصريحي (وصف الواجهة اعتماداً على الحالة) + المراحل الثلاث (Composition/Layout/Drawing) التي تحوّل هذا الوصف إلى بكسلات فعلية على الشاشة + أدوات الترتيب والتزيين (Layouts وModifiers) التي تمنح المبرمج تحكماً دقيقاً في الشكل النهائي دون الخروج عن النمط التصريحي.
 
 ---
 
 ## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
 
-> **16 سؤالاً** — مستوى: medium/hard. التوزيع: مقارنات 25% | سيناريو كود 35% | تطبيق 40%.
+### السؤال 1 (متوسط)
+What is the main paradigm used by Jetpack Compose?
+أ) Imperative programming
+ب) Declarative programming
+ج) Procedural programming
+د) Object-oriented programming only
 
-### السؤال 1 (medium)
-What is the main characteristic of the declarative UI paradigm used by Jetpack Compose?
-أ) The developer manually finds and mutates each view
-ب) The UI is described as a function of the current state
-ج) The UI hierarchy is inflated only from XML files
-د) Every UI update requires calling findViewById()
 **الإجابة الصحيحة: ب**
-**التعليل:** الخيار (ب) صحيح لأن جوهر Compose هو وصف الواجهة كدالة للحالة الحالية. (أ) و(د) يصفان النموذج الإجرائي القديم. (ج) غير صحيح لأن Compose لا يعتمد على XML لتعريف الواجهة.
+**التعليل:** Compose تصريحي بامتياز — المبرمج يصف "ماذا" يجب أن تكون عليه الواجهة اعتماداً على الحالة، لا "كيف" يعدّلها خطوة بخطوة. الخيار (أ) هو النمط القديم (View System) الذي تحاول Compose استبداله. الخيار (ج) و(د) غير دقيقين لأن Compose تصريحي مبني على Kotlin وليس صرفاً إجرائياً أو كائنياً تقليدياً.
 
 ---
 
-### السؤال 2 (medium)
-In the imperative View System example from the lecture, what method is used to locate a button by its id?
+### السؤال 2 (متوسط)
+In the old imperative View System, what method is commonly used to locate a UI element?
 أ) `remember()`
 ب) `mutableStateOf()`
 ج) `findViewById()`
-د) `Modifier.clickable()`
+د) `Composable()`
+
 **الإجابة الصحيحة: ج**
-**التعليل:** `findViewById()` هي الطريقة الكلاسيكية للبحث اليدوي عن عنصر في شجرة Views. باقي الخيارات تنتمي لعالم Compose وليس View System.
+**التعليل:** `findViewById()` هي الطريقة التقليدية للبحث عن عنصر واجهة في XML/View System. أما (أ) و(ب) فهما أدوات Compose الحديثة لإدارة الحالة، و(د) ليست دالة موجودة بهذا الاسم بل `@Composable` هو تعليق توضيحي.
 
 ---
 
-### السؤال 3 (hard)
-What does the term "recomposition" refer to?
-أ) Rebuilding the entire app from source code
-ب) Re-executing composable functions when their inputs (state) change
-ج) Compiling XML layouts into Kotlin
-د) Manually calling setText() on a widget
+### السؤال 3 (متوسط)
+What does a `@Composable` function return?
+أ) A View object
+ب) An Int representing the layout ID
+ج) Nothing (Unit) — it describes the UI instead
+د) A String representing the UI hierarchy
+
+**الإجابة الصحيحة: ج**
+**التعليل:** كما شُرح في القسم الثامن، دوال composable لا تُرجع قيمة لأنها تصف حالة الشاشة عبر استدعاء composables أخرى، وليس عبر إرجاع كائن. باقي الخيارات تصف سلوك أنظمة أخرى غير Compose.
+
+---
+
+### السؤال 4 (متوسط)
+Which of the following is NOT one of the three main phases of Compose?
+أ) Composition
+ب) Layout
+ج) Drawing
+د) Compilation
+
+**الإجابة الصحيحة: د**
+**التعليل:** المراحل الثلاث المذكورة صراحة في المحاضرة هي Composition، Layout، وDrawing. Compilation هي خطوة مترجم عامة في Kotlin وليست إحدى مراحل الإطار (frame) في Compose.
+
+---
+
+### السؤال 5 (متوسط)
+In the Layout phase, what is the correct order of operations for a single node?
+أ) Place children → Measure children → Decide own size
+ب) Measure children → Decide own size → Place children
+ج) Decide own size → Measure children → Place children
+د) Measure children → Place children → Decide own size
+
 **الإجابة الصحيحة: ب**
-**التعليل:** Recomposition تحديداً هي إعادة استدعاء دوال composable عند تغيّر البيانات/الحالة التي تعتمد عليها؛ الخيارات الأخرى لا علاقة لها بهذا المصطلح.
+**التعليل:** الترتيب الصحيح المذكور حرفياً في المحاضرة هو: قياس الأبناء أولاً، ثم تحديد الحجم الخاص بناءً على تلك القياسات، ثم وضع الأبناء. باقي الترتيبات غير منطقية لأن الوضع يحتاج حجماً محدداً مسبقاً، والحجم يحتاج قياسات مسبقة.
 
 ---
 
-### السؤال 4 (medium)
-Which of the following are the three main phases of a Compose frame, in correct order?
-أ) Layout → Composition → Drawing
-ب) Drawing → Layout → Composition
-ج) Composition → Layout → Drawing
-د) Composition → Drawing → Layout
-**الإجابة الصحيحة: ج**
-**التعليل:** الترتيب الصحيح كما ورد بالمحاضرة هو Composition (ماذا) ثم Layout (أين) ثم Drawing (كيف). أي ترتيب آخر يخالف تدفق البيانات أحادي الاتجاه.
-
----
-
-### السؤال 5 (hard)
-During the Layout phase, in what order do parent nodes get measured, sized, and placed relative to their children?
-أ) Parents are measured, sized, and placed all before their children
+### السؤال 6 (متوسط)
+According to the lecture, what is true about parent and child nodes during the Layout phase?
+أ) Parents are measured and sized before their children
 ب) Parents measure before their children, but are sized and placed after their children
-ج) Children are always measured after being sized
-د) There is no defined order; it happens simultaneously
+ج) Children are never measured, only parents
+د) Measurement and sizing happen simultaneously for all nodes
+
 **الإجابة الصحيحة: ب**
-**التعليل:** هذه قاعدة صريحة من المحاضرة: الأب يُقاس أولاً ليطلب قياسات الأبناء، لكن حجمه وموضعه النهائيان يُحددان فقط بعد معرفة قياسات الأبناء.
+**التعليل:** هذه الجملة وردت حرفياً في المحاضرة: "parents measure before their children, but are sized and placed after their children" — أي أن طلب القياس ينزل من الأب للابن، لكن تحديد الحجم الفعلي يصعد من الابن للأب بعد معرفة قياساته.
 
 ---
 
-### السؤال 6 (medium)
-What happens if you write two `Text()` composables directly inside a function without any Row, Column, or Box?
-أ) Compose throws a compilation error
-ب) The texts are automatically placed side-by-side
-ج) Compose stacks them on top of each other
-د) Only the first Text is rendered
-**الإجابة الصحيحة: ج**
-**التعليل:** كما ورد في المحاضرة (مثال ArtistCard)، بدون توجيه صريح للتخطيط، Compose يضع العناصر فوق بعضها فتصبح غير مقروءة.
+### السؤال 7 (متوسط)
+What happens in the Drawing phase?
+أ) The tree is traversed and each node decides its size
+ب) The tree is traversed again from top to bottom, and each node draws itself
+ج) The composable functions are executed for the first time
+د) User input events are processed
+
+**الإجابة الصحيحة: ب**
+**التعليل:** مرحلة الرسم تجتاز الشجرة مرة أخرى من الأعلى للأسفل وترسم كل عُقدة نفسها، بعد أن اكتملت مرحلتا Composition وLayout. الخيار (أ) يصف Layout، و(ج) يصف Composition.
 
 ---
 
-### السؤال 7 (medium)
-Which composable is best suited to overlap one element on top of another (e.g., an icon on top of an image)?
+### السؤال 8 (متوسط)
+Which composable is used to place items on top of one another?
 أ) `Row`
 ب) `Column`
 ج) `Box`
 د) `Spacer`
+
 **الإجابة الصحيحة: ج**
-**التعليل:** `Box` مصمم خصيصاً للتراكب. `Row` و`Column` يرتبان العناصر أفقياً/عمودياً وليس فوق بعضها، و`Spacer` مجرد عنصر فاصغ لا يحمل محتوى.
+**التعليل:** `Box` هو الحاوية المخصصة لوضع العناصر متراكبة فوق بعضها البعض، بينما `Row` يرتّب أفقياً و`Column` عمودياً. `Spacer` هو عنصر فارغ يُستخدم للتباعد وليس حاوية ترتيب.
 
 ---
 
-### السؤال 8 (hard)
-Given the following code, what does changing the order of `.clickable()` and `.padding()` primarily affect?
-```kotlin
-Modifier.clickable(onClick = onClick).padding(padding)
-```
-أ) The color of the composable
-ب) Which region of the composable responds to clicks
-ج) The font size used inside the composable
-د) Whether the composable is Composable-annotated
+### السؤال 9 (متوسط)
+What happens if two composable Text elements are placed inside a composable function without any layout guidance?
+أ) They are automatically arranged in a Row
+ب) They are automatically arranged in a Column
+ج) They are stacked on top of each other, making them unreadable
+د) Compose throws a compilation error
+
+**الإجابة الصحيحة: ج**
+**التعليل:** كما وضّح المثال في القسم 16، بدون توجيه ترتيب صريح (Column/Row)، يُكدّس Compose العناصر فوق بعضها البعض، مما يجعلها غير قابلة للقراءة. لا يوجد ترتيب تلقائي افتراضي ولا خطأ ترجمة.
+
+---
+
+### السؤال 10 (متوسط)
+In a `Row`, which argument controls how children are distributed along the main (horizontal) axis?
+أ) `verticalAlignment`
+ب) `horizontalArrangement`
+ج) `horizontalAlignment`
+د) `verticalArrangement`
+
 **الإجابة الصحيحة: ب**
-**التعليل:** كما أوضحت المحاضرة، ترتيب `clickable` و`padding` يُحدد ما إذا كانت منطقة الحشو نفسها تستجيب للنقر أم لا؛ لا علاقة له باللون أو الخط أو الـ annotation.
+**التعليل:** في `Row`، المحور الرئيسي هو الأفقي، والذي يُتحكم بتوزيعه عبر `horizontalArrangement`؛ بينما `verticalAlignment` يتحكم بالمحاذاة على المحور العرضي (العمودي). الخياران (ج) و(د) هما معاملات `Column` وليس `Row`.
 
 ---
 
-### السؤال 9 (medium)
-What is the purpose of the `weight` modifier?
-أ) To set a fixed pixel size regardless of parent constraints
-ب) To distribute available space proportionally among children in a Row or Column
-ج) To overlay children on top of one another
-د) To shift an element without changing its measured size
-**الإجابة الصحيحة: ب**
-**التعليل:** `weight` تُوزّع المساحة المتاحة نسبياً بين الأبناء داخل Row/Column. (أ) يصف `requiredSize`، (ج) يصف Box، (د) يصف `offset`.
-
----
-
-### السؤال 10 (hard)
-Where can the `weight` modifier be used?
-أ) Anywhere, including outside any layout container
-ب) Only inside RowScope or ColumnScope
-ج) Only inside BoxScope
-د) Only on Text composables
-**الإجابة الصحيحة: ب**
-**التعليل:** `weight` مثال على Scope Safety — لا يعمل إلا داخل RowScope أو ColumnScope؛ استخدامه خارجهما يُسبب خطأ ترجمة.
-
----
-
-### السؤال 11 (medium)
-What modifier is only available within a Box's scope and lets a child match the Box's size without affecting it?
-أ) `fillMaxSize`
-ب) `matchParentSize`
-ج) `requiredSize`
-د) `weight`
-**الإجابة الصحيحة: ب**
-**التعليل:** `matchParentSize` مخصص لـ BoxScope تحديداً ولا يُؤثر على حجم Box الأب، بعكس `fillMaxSize` الذي قد يُوسّعه.
-
----
-
-### السؤال 12 (hard)
-If `fillMaxSize` is used instead of `matchParentSize` on a Spacer inside a Box, what is the consequence described in the lecture?
-أ) The Spacer disappears entirely
-ب) The Box itself expands to take all available space
-ج) The Spacer is ignored by Compose
-د) A compilation error occurs
-**الإجابة الصحيحة: ب**
-**التعليل:** كما ورد صراحة في المحاضرة: استخدام `fillMaxSize` يجعل Spacer يأخذ كل المساحة المتاحة، مما يجعل الـ Box الأب يتمدد ليملأها.
-
----
-
-### السؤال 13 (medium)
+### السؤال 11 (متوسط)
 What is the key difference between `padding` and `offset` modifiers?
-أ) `padding` changes measurements while `offset` does not
-ب) `offset` changes measurements while `padding` does not
+أ) `padding` shifts an element visually without affecting its measurements, while `offset` adds space that is counted in measurements
+ب) `offset` shifts an element visually without affecting its measurements, while `padding` adds space that is counted in measurements
 ج) They are functionally identical
-د) `padding` only works inside Row while `offset` works anywhere
-**الإجابة الصحيحة: أ**
-**التعليل:** `padding` يُغيّر القياسات الفعلية للعنصر ومساحة والده، بينما `offset` يُزيح العنصر بصرياً فقط دون تغيير قياساته.
+د) `padding` only works inside a `Box`, while `offset` works everywhere
 
----
-
-### السؤال 14 (medium)
-Why does Compose avoid re-executing the same composable function unnecessarily on every frame?
-أ) Because Compose does not support recomposition
-ب) Because Compose tracks state reads and skips work that would produce the same result
-ج) Because composable functions can only run once per app lifetime
-د) Because the Compose runtime disables all optimizations by default
 **الإجابة الصحيحة: ب**
-**التعليل:** المحاضرة توضح أن Compose يتتبع قراءات الحالة (state reads) عبر المراحل، مما يسمح بتخطي إعادة تنفيذ العمل غير الضروري وتحقيق أداء أفضل.
+**التعليل:** كما وُضّح في القسم 24، `offset` يُزيح العنصر بصرياً دون تغيير قياساته، بينما `padding` يُضاف فعلياً إلى قياس العنصر ويؤثر على المساحة التي يحجزها بين العناصر المجاورة.
 
 ---
 
-### السؤال 15 (hard)
-Which of these composables/patterns is explicitly mentioned as an exception where child composition depends on the parent's layout phase?
-أ) `Row`
-ب) `Column`
-ج) `LazyColumn`
-د) `Text`
-**الإجابة الصحيحة: ج**
-**التعليل:** المحاضرة تذكر صراحة `BoxWithConstraints`، `LazyColumn`، و`LazyRow` كاستثناءات لهذا الترتيب المعتاد.
+### السؤال 12 (متوسط)
+Why might a `size()` modifier not be fully respected?
+أ) Because `size()` only works inside `Box`
+ب) Because it might not satisfy the constraints coming from the layout's parent
+ج) Because `size()` is deprecated in Compose
+د) Because `size()` requires `requiredSize()` to work first
 
----
-
-### السؤال 16 (medium)
-What is a recommended best practice mentioned in the lecture regarding the `modifier` parameter of a composable?
-أ) Never expose a modifier parameter to keep the composable simple
-ب) Accept a modifier parameter and pass it to the first child that emits UI
-ج) Always hardcode the modifier chain inside the function body
-د) Modifiers should only be used inside private composables
 **الإجابة الصحيحة: ب**
-**التعليل:** هذه ممارسة موصى بها صراحةً في المحاضرة لجعل composable قابلاً لإعادة الاستخدام والتخصيص من الخارج.
+**التعليل:** كما ورد صراحة في القسم 23، الحجم المحدد بـ`size()` قد لا يُحترم إذا لم يُلبِّ قيود الوالد؛ في هذه الحالة يُستخدم `requiredSize()` لفرض الحجم بشكل صارم.
 
 ---
 
+### السؤال 13 (متوسط)
+What does `matchParentSize` require, in terms of scope?
+أ) It works in any composable
+ب) It only works within `RowScope`
+ج) It only works within `ColumnScope`
+د) It only works within `BoxScope`, applying to direct children of `Box`
+
+**الإجابة الصحيحة: د**
+**التعليل:** `matchParentSize` مذكور صراحة في المحاضرة كمثال على "أمان النطاق" (scope safety)، وهو متاح فقط داخل `BoxScope` ويُطبَّق على الأبناء المباشرين لـ`Box` فقط.
+
+---
+
+### السؤال 14 (متوسط)
+If `fillMaxSize` is used instead of `matchParentSize` inside a `Box` where the sibling composable (like `ArtistCard`) defines the Box's size, what happens?
+أ) No difference — both produce identical results
+ب) The Spacer takes all available space, causing the Box itself to expand and fill all available space
+ج) A compilation error occurs
+د) The Spacer disappears from the layout
+
+**الإجابة الصحيحة: ب**
+**التعليل:** كما وُضّح في القسم 25، `fillMaxSize` يجعل العنصر يطلب أقصى مساحة من الوالد الأكبر، مما يتسبب في توسّع `Box` نفسه ليملأ تلك المساحة، على عكس `matchParentSize` الذي يتبع فقط حجم Box المحدَّد مسبقاً من محتوى آخر.
+
+---
+
+### السؤال 15 (متوسط)
+What is required for the `weight()` modifier to distribute space meaningfully between children of a `Row`?
+أ) `weight()` works independently regardless of the parent's own size
+ب) The parent `Row` must already have a defined total width to distribute (e.g. via `fillMaxWidth()`)
+ج) `weight()` only works with exactly two children
+د) `weight()` requires `requiredSize()` to be applied first
+
+**الإجابة الصحيحة: ب**
+**التعليل:** كما وُضّح في القسم 26، `weight()` يوزّع مساحة نسبية من إجمالي عرض الوالد، لذا يحتاج الوالد لعرض محدد مسبقاً (غالباً عبر `fillMaxWidth()`) ليكون هناك مساحة فعلية لتوزيعها بالنسب المحددة.
+
+---
+
+### السؤال 16 (متوسط)
+Consider this modifier chain: `Modifier.padding(16.dp).clickable(onClick = onClick)`. What area responds to clicks?
+أ) The entire area including the padding
+ب) Only the area inside the padding, NOT the padding region itself
+ج) No area responds to clicks
+د) Only the padding region responds to clicks
+
+**الإجابة الصحيحة: ب**
+**التعليل:** كما وُضّح في القسم 20، عندما يُطبَّق `padding` قبل `clickable`، تصبح منطقة الـpadding خارج نطاق الاستجابة للنقر، لأن `padding` "غلّف" العنصر أولاً وحدّد حدوداً جديدة قبل وصول `clickable`.
 ## الجزء الرابع: أسئلة تصحيح الكود
 
-### Debug Question 1
-**The following code contains a bug:**
+### Debug Question 1 — Type: syntax
+**Buggy code:**
 ```kotlin
 fun Greeting(name: String) {
     Text("Hello $name")
 }
 ```
-**Find the bug:** compilation — missing annotation.
+**Find the bug:** Missing the `@Composable` annotation on a function that emits UI.
 
 **Fixed code:**
 ```kotlin
@@ -1457,128 +1141,64 @@ fun Greeting(name: String) {
 }
 ```
 **شرح الحل:**
-1. أي دالة تستدعي دوال composable أخرى مثل `Text()` يجب أن تحمل `@Composable`.
-2. بدون هذا الـ annotation، سيرفض المترجم استدعاء `Text()` من داخل `Greeting`.
+1. أي دالة تستدعي دوال composable أخرى (مثل `Text`) يجب أن تحمل تعليق `@Composable` بنفسها، وإلا سيرفض مترجم Compose الكود لأن `Text()` هي دالة composable ولا يمكن استدعاؤها من دالة عادية.
 
 ---
 
-### Debug Question 2
-**The following code contains a bug:**
+### Debug Question 2 — Type: logic
+**Buggy code:**
 ```kotlin
 @Composable
-fun MyButton() {
-    var clicked = false
-    Button(onClick = { clicked = true }) {
-        Text(text = if (clicked) "Clicked!" else "Click Me!")
-    }
-}
-```
-**Find the bug:** logic — state does not survive recomposition, and reassigning `clicked` won't trigger UI update.
-
-**Fixed code:**
-```kotlin
-@Composable
-fun MyButton() {
-    var clicked by remember { mutableStateOf(false) }
-    Button(onClick = { clicked = true }) {
-        Text(text = if (clicked) "Clicked!" else "Click Me!")
-    }
-}
-```
-**شرح الحل:**
-1. `var clicked = false` مجرد متغيّر Kotlin عادي — لا يُخبر Compose بضرورة إعادة التركيب عند تغيّره.
-2. يجب استخدام `remember { mutableStateOf(false) }` لجعل Compose "يراقب" هذا المتغيّر ويُعيد التركيب تلقائياً عند تغيّره.
-
----
-
-### Debug Question 3
-**The following code contains a bug:**
-```kotlin
-@Composable
-fun ArtistCard() {
-    Text("Alfred Sisley")
-    Text("3 minutes ago")
-}
-```
-**Find the bug:** misconception — developer expected the two texts to appear one below the other automatically.
-
-**Fixed code:**
-```kotlin
-@Composable
-fun ArtistCard() {
-    Column {
-        Text("Alfred Sisley")
-        Text("3 minutes ago")
-    }
-}
-```
-**شرح الحل:**
-1. بدون حاوية تخطيط، Compose يضع العنصرين فوق بعضهما البعض، وليس أحدهما تحت الآخر تلقائياً.
-2. إضافة `Column { ... }` تفرض الترتيب العمودي الصريح المطلوب.
-
----
-
-### Debug Question 4
-**The following code contains a bug:**
-```kotlin
-@Composable
-fun ArtistCard(/*...*/) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
+fun ArtistCard(artist: Artist, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .padding(16.dp)
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
     ) {
-        Image(
-            /*...*/
-            modifier = Modifier.weight(2f)
-        )
-        Column {
-            /*...*/
-        }
+        // content
     }
 }
+// Requirement: the entire card area, including the 16dp padding region, must respond to clicks.
 ```
-**Find the bug:** dead_code / logic — the `weight(2f)` on Image has no effect because Column doesn't also declare a weight, so proportional distribution is meaningless/inconsistent.
+**Find the bug:** `padding` is applied before `clickable`, so the padding region will NOT respond to clicks — this contradicts the stated requirement.
 
 **Fixed code:**
 ```kotlin
 @Composable
-fun ArtistCard(/*...*/) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
+fun ArtistCard(artist: Artist, onClick: () -> Unit) {
+    Column(
+        Modifier
+            .clickable(onClick = onClick)
+            .padding(16.dp)
+            .fillMaxWidth()
     ) {
-        Image(
-            /*...*/
-            modifier = Modifier.weight(2f)
-        )
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            /*...*/
-        }
+        // content
     }
 }
 ```
 **شرح الحل:**
-1. `weight` تُوزّع المساحة **نسبياً** بين كل الأبناء الذين يستخدمونها؛ إن استخدمها طفل واحد فقط، تصبح النتيجة غير متسقة مع نية توزيع المساحة الموصوفة في المحاضرة (2:1).
-2. إضافة `weight(1f)` على `Column` يجعل التوزيع صحيحاً بنسبة 2 إلى 1 لصالح الصورة.
+1. لجعل كامل المساحة بما فيها الـpadding قابلة للنقر، يجب وضع `clickable` قبل `padding` في السلسلة، لأن كل modifier يُطبَّق على "نتيجة" العنصر السابق له.
 
 ---
 
-### Debug Question 5
-**The following code contains a bug:**
+### Debug Question 3 — Type: misconception
+**Buggy code:**
 ```kotlin
 @Composable
 fun MatchParentSizeComposable() {
     Box {
         Spacer(
             Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .background(Color.LightGray)
         )
         ArtistCard()
     }
 }
+// Requirement: Spacer should match ArtistCard's size exactly, without expanding the Box beyond it.
 ```
-**Find the bug:** syntax — `weight` is not available in `BoxScope`, causing a compilation error.
+**Find the bug:** Using `fillMaxSize()` instead of `matchParentSize()` causes the Box to expand to fill all available space, rather than being sized by `ArtistCard`.
 
 **Fixed code:**
 ```kotlin
@@ -1595,446 +1215,504 @@ fun MatchParentSizeComposable() {
 }
 ```
 **شرح الحل:**
-1. `weight` مقيدة بـ `RowScope`/`ColumnScope` فقط، ولا معنى لها داخل `Box` الذي لا يوزّع مساحة بين أبنائه بنفس الطريقة.
-2. البديل الصحيح داخل `Box` لمطابقة حجم الأب هو `matchParentSize`.
+1. `matchParentSize()` يجعل `Spacer` يتبع حجم `Box` كما هو محدد من `ArtistCard`، بدون أن يشارك هو نفسه في تحديد ذلك الحجم، بعكس `fillMaxSize()` الذي يوسّع `Box` نفسه.
 
 ---
 
-### Debug Question 6
-**The following code contains a bug:**
+### Debug Question 4 — Type: return_check
+**Buggy code:**
 ```kotlin
 @Composable
-fun ArtistCard(artist: Artist) {
-    Row(/*...*/) {
-        Column {
-            Text(artist.name)
-            Text(
-                text = artist.lastSeenOnline,
-                modifier = Modifier.padding(x = 4.dp)
-            )
-        }
-    }
+fun Greeting(name: String): Text {
+    return Text("Hello $name")
 }
 ```
-**Find the bug:** syntax / return_check — `padding` does not accept a named `x` parameter; the developer meant to shift the element without affecting layout measurements.
+**Find the bug:** Composable functions should not have a return type/value; they describe UI via side-effect calls, not by returning objects.
 
 **Fixed code:**
 ```kotlin
 @Composable
-fun ArtistCard(artist: Artist) {
-    Row(/*...*/) {
-        Column {
-            Text(artist.name)
-            Text(
-                text = artist.lastSeenOnline,
-                modifier = Modifier.offset(x = 4.dp)
-            )
+fun Greeting(name: String) {
+    Text("Hello $name")
+}
+```
+**شرح الحل:**
+1. الدوال القابلة للتركيب لا تُرجع كائنات واجهة، بل تصف الواجهة عبر استدعاء دوال composable أخرى مباشرة داخل جسمها؛ محاولة إرجاع `Text` كقيمة تخالف فلسفة Compose بالكامل.
+
+---
+
+### Debug Question 5 — Type: dead_code
+**Buggy code:**
+```kotlin
+@Composable
+fun ArtistCard(/*...*/) {
+    Row(
+        modifier = Modifier.size(width = 400.dp, height = 100.dp)
+    ) {
+        Image(
+            /*...*/
+            modifier = Modifier.size(150.dp)
+        )
+        Column { /*...*/ }
+    }
+}
+// Requirement: Image MUST always be exactly 150dp regardless of any parent constraints.
+```
+**Find the bug:** Using `size(150.dp)` does not guarantee the exact size if the parent's constraints conflict with it — this contradicts the "MUST always" requirement.
+
+**Fixed code:**
+```kotlin
+@Composable
+fun ArtistCard(/*...*/) {
+    Row(
+        modifier = Modifier.size(width = 400.dp, height = 100.dp)
+    ) {
+        Image(
+            /*...*/
+            modifier = Modifier.requiredSize(150.dp)
+        )
+        Column { /*...*/ }
+    }
+}
+```
+**شرح الحل:**
+1. `size()` قد لا يُحترم إن تعارض مع قيود الوالد، بينما `requiredSize()` يفرض الحجم المحدد بشكل صارم بغض النظر عن تلك القيود — وهو المطلوب هنا تماماً.
+
+---
+
+### Debug Question 6 — Type: logic
+**Buggy code:**
+```kotlin
+@Composable
+fun ArtistCard(/*...*/) {
+    Row {
+        Image(
+            /*...*/
+            modifier = Modifier.weight(2f)
+        )
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            /*...*/
+        }
+    }
+}
+// Requirement: Image should take twice the width of Column, proportionally from the full screen width.
+```
+**Find the bug:** The `Row` itself has no `fillMaxWidth()` (or any defined width), so there is no "total available space" for `weight()` to distribute proportionally — the requirement will not be met reliably.
+
+**Fixed code:**
+```kotlin
+@Composable
+fun ArtistCard(/*...*/) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Image(
+            /*...*/
+            modifier = Modifier.weight(2f)
+        )
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            /*...*/
         }
     }
 }
 ```
 **شرح الحل:**
-1. `Modifier.padding()` لا يقبل بارامتر `x` بهذا الشكل، ولن يُحقق أصلاً الهدف المقصود (إزاحة بصرية دون تغيير القياسات).
-2. `Modifier.offset(x = 4.dp)` هو الأداة الصحيحة للإزاحة الأفقية دون التأثير على القياسات، كما وضحت المحاضرة.
+1. `weight()` يحتاج أن يكون للوالد (`Row`) عرض إجمالي محدد أولاً (عبر `fillMaxWidth()` هنا) حتى تكون هناك مساحة فعلية يمكن توزيعها بالنسب المطلوبة (2:1).
 
 ---
 
 ## الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)
 
-> **هذه تمارين إضافية من إعداد الدليل للتدريب** — ليست في المحاضرة الأصلية.
+> هذه تمارين إضافية من إعداد الدليل.
 
-### Exercise 1: Build a Profile Header — scenario
+### Exercise 1: Build a Profile Header — fill_gaps
 **Scenario / Task:**
-Create a composable function `ProfileHeader(name: String, status: String)` that displays a circular-looking layout: an image, followed by the name and status stacked vertically next to it, both vertically centered.
+Complete the missing modifier so that the `Row` places its children horizontally with equal spacing between them, and vertically centers them.
 
 **Requirements:**
-1. Use `Row` with `verticalAlignment = Alignment.CenterVertically`.
-2. Nest a `Column` containing two `Text` composables.
+1. Fill in the blank: `Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = _______) { /*...*/ }`
 
 **نموذج الحل:**
 ```kotlin
-@Composable
-fun ProfileHeader(name: String, status: String, image: ImageBitmap) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(bitmap = image, contentDescription = "Profile image")
-        Column {
-            Text(name)
-            Text(status)
-        }
-    }
-}
-```
-هذا الحل يطابق نمط `ArtistCardRow` الذي شُرح في المحاضرة، مع تسمية بارامترات أوضح.
-
----
-
-### Exercise 2: Fix the Overlap — fill_gaps
-**Scenario / Task:**
-Complete the missing container so that "Title" appears above "Subtitle" instead of overlapping.
-
-**Requirements:**
-1. Fill the blank with the correct composable.
-```kotlin
-@Composable
-fun Header() {
-    _______ {
-        Text("Title")
-        Text("Subtitle")
-    }
-}
-```
-
-**نموذج الحل:**
-`Column` هي الإجابة الصحيحة — لأنها ترتب العناصر عمودياً واحداً تحت الآخر، وهو المطلوب هنا:
-```kotlin
-@Composable
-fun Header() {
-    Column {
-        Text("Title")
-        Text("Subtitle")
-    }
-}
-```
-
----
-
-### Exercise 3: Weighted Layout — code_fix
-**Scenario / Task:**
-The following layout should split space 3:1 between an Image and a Text, but currently splits it equally. Fix it.
-
-```kotlin
-Row(modifier = Modifier.fillMaxWidth()) {
-    Image(/*...*/, modifier = Modifier.weight(1f))
-    Text("Caption", modifier = Modifier.weight(1f))
-}
-```
-
-**Requirements:**
-1. Adjust the weight values so the Image takes 3 times more space than the Text.
-
-**نموذج الحل:**
-```kotlin
-Row(modifier = Modifier.fillMaxWidth()) {
-    Image(/*...*/, modifier = Modifier.weight(3f))
-    Text("Caption", modifier = Modifier.weight(1f))
-}
-```
-تغيير وزن الصورة إلى `3f` مقابل `1f` للنص يُعطي النسبة المطلوبة 3:1.
-
----
-
-### Exercise 4: Clickable Card Region — scenario
-**Scenario / Task:**
-Design a `Modifier` chain for a `Column` so that clicking anywhere, including the padding area, triggers `onClick`.
-
-**Requirements:**
-1. Decide the correct order of `.clickable()` and `.padding()`.
-
-**نموذج الحل:**
-```kotlin
-Column(
-    Modifier
-        .clickable(onClick = onClick)
-        .padding(16.dp)
-        .fillMaxWidth()
+Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.SpaceEvenly
 ) { /*...*/ }
 ```
-وضع `.clickable()` قبل `.padding()` يجعل منطقة النقر تشمل الحشوة بالكامل، كما شرحت المحاضرة.
+`Arrangement.SpaceEvenly` يوزّع المساحة بالتساوي بين العناصر (وبعضها فراغات متساوية قبل الأول وبعد الأخير)، بينما `verticalAlignment = Alignment.CenterVertically` يحاذي كل العناصر عمودياً في المنتصف.
 
 ---
 
-### Exercise 5: Box Overlay Fix — code_fix
+### Exercise 2: Fix the Overlapping Card — code_fix
 **Scenario / Task:**
-The following code was meant to overlay a semi-transparent gray layer exactly over an ArtistCard without expanding the Box, but it currently expands the whole screen.
-
-```kotlin
-Box {
-    Spacer(
-        Modifier
-            .fillMaxSize()
-            .background(Color.LightGray)
-    )
-    ArtistCard()
-}
-```
+The following code was meant to overlay a "New" badge icon on top of a product image, but instead the icon and image are arranged side by side incorrectly.
 
 **Requirements:**
-1. Replace the incorrect modifier with the correct scoped one.
+1. Identify which composable should replace `Row` to achieve the overlay effect.
+
+```kotlin
+@Composable
+fun ProductThumbnail(image: ImageBitmap) {
+    Row {
+        Image(bitmap = image, contentDescription = "Product image")
+        Icon(Icons.Filled.Star, contentDescription = "New badge")
+    }
+}
+```
 
 **نموذج الحل:**
 ```kotlin
-Box {
-    Spacer(
-        Modifier
-            .matchParentSize()
-            .background(Color.LightGray)
-    )
-    ArtistCard()
+@Composable
+fun ProductThumbnail(image: ImageBitmap) {
+    Box {
+        Image(bitmap = image, contentDescription = "Product image")
+        Icon(Icons.Filled.Star, contentDescription = "New badge")
+    }
 }
 ```
-استبدال `fillMaxSize()` بـ `matchParentSize()` يحل المشكلة، لأنه مرتبط بحجم الـ Box الفعلي دون توسيعه.
+يجب استبدال `Row` بـ`Box` لأن الهدف هو تراكب الأيقونة فوق الصورة، وليس وضعهما جنباً إلى جنب.
 
 ---
 
-### Exercise 6: Trace Recomposition — scenario
+### Exercise 3: Predict the Output — scenario
 **Scenario / Task:**
-Explain, step by step, what happens (in terms of Composition/Layout/Drawing and recomposition) when a user taps a `Button` that toggles a boolean state used to change the button's Text.
+Given this modifier chain, predict which area (padding region or not) will respond to a tap, and explain why.
 
-**Requirements:**
-1. List the sequence of events from tap to updated screen.
+```kotlin
+Modifier
+    .fillMaxWidth()
+    .clickable(onClick = onClick)
+    .padding(24.dp)
+```
 
 **نموذج الحل:**
-1. المستخدم يضغط الزر → يُطلق حدث `onClick`.
-2. منطق التطبيق يُحدّث متغيّر الحالة (`mutableStateOf`).
-3. Compose يكتشف أن composable المعتمد على هذه الحالة يجب أن يُعاد تنفيذه → تحدث Recomposition لهذا الجزء فقط.
-4. تُعاد مرحلة Layout للعناصر المتأثرة (قد لا يتغيّر الحجم إن كان النص بنفس الطول تقريباً).
-5. تُعاد مرحلة Drawing لرسم النص الجديد على الشاشة.
+كامل المساحة (بما فيها منطقة الـpadding البالغة 24dp) ستستجيب للنقر، لأن `clickable` طُبِّق قبل `padding` في السلسلة، فتصبح منطقة الـpadding جزءاً من المنطقة القابلة للنقر (نفس منطق القسم 20 لكن مع ترتيب مختلف يعطي نفس النتيجة المرغوبة).
+
+---
+
+### Exercise 4: Design a Weighted Layout — scenario
+**Scenario / Task:**
+You need a `Row` where a thumbnail image takes 1/4 of the width, and the text content takes 3/4 of the width, filling the entire screen width.
+
+**Requirements:**
+1. Write the composable code implementing this layout using `weight()`.
+
+**نموذج الحل:**
+```kotlin
+@Composable
+fun ThumbnailWithText(image: ImageBitmap, title: String) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Image(
+            bitmap = image,
+            contentDescription = "Thumbnail",
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = title,
+            modifier = Modifier.weight(3f)
+        )
+    }
+}
+```
+النسبة 1 إلى 3 بين `weight(1f)` و`weight(3f)` تعطي بالضبط تقسيم ربع للصورة وثلاثة أرباع للنص من إجمالي عرض `Row` (المحدد بـ`fillMaxWidth()`).
+
+---
+
+### Exercise 5: Trace a Recomposition — theory
+**Scenario / Task:**
+Explain in your own words why clicking a button in Compose does not require the developer to manually call something like `button.setText(...)`.
+
+**نموذج الحل:**
+لأن Compose تصريحي: الضغط على الزر يُطلق حدث `onClick` يُبلّغ منطق التطبيق بتغيير قيمة حالة (state) معينة (مثل `clicked`)، وبما أن النص المعروض يعتمد على هذه الحالة، يُستدعى تلقائياً composable المسؤول عن عرضه من جديد (recomposition) بالقيمة الجديدة، دون أي تدخل يدوي من المبرمج لتحديث النص.
 
 ---
 
 ## الجزء الرابع: تمارين تتبع التنفيذ
 
-### Trace Exercise 1: Layout Order for Column(Text, Text, Text)
-
+### Trace Exercise 1: Row containing two weighted children
 **Input:**
 ```kotlin
-Column {
-    Text("A")
-    Text("B")
-    Text("C")
+Row(modifier = Modifier.fillMaxWidth()) {   // total width = 300dp
+    Box(modifier = Modifier.weight(1f))     // Child A
+    Box(modifier = Modifier.weight(2f))     // Child B
 }
 ```
 
 **Trace step by step (complete the table):**
 | الخطوة | العملية | الحالة |
 | --- | --- | --- |
-| 1 | Column: measure | ؟ |
-| 2 | Text("A"): measure | ؟ |
-| 3 | Text("A"): size + place | ؟ |
-| 4 | Text("B"): measure | ؟ |
-| 5 | Text("B"): size + place | ؟ |
-| 6 | Text("C"): measure | ؟ |
-| 7 | Text("C"): size + place | ؟ |
-| 8 | Column: size + place | ؟ |
+| 1 | Row يحدد عرضه الكلي عبر fillMaxWidth | العرض = 300dp |
+| 2 | حساب مجموع الأوزان | ؟ |
+| 3 | حساب عرض Child A | ؟ |
+| 4 | حساب عرض Child B | ؟ |
 
 **نموذج الحل:**
 | الخطوة | العملية | الحالة |
 | --- | --- | --- |
-| 1 | Column: measure | يبدأ قياس نفسه بطلب قياس أبنائه |
-| 2 | Text("A"): measure | ورقة — يقيس نفسه فوراً |
-| 3 | Text("A"): size + place | يُبلغ حجمه لـ Column |
-| 4 | Text("B"): measure | ورقة — يقيس نفسه |
-| 5 | Text("B"): size + place | يُبلغ حجمه لـ Column |
-| 6 | Text("C"): measure | ورقة — يقيس نفسه |
-| 7 | Text("C"): size + place | يُبلغ حجمه لـ Column |
-| 8 | Column: size + place | يحدد حجمه (أقصى عرض + مجموع الارتفاعات) ويضع الأبناء عمودياً |
+| 1 | Row يحدد عرضه الكلي عبر fillMaxWidth | العرض = 300dp |
+| 2 | حساب مجموع الأوزان | 1 + 2 = 3 |
+| 3 | حساب عرض Child A | (1/3) × 300dp = 100dp |
+| 4 | حساب عرض Child B | (2/3) × 300dp = 200dp |
 
-**Result:** ترتيب النصوص "A" فوق "B" فوق "C" عمودياً، وحجم Column = أقصى عرض بين النصوص × مجموع ارتفاعاتها الثلاثة.
+**Result:** Child A width = 100dp, Child B width = 200dp.
 
 ---
 
-### Trace Exercise 2: Weighted Row Space Distribution
-
+### Trace Exercise 2: Layout phase measurement order
 **Input:**
 ```kotlin
-Row(modifier = Modifier.fillMaxWidth()) {
-    Box(Modifier.weight(1f))
-    Box(Modifier.weight(3f))
+Column {              // Node C
+    Row {              // Node R
+        Text("A")       // Node T1
+        Text("B")       // Node T2
+    }
+    Text("C")           // Node T3
 }
 ```
-Assume the Row's total available width is 400dp.
 
 **Trace step by step (complete the table):**
-| الخطوة | العملية | الحالة |
+| الخطوة | العُقدة | العملية |
 | --- | --- | --- |
-| 1 | حساب مجموع الأوزان | ؟ |
-| 2 | حساب حصة Box الأول | ؟ |
-| 3 | حساب حصة Box الثاني | ؟ |
+| 1 | ? | يُطلب منها القياس أولاً كجذر |
+| 2 | ? | تطلب من R القياس |
+| 3 | ? | يُقاس أولاً كابن ورقي لـ R |
+| 4 | ? | يُقاس ثانياً كابن ورقي لـ R |
+| 5 | ? | يحدد حجمه بناءً على T1 وT2 |
+| 6 | ? | يُقاس كابن ثانٍ لـ C |
+| 7 | ? | يحدد حجمه النهائي بناءً على R وT3 |
 
 **نموذج الحل:**
-| الخطوة | العملية | الحالة |
+| الخطوة | العُقدة | العملية |
 | --- | --- | --- |
-| 1 | حساب مجموع الأوزان | 1 + 3 = 4 |
-| 2 | حساب حصة Box الأول | (1/4) × 400dp = 100dp |
-| 3 | حساب حصة Box الثاني | (3/4) × 400dp = 300dp |
+| 1 | C (Column) | يُطلب منها القياس أولاً كجذر |
+| 2 | R (Row) | تطلب من R القياس (ابنها الأول) |
+| 3 | T1 ("A") | يُقاس أولاً كابن ورقي لـ R |
+| 4 | T2 ("B") | يُقاس ثانياً كابن ورقي لـ R |
+| 5 | R (Row) | يحدد حجمه بناءً على T1 وT2 |
+| 6 | T3 ("C") | يُقاس كابن ثانٍ لـ C |
+| 7 | C (Column) | يحدد حجمه النهائي بناءً على R وT3 |
 
-**Result:** Box الأول يأخذ 100dp، وBox الثاني يأخذ 300dp من إجمالي 400dp.
+**Result:** ترتيب القياس: C → R → T1 → T2 → (R يحدد حجمه) → T3 → (C يحدد حجمه)، وهو نفس نمط "الآباء يُقاسون قبل الأبناء لكن يُحدَّد حجمهم بعدهم" الذي شرحته المحاضرة.
 
 ---
 
-### Trace Exercise 3: matchParentSize vs fillMaxSize Effect on Box
-
+### Trace Exercise 3: matchParentSize vs fillMaxSize
 **Input:**
 ```kotlin
-// Case A
-Box { Spacer(Modifier.matchParentSize()); ArtistCard() }
-// Case B
-Box { Spacer(Modifier.fillMaxSize()); ArtistCard() }
+Box {
+    Spacer(modifier = Modifier.___SIZE_MODIFIER___()) 
+    ArtistCard()   // ArtistCard has a fixed intrinsic size of 200dp x 100dp
+}
 ```
-Assume `ArtistCard()` itself measures to 200dp x 100dp, and the screen is 400dp x 800dp.
 
 **Trace step by step (complete the table):**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | Case A: حجم Box النهائي | ؟ |
-| 2 | Case A: حجم Spacer | ؟ |
-| 3 | Case B: حجم Box النهائي | ؟ |
-| 4 | Case B: حجم Spacer | ؟ |
+| السيناريو | الـModifier المستخدم | حجم Box النهائي | حجم Spacer النهائي |
+| --- | --- | --- | --- |
+| A | matchParentSize | ? | ? |
+| B | fillMaxSize | ? | ? |
 
 **نموذج الحل:**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | Case A: حجم Box النهائي | 200dp x 100dp (محدد بحجم ArtistCard فقط) |
-| 2 | Case A: حجم Spacer | يطابق حجم Box: 200dp x 100dp |
-| 3 | Case B: حجم Box النهائي | 400dp x 800dp (يتمدد ليملأ الشاشة بسبب Spacer) |
-| 4 | Case B: حجم Spacer | 400dp x 800dp (يملأ كل المساحة المتاحة) |
+| السيناريو | الـModifier المستخدم | حجم Box النهائي | حجم Spacer النهائي |
+| --- | --- | --- | --- |
+| A | matchParentSize | 200dp × 100dp (يحدده ArtistCard) | 200dp × 100dp (يتبع Box) |
+| B | fillMaxSize | يتوسع ليملأ كل المساحة المتاحة من والد Box | يملأ نفس تلك المساحة الموسّعة |
 
-**Result:** استخدام `matchParentSize` يحافظ على حجم Box الطبيعي المحدد بمحتواه، بينما `fillMaxSize` يتسبب في تمدد غير مقصود لكامل الشاشة.
+**Result:** في السيناريو A يبقى Box بحجم ArtistCard تماماً، بينما في B يتوسع Box نفسه استجابة لطلب Spacer لأقصى مساحة متاحة.
 
 ---
 
 ## الجزء الرابع: أسئلة تصميم
 
-### Design Question 1: Design a News Feed Layout Tree
+### Design Question 1: Compose Phases Diagram
 **Task:**
-Draw the composition tree (as described in the lecture's Screen/NewsFeed/Story Widget example) for a news feed screen containing: a top-level `Screen`, one `NewsFeed`, and exactly two `StoryWidget` children, each containing an `Image` and a `Text`. Show the tree structure and label the data flow direction.
+Draw a diagram showing the three phases of a Compose frame (Composition, Layout, Drawing), including the direction of data flow between them (unidirectional data flow), and note the two exceptions mentioned in the lecture where composition depends on layout.
 
 **نموذج الإجابة:**
 ```diagram
-type: class
-title: News Feed Composition Tree
+type: flowchart
+title: Compose Frame Phases
 direction: TD
 nodes:
-  - id: screen
-    label: Screen
-    kind: composable
+  - id: data
+    label: "App State / Data"
+    kind: data
     level: 0
-  - id: newsfeed
-    label: NewsFeed
-    kind: composable
+  - id: composition
+    label: "Composition (What)"
+    kind: process
     level: 1
-  - id: story1
-    label: StoryWidget 1
-    kind: composable
+  - id: layout
+    label: "Layout (Where)"
+    kind: process
     level: 2
-  - id: story2
-    label: StoryWidget 2
-    kind: composable
-    level: 2
-  - id: img1
-    label: Image
-    kind: leaf
+  - id: drawing
+    label: "Drawing (How)"
+    kind: process
     level: 3
-  - id: txt1
-    label: Text
-    kind: leaf
-    level: 3
-  - id: img2
-    label: Image
-    kind: leaf
-    level: 3
-  - id: txt2
-    label: Text
-    kind: leaf
-    level: 3
+  - id: ui
+    label: "UI on Screen"
+    kind: output
+    level: 4
 edges:
-  - from: screen
-    to: newsfeed
-  - from: newsfeed
-    to: story1
-  - from: newsfeed
-    to: story2
-  - from: story1
-    to: img1
-  - from: story1
-    to: txt1
-  - from: story2
-    to: img2
-  - from: story2
-    to: txt2
+  - from: data
+    to: composition
+  - from: composition
+    to: layout
+  - from: layout
+    to: drawing
+  - from: drawing
+    to: ui
 ```
+> ملاحظة: `BoxWithConstraints`، `LazyColumn`، و`LazyRow` هي استثناءات حيث تعتمد Composition فعلياً على نتيجة Layout الخاصة بالوالد (اتجاه عكسي جزئي).
 
 **معايير التقييم:**
-- وضوح اتجاه تدفق البيانات من الأعلى للأسفل (Screen → NewsFeed → StoryWidget → Image/Text).
-- صحة العلاقة الهرمية بين العُقد (كل StoryWidget له طفلان: Image و Text).
-- تسمية العُقد بأسماء composable واضحة ومطابقة للسيناريو.
+- ذُكرت المراحل الثلاث بالترتيب الصحيح (Composition → Layout → Drawing)
+- وُضّح اتجاه تدفق البيانات (أحادي الاتجاه)
+- ذُكرت الاستثناءات الثلاثة (BoxWithConstraints، LazyColumn، LazyRow)
 
 ---
 
-### Design Question 2: Architecture — Choosing the Right Layout and Modifiers
+### Design Question 2: Weighted Card Architecture
 **Task:**
-You need to design a settings row that: (1) fills the full width of the screen, (2) places an icon on the left and a label next to it vertically centered, (3) is clickable as a whole (including any padding), and (4) has 16dp padding around it. Describe which composables and modifiers you would use, and in what order, and justify your Modifier chain ordering.
+Design (describe or sketch) a composable layout for a music player mini-bar that has: an album thumbnail (fixed 60dp size, using `requiredSize`), a middle section with song title and artist name stacked vertically taking up flexible remaining space (using `weight`), and a play/pause icon on the far right. Specify which layout container and modifiers you would use for each part.
 
 **نموذج الإجابة:**
-البنية المقترحة:
 ```kotlin
-Row(
-    modifier = Modifier
-        .clickable(onClick = onClick)
-        .fillMaxWidth()
-        .padding(16.dp),
-    verticalAlignment = Alignment.CenterVertically
-) {
-    Icon(/*...*/)
-    Text("Setting Label")
+@Composable
+fun MiniPlayerBar(albumArt: ImageBitmap, title: String, artist: String, onPlayPause: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            bitmap = albumArt,
+            contentDescription = "Album Art",
+            modifier = Modifier.requiredSize(60.dp)
+        )
+        Column(
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+        ) {
+            Text(title)
+            Text(artist)
+        }
+        Icon(
+            Icons.Filled.PlayArrow,
+            contentDescription = "Play/Pause",
+            modifier = Modifier.clickable(onClick = onPlayPause)
+        )
+    }
 }
 ```
-- `Row` لأن العناصر (أيقونة + نص) يجب أن تكون أفقية.
-- `verticalAlignment = Alignment.CenterVertically` لمحاذاة الأيقونة والنص رأسياً.
-- ترتيب Modifiers: `.clickable()` أولاً لضمان أن **كل** المساحة بما فيها الحشوة تستجيب للنقر، ثم `.fillMaxWidth()` لضمان امتداد الصف كامل العرض، ثم `.padding(16.dp)` لإضافة الحشوة النهائية حول المحتوى المعروض.
 
 **معايير التقييم:**
-- استخدام `Row` بدلاً من `Column` أو `Box` بشكل صحيح.
-- ترتيب Modifiers يضمن أن منطقة النقر تشمل الحشوة (كما نوقش في المحاضرة).
-- إدراك أن ترتيب `clickable` قبل `padding` هو الفارق الحاسم هنا.
+- استُخدم `Row` كحاوية خارجية أفقية مع `fillMaxWidth()`
+- استُخدم `requiredSize` للصورة لضمان حجم ثابت 60dp
+- استُخدم `weight(1f)` للعمود الأوسط ليأخذ المساحة المتبقية بمرونة
+- الأيقونة قابلة للنقر (`clickable`) لتفعيل تشغيل/إيقاف الأغنية
+
+---
+
+## الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)
+
+**Q1:** What is the fundamental difference between imperative and declarative UI paradigms?
+A: Imperative requires manually finding and mutating views; declarative describes the UI as a function of the current state, and the framework updates it automatically.
+
+**Q2:** What annotation must every function that emits UI in Compose have?
+A: `@Composable`.
+
+**Q3:** What is "recomposition"?
+A: The process of re-invoking composable functions automatically when the state they read changes, causing affected UI elements to be redrawn.
+
+**Q4:** Name the three phases of a Compose frame.
+A: Composition, Layout, and Drawing.
+
+**Q5:** What are the two steps within the Layout phase?
+A: Measurement and placement.
+
+**Q6:** In terms of measuring and sizing, what is the relationship between parent and child nodes?
+A: Parents measure before their children, but are sized and placed after their children.
+
+**Q7:** Which composable arranges children vertically?
+A: `Column`.
+
+**Q8:** Which composable arranges children on top of one another?
+A: `Box`.
+
+**Q9:** What is the key difference between `padding` and `offset`?
+A: `padding` adds space counted in the element's measurements; `offset` shifts the element visually without changing its measurements.
+
+**Q10:** Why might `Modifier.size()` not be respected exactly?
+A: Because it might not satisfy the constraints coming from the parent layout; `requiredSize()` should be used to force an exact size.
+
+**Q11:** What scope is `matchParentSize` restricted to?
+A: `BoxScope` — it only applies to direct children of `Box`.
+
+**Q12:** What scope is `weight()` restricted to?
+A: `RowScope` and `ColumnScope`.
+
+**Q13:** Why does the order of modifiers in a chain matter?
+A: Because each `Modifier.Element` is applied to the result produced by the previous element in the chain, not to the original element in isolation.
+
+**Q14:** What is "modifier hoisting" and why is it beneficial?
+A: Extracting a modifier chain into a variable outside the composable to reuse the same instance across recompositions, avoiding repeated allocation and comparison overhead.
 
 ---
 
 ## الجزء الخامس: كتابة الكود الكامل (مرجع شامل)
 
-> ملاحظة: أمثلة المحاضرة مستقلة عن بعضها (كل مثال يشرح فكرة منفصلة)، لذا لا يوجد "برنامج واحد" مجزّأ يستوجب دمجه بالكامل. فيما يلي مرجع مُجمّع لأشمل نسخة من بطاقة الفنان (ArtistCard) كما تطورت عبر المحاضرة، لأنها المثال الوحيد الذي بُني تدريجياً عبر عدة شرائح لنفس السياق.
+> مثال شامل يجمع Column، Row، Box، وModifiers متعددة في بطاقة فنان كاملة (ArtistCard) كما وردت مجزّأة عبر المحاضرة.
 
 ```kotlin
-// Data model used across the ArtistCard examples
+// Data model representing an artist
 class Artist {
     val image: ImageBitmap = ImageBitmap(0, 0)
     val name = ""
     val lastSeenOnline = ""
 }
 
+// Full ArtistCard combining Row, Column, Modifiers, clickable behavior, and a Card
+val onClick = {}
+
 @Composable
-fun ArtistCardModifiers(
-    artist: Artist,
-    onClick: () -> Unit
-) {
+fun ArtistCard(artist: Artist, onClick: () -> Unit) {
     val padding = 16.dp
     Column(
-        // Order matters: clickable first so the whole padded area responds to taps
         Modifier
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick)  // whole card, including padding, is clickable
             .padding(padding)
             .fillMaxWidth()
     ) {
-        // Row: image + name/status column, vertically centered
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(bitmap = artist.image, contentDescription = "Artist image")
-            Column {
-                Text(
-                    text = artist.name,
-                    modifier = Modifier.paddingFromBaseline(top = 50.dp)
-                )
+            Image(
+                bitmap = artist.image,
+                contentDescription = "Artist image",
+                modifier = Modifier.requiredSize(60.dp)
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+                Text(text = artist.name)
                 Text(
                     text = artist.lastSeenOnline,
                     modifier = Modifier.offset(x = 4.dp)
                 )
             }
         }
-        // Visual spacing before the card content
         Spacer(Modifier.size(padding))
-        // A card with elevation to visually separate content below
         Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        ) { /*...*/ }
+        ) {
+            Box {
+                Spacer(
+                    Modifier
+                        .matchParentSize()
+                        .background(Color.LightGray)
+                )
+                Icon(Icons.Filled.Check, contentDescription = "Check mark")
+            }
+        }
     }
 }
 ```
@@ -2043,45 +1721,61 @@ fun ArtistCardModifiers(
 
 ## الجزء الخامس: أسئلة نظرية متوقعة بالامتحان
 
-### Question 1: Explain the difference between the imperative and declarative UI paradigms.
-**نموذج الإجابة:** النموذج الإجرائي (View System) يعتمد على تعديل حالة العناصر يدوياً عبر `findViewById()` واستدعاءات `setter`، ما يزيد خطر الأخطاء وعدم الاتساق. النموذج التصريحي (Compose) يصف الواجهة كدالة للحالة الحالية، ويُعاد بناؤها تلقائياً (Recomposition) عند تغيّر تلك الحالة، ما يقلل الكود ويضمن اتساقاً أفضل.
+**Question 1:** Explain the declarative programming paradigm and how it differs from the imperative approach used in the traditional Android View System.
+**نموذج الإجابة:** النمط التصريحي يعني وصف الواجهة كدالة تعتمد على الحالة الحالية بدل التعديل اليدوي المباشر على عناصر موجودة. في View System الإجرائي، يجب على المبرمج تتبّع كل عنصر يدوياً عبر `findViewById()` وتحديثه بنفسه، مما يزيد خطر الأخطاء وعدم الاتساق. في Compose، يُعاد استدعاء الدالة القابلة للتركيب تلقائياً (recomposition) عند تغيّر الحالة، فيتولى الإطار مهمة التحديث دون تدخل يدوي، مما يقلل الكود المتكرر والأخطاء.
 
-### Question 2: What are the three phases of a Compose frame, and what does each answer?
-**نموذج الإجابة:** Composition تُجيب عن "ماذا" سيُعرض (تنفيذ composable functions وإنتاج شجرة UI)، Layout تُجيب عن "أين" (قياس ووضع كل عقدة)، Drawing تُجيب عن "كيف" (الرسم الفعلي على Canvas). الترتيب عادة ثابت باستثناء حالات مثل LazyColumn.
+---
 
-### Question 3: Describe the three-step algorithm used during the Layout phase.
-**نموذج الإجابة:** 1) قياس الأبناء (Measure children) 2) تحديد الحجم الخاص بناءً على قياسات الأبناء (Decide own size) 3) وضع الأبناء في إحداثيات نسبية (Place children). كل هذا يحدث بمرور واحد فقط عبر الشجرة لتحسين الأداء.
+**Question 2:** Describe the three phases of a Compose frame and explain the purpose of each.
+**نموذج الإجابة:** التركيب (Composition) يحدد "ماذا" سيُعرض بتشغيل الدوال القابلة للتركيب وبناء شجرة تصف الواجهة. التخطيط (Layout) يحدد "أين" يوضع كل عنصر عبر خطوتين (قياس ثم وضع)، منتجاً عرضاً وارتفاعاً وإحداثيات لكل عُقدة. الرسم (Drawing) يحدد "كيف" تُرسم العناصر فعلياً على `Canvas`. تسير هذه المراحل الثلاث بترتيب ثابت أحادي الاتجاه لإنتاج كل إطار.
 
-### Question 4: Why does Compose avoid regenerating the entire UI on every state change?
-**نموذج الإجابة:** لأن إعادة بناء الشاشة بالكامل مكلف من ناحية الوقت والطاقة والبطارية، لذلك يتتبع Compose قراءات الحالة (state reads) في كل مرحلة، ويُعيد فقط تنفيذ/تخطيط/رسم الأجزاء المتأثرة فعلياً بالتغيير — وهذا يُسمى Recomposition الانتقائي.
+---
 
-### Question 5: What is the difference between `Modifier.size()` and `Modifier.requiredSize()`?
-**نموذج الإجابة:** `size()` يقترح حجماً لكنه قد يُتجاهل إن تعارض مع قيود الوالد. `requiredSize()` يفرض الحجم المحدد بغض النظر عن قيود الوالد الواردة، وقد يُسبب تجاوزاً لحدود التخطيط الأصلية إن لزم.
+**Question 3:** Why does a `@Composable` function not return a value, and how does it "emit" UI instead?
+**نموذج الإجابة:** لأن الدالة تصف حالة الشاشة المستهدفة بدل بناء كائن واجهة وإرجاعه؛ هي "تصدر" (emit) عناصر واجهة باستدعاء دوال قابلة للتركيب أخرى مباشرة داخل جسمها (مثل استدعاء `Text()` داخل `Greeting()`)، فتصبح هذه الاستدعاءات هي وسيلة "الإخراج" بدل قيمة إرجاع تقليدية.
 
-### Question 6: Explain scope safety in Compose and give two examples of scoped modifiers.
-**نموذج الإجابة:** أمان النطاق يعني أن بعض الـ Modifiers لا يمكن استخدامها إلا داخل حاوية معينة، لأنها تحتاج معلومات خاصة عن الوالد (parent data modifiers). مثالان: `weight` (تعمل فقط داخل RowScope/ColumnScope)، و `matchParentSize` (تعمل فقط داخل BoxScope). هذا يمنع الأخطاء الناتجة عن استخدام Modifier في سياق غير مناسب.
+---
 
-### Question 7: Why does modifier ordering matter, and how does it affect a clickable+padding combination?
-**نموذج الإجابة:** كل `Modifier.Element` يُطبَّق بالترتيب الذي كُتب به. إذا وُضع `clickable` قبل `padding`، فإن كامل المساحة (بما فيها الحشوة) تستجيب للنقر. أما إذا وُضع `padding` قبل `clickable`، فإن منطقة الحشوة لا تستجيب للنقر — فقط المحتوى الداخلي يستجيب.
+**Question 4:** Explain the measurement algorithm in the Layout phase, including why parents are measured before children but sized after them.
+**نموذج الإجابة:** تسير الخوارزمية بثلاث خطوات لكل عُقدة: قياس الأبناء، تحديد الحجم الخاص بناءً على تلك القياسات، ثم وضع الأبناء. طلب القياس ينزل من الجذر إلى الأوراق، لكن كل عُقدة لا يمكنها تحديد حجمها الفعلي إلا بعد أن تعرف أحجام أبنائها أولاً، لذا يصعد تحديد الحجم والوضع الفعلي من الأوراق إلى الجذر — وهذا يفسر لماذا "الآباء يُقاسون أولاً لكن يُحدَّد حجمهم أخيراً".
 
-### Question 8: What is the benefit of hoisting a Modifier chain into a top-level variable?
-**نموذج الإجابة:** يمنع إعادة تخصيص (re-allocation) نفس السلسلة في كل Recomposition، ويُسرّع مقارنة السلاسل الطويلة والمعقدة لأن Compose يقارن نفس الكائن (Instance) بدلاً من نسخ جديدة في كل مرة — ما يُحسّن الأداء العام للتطبيق.
+---
+
+**Question 5:** Compare `Column`, `Row`, and `Box`, and explain when to use each.
+**نموذج الإجابة:** `Column` يرتّب أبناءه عمودياً (الواحد تحت الآخر)، `Row` يرتّبهم أفقياً (جنباً إلى جنب)، بينما `Box` يضعهم متراكبين فوق بعضهم البعض عن قصد. تُستخدم `Column`/`Row` لبناء تسلسلات خطية من العناصر، بينما تُستخدم `Box` عندما نريد تراكباً متعمداً، مثل وضع أيقونة فوق صورة.
+
+---
+
+**Question 6:** Explain why the order of modifiers in a chain matters, using the `clickable`/`padding` example.
+**نموذج الإجابة:** كل `Modifier.Element` يُطبَّق على النتيجة المُغلَّفة من العنصر السابق له في السلسلة، وليس على العنصر الأصلي بمعزل. إن وُضع `clickable` قبل `padding`، تصبح منطقة الـpadding جزءاً من منطقة الاستجابة للنقر؛ أما إن عُكس الترتيب، فتصبح منطقة الـpadding خارج نطاق الاستجابة للنقر، لأن `padding` طُبِّق أولاً وحدّد حدوداً جديدة قبل وصول `clickable`.
+
+---
+
+**Question 7:** What is scope safety in Compose, and give two examples of modifiers restricted by it.
+**نموذج الإجابة:** أمان النطاق هو آلية يمنع بها Compose استخدام بعض الـModifiers خارج سياقات محددة منطقياً، مما يمنع أخطاء لا معنى لها ويوفر وقت التجربة والخطأ. مثالان: `matchParentSize` متاح فقط ضمن `BoxScope` (للأبناء المباشرين لـBox)، و`weight()` متاح فقط ضمن `RowScope` و`ColumnScope`.
+
+---
+
+**Question 8:** Explain modifier hoisting and its performance benefit.
+**نموذج الإجابة:** رفع الـModifier هو استخراج سلسلة modifier إلى متغيّر خارج الدالة القابلة للتركيب لإعادة استخدام نفس النسخة في كل استدعاء بدل إنشاء نسخة جديدة كل مرة. يحسّن هذا الأداء بطريقتين: يمنع إعادة تخصيص (re-allocation) الذاكرة عند كل recomposition، ويخفف عبء مقارنة سلاسل modifier الطويلة عند تحديد ما إذا كانت الدالة تحتاج إعادة تشغيل.
 
 ---
 
 ## الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅
 
-- [ ] أستطيع شرح الفرق بين النموذج الإجرائي والتصريحي بمثال واقعي
-- [ ] أفهم لماذا لا تُرجع composable functions قيمة (Unit)
-- [ ] أستطيع سرد مراحل Compose الثلاث بالترتيب الصحيح ووظيفة كل مرحلة
-- [ ] أفهم خوارزمية القياس-الحجم-الوضع (measure → size → place) ولماذا الآباء تُقاس أولاً وتُوضع أخيراً
-- [ ] أعرف متى أستخدم Row، Column، أو Box
-- [ ] أفهم الفرق بين horizontalArrangement/verticalAlignment في Row وعكسها في Column
-- [ ] أستطيع شرح كيف يُغيّر ترتيب الـ Modifiers السلوك الفعلي (مثال clickable/padding)
-- [ ] أفهم الفرق بين size وrequiredSize، وبين padding وoffset
-- [ ] أفهم مفهوم Scope Safety وأمثلته (weight، matchParentSize)
-- [ ] أستطيع تفسير الفرق بين matchParentSize وfillMaxSize داخل Box
-- [ ] أفهم لماذا وكيف يُحسّن hoisting الـ Modifiers الأداء
+- [ ] أستطيع شرح الفرق بين النمط الإجرائي (Imperative) والتصريحي (Declarative) بمثال
+- [ ] أعرف أن أي دالة composable يجب أن تحمل `@Composable` ولا تُرجع قيمة
+- [ ] أستطيع ترتيب المراحل الثلاث (Composition → Layout → Drawing) وشرح كل مرحلة
+- [ ] أفهم خوارزمية القياس الثلاثية (measure → decide size → place) وترتيبها العكسي بين الآباء والأبناء
+- [ ] أستطيع تتبّع مثال SearchResult بالترقيم الصحيح (1 إلى 10)
+- [ ] أفرّق بين Column وRow وBox ومتى أستخدم كلاً منهما
+- [ ] أفرّق بين Arrangement (المحور الرئيسي) وAlignment (المحور العرضي)
+- [ ] أفهم أن ترتيب سلسلة الـModifiers يغيّر النتيجة الفعلية
+- [ ] أفرّق بين padding (يؤثر على القياس) وoffset (لا يؤثر على القياس)
+- [ ] أفرّق بين size (قابل للتجاوز) وrequiredSize (غير قابل للتجاوز)
+- [ ] أفرّق بين matchParentSize (يتبع Box) وfillMaxSize (قد يوسّع Box)
+- [ ] أعرف أن weight محصور بـ RowScope/ColumnScope ويحتاج والداً له عرض/ارتفاع محدد مسبقاً
+- [ ] أفهم فائدة رفع الـModifiers (hoisting) للأداء
 
 ---
 
@@ -2090,35 +1784,35 @@ fun ArtistCardModifiers(
 ### 🔑 خريطة العلاقات بين المحاضرات
 | المحاضرة | ترتبط مع | كيف؟ |
 | --- | --- | --- |
-| هذه المحاضرة (Compose UI أساسيات) | محاضرة الحالة والتنقل (Compose State & Navigation) | تبني عليها لاحقاً مفاهيم `remember`، `mutableStateOf`، و`State Hoisting` |
-| هذه المحاضرة | أساسيات Kotlin (Functions, Lambdas) | الدوال القابلة للتركيب هي دوال Kotlin عادية مع Annotation إضافي |
+| Kotlin Basics/OOP | Compose UI (هذه المحاضرة) | Compose مبني بالكامل بلغة Kotlin؛ فهم الدوال والكائنات ضروري |
+| Compose UI (هذه) | Compose State & Navigation (المحاضرة القادمة) | recomposition هنا تمهّد لفهم remember وmutableStateOf لاحقاً |
 
 ### 🔑 أهم النقاط الذهبية
 | الموضوع | النقاط |
 | --- | --- |
-| النموذج التصريحي | وصف "ماذا" بدلاً من "كيف"؛ Recomposition تلقائي عند تغيّر الحالة |
-| مراحل Compose | Composition (ماذا) → Layout (أين) → Drawing (كيف) — مرور واحد فقط |
-| التخطيطات | Row (أفقي) / Column (عمودي) / Box (تراكب) |
-| Modifiers | ترتيبها يُحدد السلوك؛ بعضها مقيّد بنطاق (Scope Safety) |
+| النمط التصريحي | صف "ماذا" لا "كيف"؛ Compose يتكفل بالتحديث عبر recomposition |
+| المراحل الثلاث | Composition (ماذا) → Layout (أين) → Drawing (كيف)، اتجاه واحد |
+| Layout | القياس ينزل، الحجم/الوضع يصعد؛ كل عُقدة تُزار مرة واحدة فقط |
+| الحاويات | Column (عمودي)، Row (أفقي)، Box (متراكب) |
+| Modifiers | ترتيب السلسلة مهم؛ padding يؤثر على القياس، offset لا يؤثر |
 
 ### 🔑 مرجع سريع
 | الرمز/المصطلح | المعنى | يُستخدم في |
 | --- | --- | --- |
-| `@Composable` | تعليم دالة كمُنشئة واجهة | كل دالة composable |
-| `Recomposition` | إعادة تنفيذ composable عند تغيّر الحالة | تحديث الواجهة تلقائياً |
-| `weight()` | توزيع نسبي للمساحة | داخل RowScope/ColumnScope فقط |
-| `matchParentSize()` | مطابقة حجم الأب دون التأثير عليه | داخل BoxScope فقط |
-| `offset()` | إزاحة بصرية دون تغيير القياسات | أي composable |
+| `@Composable` | تعليق إلزامي لدالة تصف واجهة | كل دالة composable |
+| `Recomposition` | إعادة استدعاء تلقائية عند تغيّر الحالة | تحديث الواجهة |
+| `weight()` | توزيع مساحة نسبي | RowScope/ColumnScope فقط |
+| `matchParentSize()` | اتباع حجم Box المحدد مسبقاً | BoxScope فقط |
+| `requiredSize()` | فرض حجم ثابت متجاوزاً قيود الوالد | أي composable |
 
 ### 🔑 قواعد ذهبية لا تُنسى
 | # | القاعدة |
 | --- | --- |
-| 1 | composable functions لا تُرجع شيئاً — تصف الشاشة المستهدفة فقط |
-| 2 | البيانات تتدفق للأسفل، والأحداث تتدفق للأعلى (Unidirectional Data Flow) |
-| 3 | الآباء يُقاسون قبل أبنائهم، لكن يُحدَّد حجمهم ويوضعون بعدهم |
-| 4 | ترتيب الـ Modifiers في السلسلة يُغيّر السلوك الفعلي |
-| 5 | استخدم الـ Modifier المناسب لنطاقه (weight في Row/Column، matchParentSize في Box) |
+| 1 | composable function لا تُرجع قيمة أبداً — هي تصف لا تبني |
+| 2 | الآباء يُقاسون أولاً لكن يُحدَّد حجمهم ووضعهم أخيراً (بعد الأبناء) |
+| 3 | بدون Column/Row/Box، تتراكب العناصر فوق بعضها تلقائياً |
+| 4 | ترتيب الـModifiers في السلسلة يغيّر النتيجة — الأول يُطبَّق أولاً |
+| 5 | offset لا يغيّر القياس، padding يغيّره |
+| 6 | matchParentSize وweight محصوران بنطاقات معينة (BoxScope، RowScope/ColumnScope) |
 
----
-
-<!-- VALIDATION: تم توليد هذا الدليل بالكامل من محتوى ملف "تخصصية_2_نظري_مـ6.pdf" (User Interface Development with Jetpack Compose -1-) وفق برومبت android-kotlin.md. تمت تغطية جميع الشرائح (1-38) بما يشمل: Thinking in Compose، الفرق بين الإجرائي والتصريحي، مثال composable function، مراحل Compose الثلاث (Composition/Layout/Drawing) مع أمثلتها التفصيلية (Example1, Example2/SearchResult)، Layouts (Row/Column/Box) وStandard Layout Components، وModifiers (chaining, ordering, hoisting, built-in modifiers: padding/size/requiredSize/fillMax*/offset/weight/matchParentSize) بما فيها Scope Safety. تم الالتزام ببنية SCHEMA.md v1.0 المذكورة في البرومبت (blocks: code, algorithm, diagram, analogy, trade-off, before-after, trace, callouts) قدر الإمكان اعتماداً على القوالب المرفقة في نفس ملف البرومبت، دون الوصول لملف SCHEMA.md نفسه لأنه لم يُرفق. جميع الأعداد المطلوبة من الأسئلة تحققت: 16 MCQ، 6 Debug، 6 تمارين إضافية، 3 تمارين تتبع، 2 سؤالي تصميم، 8 أسئلة نظرية. -->
+<!-- VALIDATION: تم تغطية كل شرائح المحاضرة (Thinking in Compose، Declarative Paradigm، Composable Function example، Compose Phases الثلاث بأمثلتها، Layouts القياسية، Compose Modifiers وأنواعها المدمجة وscope safety). تم اتباع بنية القالب المطلوب: نص أصلي + ترجمة حرفية + شرح مبسط لكل قسم، جداول ملخصة، 16 MCQ، 6 أسئلة تصحيح كود، 5 تمارين إضافية، 3 تمارين تتبع، سؤالا تصميم، 14 بطاقة Q&A، كود كامل مجمّع، 8 أسئلة نظرية، قائمة فحص ذاتي، وCheat Sheet. -->

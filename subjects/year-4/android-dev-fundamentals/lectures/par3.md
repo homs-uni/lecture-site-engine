@@ -1,7 +1,5 @@
-# المحاضرة 2 — Kotlin OOP & Advanced (كائنية التوجه والمفاهيم المتقدمة في كوتلن)
-> **المادة:** أساسيات تطوير تطبيقات أندرويد (النظري الكامل) (نظري) | **الموضوع:** Kotlin Fundamentals for Android -2- (Classes, Objects, Inheritance, Generics, Enum/Data classes, Singleton/Companion objects, Extensions, Scope functions)
-
-> ⚠️ **ملاحظة منهجية:** لم يتم إرفاق ملف `SCHEMA.md v1.0` المرجعي مع هذا الطلب، لذلك تم الالتزام حرفياً بالقوالب الموصوفة داخل `custome_prompt.md` نفسه (قسم "مرجع القوالب") كمرجع تنسيق وحيد.
+# المحاضرة 3 — Classes and Objects in Kotlin & Generics (الأصناف والكائنات والأنواع العامة في كوتلن)
+> **المادة:** أساسيات تطوير تطبيقات أندرويد (النظري الكامل) (نظري) | **الموضوع:** Kotlin OOP (Classes, Constructors, Inheritance, Visibility Modifiers, Property Delegates) + Kotlin Advanced (Generics, Enum Class, Data Class, Singleton/Companion Objects, Extensions, Scope Functions)
 
 ---
 
@@ -9,50 +7,87 @@
 
 | المرحلة | الأدوات | المخرجات |
 | --- | --- | --- |
-| 1. أساسيات كوتلن (Kotlin Basics) | `val/var`, `if/when`, `functions`, `null safety` | فهم بناء الجملة الأساسي |
-| 2. كائنية التوجه في كوتلن (Kotlin OOP) ← أنت هنا | `class`, `constructor`, `inheritance`, `override`, `visibility modifiers`, `property delegates` | نمذجة الكائنات والعلاقات بينها |
-| 3. مفاهيم كوتلن المتقدمة (Kotlin Advanced) ← أنت هنا | `Generics`, `enum class`, `data class`, `object`, `companion object`, `extension functions`, `scope functions` | كتابة كود مرن وقابل لإعادة الاستخدام |
-| 4. أساسيات التطبيق (App Fundamentals) | `Activity`, `AndroidManifest.xml` | بناء الهيكل الأساسي للتطبيق |
-| 5. واجهات Compose | `@Composable`, `Modifier`, `State` | بناء الواجهة الرسومية |
+| `Kotlin Basics` (المحاضرة السابقة) | `val`/`var`، `Type Inference`، `if/when`، `Functions`، `Null Safety` | فهم أساسيات لغة `Kotlin` القابلة للتنفيذ |
+| `Kotlin OOP` + `Kotlin Advanced` (هذه المحاضرة) ← **أنت هنا** | `class`، `constructor`، `inheritance`، `override`، `visibility modifiers`، `property delegates`، `Generics`، `enum class`، `data class`، `object`، `extension functions`، `scope functions` | بناء نماذج بيانات وتراتبية أصناف قابلة لإعادة الاستخدام ومنظمة عبر مبادئ `OOP` |
+| `App Fundamentals` (المحاضرة القادمة) | `Activity`، `Service`، `AndroidManifest.xml` | توظيف هذه الأصناف والكائنات داخل تطبيق أندرويد حقيقي |
 
-> **نوع هذه المحاضرة:** محاضرة مزدوجة تجمع بين **Kotlin OOP** (الجزء الأول) و**Kotlin Advanced** (الجزء الثاني)، لذلك سيتم تطبيق قالبَي الفئتين معاً.
+> **نوع هذه المحاضرة:** `Kotlin OOP` (الجزء الأول من المحاضرة) مدموج مع `Kotlin Advanced` (الجزء الثاني) — لذلك اعتُمد في الشرح مصطلحات القسمين معاً: `class`، `primary/secondary constructor`، `inheritance`، `override`، `super`، `visibility modifiers`، `property delegates` من جهة، و`Generics`، `enum class`، `data class`، `singleton object`، `companion object`، `extension functions`، `scope functions (let, apply)` من جهة أخرى.
 
 ---
 
 ## الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
 
-### 1. تعريف الصنف (Define a Class)
+### 1. الأصناف والكائنات في كوتلن (Classes and Objects in Kotlin)
+
+هذا القسم هو الأساس الكامل للبرمجة الكائنية (`OOP`) في `Kotlin`: كيف تُعرَّف الأصناف، كيف تُنشأ الكائنات منها، وكيف تتفاعل الأصناف مع بعضها عبر الوراثة والرؤية والتفويض.
+
+#### 1.1 تعريف الصنف (Define a Class)
 
 #### النص الأصلي يقول (English):
-> "When you define a class, you specify the properties and methods that all objects of that class should have. A class definition starts with the class keyword, followed by a name and a set of curly braces. A class consists of three major parts: Properties, Methods, Constructors."
+> "When you define a class, you specify the properties and methods that all objects of that class should have. A class definition starts with the class keyword, followed by a name and a set of curly braces. A class consists of three major parts: Properties. Variables that specify the attributes of the class's objects. Methods. Functions that contain the class's behaviors and actions. Constructors. A special member function that creates instances of the class throughout the program in which it's defined."
+
+#### الترجمة الحرفية:
+> عندما تُعرِّف صنفاً (`class`)، فإنك تحدد الخصائص (`properties`) والدوال (`methods`) التي يجب أن تمتلكها جميع كائنات (`objects`) هذا الصنف.
+> تعريف الصنف يبدأ بالكلمة المفتاحية `class`، متبوعة باسم، ثم بمجموعة من الأقواس المعقوفة `{ }`.
+> يتكوّن الصنف من ثلاثة أجزاء رئيسية:
+> الخصائص (`Properties`): متغيرات تحدد صفات كائنات الصنف.
+> الدوال (`Methods`): دوال تحتوي على سلوكيات الصنف وأفعاله.
+> المُنشِئات (`Constructors`): دالة عضو خاصة تُنشئ نسخاً (`instances`) من الصنف في أي مكان بالبرنامج يُستدعى فيه.
 
 #### الشرح المبسّط:
-الـ`class` في كوتلن هو "المخطط" (blueprint) الذي يصف كيف سيبدو أي كائن يُصنع منه — ما هي بياناته (properties) وما هي الأفعال التي يقدر يسوّيها (methods).
+فكّر بالصنف (`class`) على أنه "قالب" أو "مخطط هندسي" — تماماً مثل مخطط بناء منزل: المخطط نفسه ليس منزلاً تسكن فيه، لكنه يحدد كم غرفة فيه وما شكل كل غرفة. الصنف بنفس الطريقة يحدد **ما الذي سيملكه** كل كائن يُبنى منه (الخصائص) و**ما الذي يستطيع فعله** (الدوال)، لكنه لا يُنشئ أي كائن فعلي بحد ذاته. سبب وجود هذا الفصل بين "التصميم" (الصنف) و"التنفيذ" (الكائن) هو إعادة الاستخدام: تكتب القالب مرة واحدة، ثم تصنع منه عدد لا نهائي من الكائنات المتشابهة في البنية والمختلفة في القيم. مثال عملي: صنف `SmartDevice` يحدد أن كل جهاز ذكي (`smart device`) له اسم وفئة وحالة تشغيل، لكن كل تلفاز أو مصباح ذكي فعلي هو كائن منفصل يُبنى من هذا القالب.
 
-**لماذا؟** بدون Class، كل مرة تحتاج فيها تمثّل جهاز ذكي جديد (تلفزيون، إضاءة...) لازم تكرر نفس المتغيرات يدوياً. الـclass يعطيك قالباً جاهزاً تنسخ منه بأي عدد.
+**لماذا؟** فصل التصميم عن التنفيذ يجعل الكود أسهل في الصيانة: إذا احتجت تعديل سلوك مشترك بين كل الأجهزة الذكية، تُعدّله في الصنف مرة واحدة فينعكس تلقائياً على كل الكائنات.
 
 #### 💡 التشبيه:
-> تخيل الـ`class` مثل "خارطة البيت" (blueprint) عند المهندس المعماري — الخارطة نفسها مو بيت تقدر تسكن فيه، لكن منها تقدر تبني مئات البيوت المتطابقة في التصميم.
-> **وجه الشبه:** خارطة البيت = `class` | البيت الفعلي المبني = `object` (Instance)
+> تعريف الصنف أشبه بمخطط بناء منزل (بلوبرنت هندسي)؛ لا يمكنك السكن في المخطط نفسه، لكن كل منزل حقيقي يُبنى وفقه.
+> **وجه الشبه:** المخطط الهندسي = الصنف `class`، المنزل المبني فعلياً = الكائن `object`.
+
+#### 💻 الكود: تعريف صنف فارغ
+
+##### ما هذا الكود؟
+> أبسط شكل ممكن لصنف في `Kotlin` — صنف بلا أي خصائص أو دوال، فقط لإظهار البنية الأساسية `class name { }`.
 
 ```kotlin
-// A class with an empty body
+// Define an empty class named SmartDevice
 class SmartDevice {
     // empty body
 }
 ```
 
+##### شرح كل سطر:
+1. `class SmartDevice {` → تعريف الصنف — تبدأ الكلمة المفتاحية `class` ثم اسم الصنف `SmartDevice` بصيغة `UpperCamelCase` ثم قوس معقوف يفتح جسم الصنف
+2. `// empty body` → تعليق توضيحي — يوضح أن الجسم فارغ حالياً بانتظار إضافة الخصائص والدوال لاحقاً
+3. `}` → إغلاق جسم الصنف
+
+**المكتبات المطلوبة (Imports):**
+> لا حاجة لأي `import` في هذا المثال — `class` كلمة مفتاحية أساسية في اللغة.
+
+**الناتج المتوقع (لقطة الشاشة):**
+> لا يوجد ناتج تنفيذي بعد؛ هذا مجرد تعريف صنف بدون استدعاء `main()`.
+
 ---
 
-### 2. إنشاء كائن (Instance) من الصنف
+#### 1.2 إنشاء نسخة (كائن) من الصنف (Create an Instance of a Class)
 
 #### النص الأصلي يقول (English):
-> "A class is a blueprint for an object. The Kotlin runtime uses the class to create an object of that particular type... The val or var keyword is followed by the name of the variable, then an = assignment operator, then the instantiation of the class object."
+> "A class is a blueprint for an object. The Kotlin runtime uses the class to create an object of that particular type. The instantiation syntax starts with the class name followed by a set of parentheses. To use an object, you create the object and assign it to a variable, similar to how you define a variable. The val or var keyword is followed by the name of the variable, then an = assignment operator, then the instantiation of the class object."
+
+#### الترجمة الحرفية:
+> الصنف هو مخطط (`blueprint`) لكائن. بيئة تشغيل `Kotlin` تستخدم الصنف لإنشاء كائن من ذلك النوع المحدد.
+> صيغة إنشاء الكائن (`instantiation`) تبدأ باسم الصنف متبوعاً بمجموعة من الأقواس الهلالية.
+> لاستخدام كائن، تُنشئه وتُسنده إلى متغير، بشكل مشابه لكيفية تعريف أي متغير.
+> الكلمة المفتاحية `val` أو `var` تليها اسم المتغير، ثم عامل الإسناد `=`، ثم إنشاء نسخة من الصنف.
 
 #### الشرح المبسّط:
-لإنشاء كائن فعلي (Object) من الـclass، تكتب اسم الصنف متبوعاً بأقواس `()` — تماماً مثل استدعاء دالة. الناتج تخزّنه في متغير باستخدام `val` أو `var`.
+إنشاء الكائن هو اللحظة التي "يتحول فيها المخطط إلى بناء حقيقي". حتى الآن كان `SmartDevice` مجرد وصف نظري؛ عندما تكتب `SmartDevice()` فأنت تطلب من `Kotlin` أن يحجز مساحة في الذاكرة وينشئ كائناً فعلياً يطابق هذا الوصف. الرابط بما سبق واضح: بما أن الصنف من القسم السابق كان "قالباً فارغاً"، فهذا القسم يشرح كيف نستخدم ذلك القالب عملياً. الصياغة تشبه تماماً تعريف أي متغير عادي (`val name = value`)، والفرق الوحيد أن "القيمة" هنا هي استدعاء اسم الصنف متبوعاً بقوسين `()`.
 
-**لماذا `val` أغلب الأحيان؟** لأن مرجع الكائن نفسه (العنوان في الذاكرة) غالباً ما يبقى ثابتاً، حتى لو تغيّرت خصائصه الداخلية لاحقاً.
+**لماذا؟** بدون هذه الخطوة يبقى الصنف مجرد تعريف نظري لا يشغل ذاكرة ولا يمكن التعامل معه؛ الكائن هو الذي يحمل القيم الفعلية ويُستخدم في بقية البرنامج.
+
+#### 💻 الكود: إنشاء كائن من SmartDevice
+
+##### ما هذا الكود؟
+> ينشئ كائناً واحداً باسم `smartTvDevice` من صنف `SmartDevice` داخل الدالة الرئيسية `main()`.
 
 ```kotlin
 class SmartDevice {
@@ -60,50 +95,95 @@ class SmartDevice {
 }
 
 fun main() {
-    val smartTvDevice = SmartDevice() // إنشاء كائن (Instantiation)
+    // Create an object (instance) of SmartDevice and store it in smartTvDevice
+    val smartTvDevice = SmartDevice()
 }
 ```
 
-#### 🤔 تفعيل الفهم (اسأل نفسك):
-> **سؤال:** إذا كتبت `SmartDevice` بدون أقواس `()`، ماذا يحدث؟
-> **لماذا هذا مهم؟** لأنك بذلك تشير إلى الـclass نفسه (النوع/Type) وليس إلى كائن فعلي — الكود لن يترجم بشكل صحيح عند محاولة استخدامه ككائن.
+##### شرح كل سطر:
+1. `class SmartDevice { }` → نفس تعريف الصنف الفارغ من القسم السابق
+2. `fun main() {` → نقطة بداية تنفيذ البرنامج في `Kotlin`
+3. `val smartTvDevice = SmartDevice()` → إنشاء الكائن — `val` يعني متغير غير قابل لإعادة الإسناد، `SmartDevice()` يستدعي المُنشِئ الافتراضي وينشئ كائناً جديداً يُخزَّن في `smartTvDevice`
+4. `}` → نهاية `main()`
+
+**الناتج المتوقع (لقطة الشاشة):**
+> لا طباعة على الشاشة؛ الكائن أُنشئ فقط وخُزِّن في الذاكرة دون استدعاء أي دالة طباعة.
 
 ---
 
-### 3. تعريف دوال الصنف (Methods)
+#### 1.3 تعريف دوال الصنف (Define Class Methods)
 
 #### النص الأصلي يقول (English):
-> "Actions that the class can perform are defined as functions in the class... To call a class method outside of the class, start with the class object followed by the . operator, the name of the function, and a set of parentheses."
+> "Actions that the class can perform are defined as functions in the class. When you define a function in the class body, it's referred to as a member function or a method, and it represents the behavior of the class. To call a class method outside of the class, start with the class object followed by the . operator, the name of the function, and a set of parentheses. If applicable, the parentheses contain arguments required by the method."
+
+#### الترجمة الحرفية:
+> الأفعال التي يستطيع الصنف تنفيذها تُعرَّف كدوال (`functions`) داخل الصنف.
+> عندما تُعرِّف دالة داخل جسم الصنف، تُسمى دالة عضو (`member function`) أو طريقة (`method`)، وهي تمثل سلوك الصنف.
+> لاستدعاء دالة من الصنف خارجه، تبدأ بكائن الصنف متبوعاً بعامل النقطة `.`، ثم اسم الدالة، ثم مجموعة أقواس هلالية.
+> إذا لزم الأمر، تحتوي الأقواس على الوسائط (`arguments`) التي تتطلبها الدالة.
 
 #### الشرح المبسّط:
-الدوال المعرّفة داخل جسم الـclass تسمى **methods**، وهي تمثّل "الأفعال" أو "السلوكيات" التي يقدر يقوم فيها الكائن. لاستدعائها من خارج الصنف نستخدم عامل النقطة `.`.
+إذا كانت الخصائص تجيب عن سؤال "ماذا يملك الكائن؟"، فإن الدوال (المسماة هنا `methods`) تجيب عن سؤال "ماذا يستطيع الكائن أن يفعل؟". أي فعل مثل "شغّل الجهاز" أو "أطفئ الجهاز" يصبح دالة داخل جسم الصنف بدل أن تكون خارجه. طريقة الاستدعاء تعتمد على نمط "الكائن نقطة الدالة" (`object.method()`) — تماماً كما تقول بالعربية "التلفاز . شغّل ()" أي "اطلب من كائن التلفاز أن ينفذ سلوك التشغيل". هذا الربط بين الكائن والدالة عبر النقطة هو حجر الأساس في كل استدعاء لاحق لأي دالة عضو في بقية المحاضرة.
+
+**لماذا؟** تجميع السلوك (الدوال) داخل الصنف نفسه — بدل كتابته كدوال منفصلة تتلقى الكائن كوسيط — يجعل الكود أقرب لمنطق العالم الحقيقي: "الجهاز يشغّل نفسه" بدل "دالة خارجية تشغّل الجهاز".
+
+#### 💻 الكود: تعريف turnOn() و turnOff() في SmartDevice
+
+##### ما هذا الكود؟
+> يضيف دالتين عضو (`turnOn`, `turnOff`) لصنف `SmartDevice`، ثم يستدعيهما على كائن فعلي داخل `main()`.
 
 ```kotlin
 class SmartDevice {
-    fun turnOn() { println("Smart device is turned on.") }
-    fun turnOff() { println("Smart device is turned off.") }
+    // Method to turn the device on
+    fun turnOn() {
+        println("Smart device is turned on.")
+    }
+    // Method to turn the device off
+    fun turnOff() {
+        println("Smart device is turned off.")
+    }
 }
 
 fun main() {
     val smartTvDevice = SmartDevice()
+    // Call methods on the object using the dot operator
     smartTvDevice.turnOn()
     smartTvDevice.turnOff()
 }
 ```
 
-#### 💡 التشبيه:
-> `turnOn()` مثل زر التشغيل الفعلي على جهاز التلفزيون — تضغطه (تستدعيه) فيتغيّر سلوك الجهاز.
-> **وجه الشبه:** زر التشغيل الفيزيائي = استدعاء `method` على الكائن.
+##### شرح كل سطر:
+1. `fun turnOn() { println(...) }` → دالة عضو بلا وسائط ولا قيمة إرجاع، تطبع رسالة تشغيل
+2. `fun turnOff() { println(...) }` → دالة عضو مشابهة تطبع رسالة إطفاء
+3. `val smartTvDevice = SmartDevice()` → إنشاء الكائن كما في القسم السابق
+4. `smartTvDevice.turnOn()` → استدعاء الدالة عبر عامل النقطة على الكائن المحدد
+5. `smartTvDevice.turnOff()` → استدعاء الدالة الثانية بنفس الطريقة
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Smart device is turned on.
+Smart device is turned off.
+```
 
 ---
-
-### 4. تعريف خصائص الصنف (Properties)
+#### 1.4 تعريف خصائص الصنف (Define Class Properties)
 
 #### النص الأصلي يقول (English):
 > "Properties are basically variables that are defined in the class body instead of the function body. This means that the syntax to define properties and variables are identical."
 
+#### الترجمة الحرفية:
+> الخصائص (`Properties`) هي أساساً متغيرات تُعرَّف داخل جسم الصنف بدلاً من جسم دالة.
+> هذا يعني أن صياغة تعريف الخصائص وصياغة تعريف المتغيرات متطابقتان تماماً.
+
 #### الشرح المبسّط:
-الخصائص (Properties) هي متغيرات (`val`/`var`) لكن معرّفة مباشرة داخل جسم الـclass وليس داخل دالة. تمثّل "بيانات" الكائن أو حالته.
+الخاصية ليست شيئاً جديداً بالكامل — هي نفس `val`/`var` التي تعلمتها في أساسيات `Kotlin`، والفرق الوحيد هو **مكان** كتابتها: إن كُتبت داخل جسم الصنف مباشرة (وليس داخل دالة) أصبحت خاصية تخص كل كائن يُبنى من هذا الصنف. هذا يربط مباشرة بما ذُكر في القسم 1.1 عن "الأجزاء الثلاثة للصنف" — الآن نرى الجزء الأول (الخصائص) عملياً. مثال: `name`، `category`، `deviceStatus` تصبح متاحة تلقائياً لأي كائن `SmartDevice` تُنشئه، ولكل كائن نسخته الخاصة من هذه القيم (فتلفاز ومصباح كل منهما له اسمه الخاص).
+
+**لماذا؟** بدون خصائص، سيكون كل كائن مطابقاً تماماً للآخر بلا أي بيانات مميزة له؛ الخصائص هي ما يمنح كل كائن "هويته" الخاصة رغم أنه مبني من نفس القالب.
+
+#### 💻 الكود: إضافة خصائص لصنف SmartDevice
+
+##### ما هذا الكود؟
+> يضيف ثلاث خصائص (`name`, `category`, `deviceStatus`) لصنف `SmartDevice`، ثم يقرأ إحداها عبر الكائن.
 
 ```kotlin
 class SmartDevice {
@@ -111,29 +191,59 @@ class SmartDevice {
     val category = "Entertainment"
     var deviceStatus = "online"
 
-    fun turnOn() { println("Smart device is turned on.") }
-    fun turnOff() { println("Smart device is turned off.") }
+    fun turnOn() {
+        println("Smart device is turned on.")
+    }
+    fun turnOff() {
+        println("Smart device is turned off.")
+    }
 }
 
 fun main() {
     val smartTvDevice = SmartDevice()
+    // Read a property value using the dot operator
     println("Device name is: ${smartTvDevice.name}")
     smartTvDevice.turnOn()
     smartTvDevice.turnOff()
 }
 ```
 
+##### شرح كل سطر:
+1. `val name = "Android TV"` → خاصية غير قابلة للتغيير (`val`) بقيمة ابتدائية ثابتة
+2. `val category = "Entertainment"` → خاصية ثانية غير قابلة للتغيير
+3. `var deviceStatus = "online"` → خاصية قابلة للتغيير (`var`) لأن حالة الجهاز قد تتبدل لاحقاً
+4. `println("Device name is: ${smartTvDevice.name}")` → قراءة الخاصية عبر `الكائن.الخاصية` داخل قالب نصي (`string template`) بعلامة `$`
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Device name is: Android TV
+Smart device is turned on.
+Smart device is turned off.
+```
+
 ---
 
-### 5. دوال Getter و Setter في الخصائص
+#### 1.5 دوال القراءة والتعيين في الخصائص (Getter and Setter Functions in Properties)
 
 #### النص الأصلي يقول (English):
-> "Properties can do more than a variable can. The full syntax to define a mutable property starts with the variable definition followed by the optional get() and set() functions. When you don't define the getter and setter function for a property, the Kotlin compiler internally creates the functions."
+> "Properties can do more than a variable can. The full syntax to define a mutable property starts with the variable definition followed by the optional get() and set() functions. When you don't define the getter and setter function for a property, the Kotlin compiler internally creates the functions. The full syntax for an immutable property has two differences: It starts with the val keyword. The variables of val type are read-only variables, so they don't have set() functions."
+
+#### الترجمة الحرفية:
+> الخصائص تستطيع فعل أكثر مما يستطيعه المتغير العادي.
+> الصياغة الكاملة لتعريف خاصية قابلة للتغيير تبدأ بتعريف المتغير متبوعاً بدالتَي `get()` و`set()` الاختياريتين.
+> عندما لا تُعرِّف دالتَي القراءة والتعيين لخاصية ما، فإن مترجم `Kotlin` ينشئهما داخلياً تلقائياً.
+> الصياغة الكاملة للخاصية غير القابلة للتغيير تختلف بنقطتين: تبدأ بالكلمة المفتاحية `val`.
+> متغيرات النوع `val` هي متغيرات للقراءة فقط، لذلك لا تمتلك دالة `set()`.
 
 #### الشرح المبسّط:
-كل خاصية `var` في كوتلن لها فعلياً دالتان خفيتان: `get()` لقراءة القيمة و`set(value)` لتحديثها. إذا ما كتبتهم، الكومبايلر يولّدهم تلقائياً بشكل افتراضي (قراءة/كتابة مباشرة). لكن تقدر تخصصهم لتضيف شروط أو تحقق من صحة القيمة.
+هذه هي النقطة التي تُميّز "الخاصية" الحقيقية عن "المتغير" البسيط: كل خاصية تمتلك خلف الكواليس دالة `get()` تُنفَّذ كل مرة تقرأ فيها قيمتها، ودالة `set()` تُنفَّذ كل مرة تُسند فيها قيمة جديدة (فقط لمتغيرات `var`). في الحالة الافتراضية لا تكتب هذه الدوال يدوياً لأن `Kotlin` يولّدها تلقائياً بشكل بسيط (إرجاع القيمة كما هي، أو تخزينها كما هي). لكن يمكنك كتابتها يدوياً لإضافة منطق مخصص، وهذا ما سنراه في القسم التالي حين نستخدم `set()` للتحقق من نطاق قيمة معينة. الفرق بين `val` و`var` هنا منطقي: بما أن `val` للقراءة فقط، فلا معنى لوجود `set()` أصلاً.
 
-**لماذا نحتاج ذلك؟** لحماية الخاصية من قيم غير منطقية — مثلاً مستوى صوت لا يمكن أن يكون سالباً أو أكبر من 100.
+**لماذا؟** القدرة على تخصيص `get()`/`set()` تسمح للصنف بحماية بياناته الداخلية (مثلاً منع قيمة غير منطقية) دون تغيير الطريقة التي يتعامل بها المستخدم الخارجي مع الخاصية — يبقى الاستخدام `object.property` كما هو تماماً.
+
+#### 💻 الكود: تخصيص get() و set() يدوياً
+
+##### ما هذا الكود؟
+> يعرّف خاصية `speakerVolume` مع كتابة `get()` و`set()` يدوياً بأبسط شكل ممكن (بلا أي منطق إضافي بعد).
 
 ```kotlin
 var speakerVolume = 2
@@ -145,47 +255,88 @@ var speakerVolume = 2
     }
 ```
 
+##### شرح كل سطر:
+1. `var speakerVolume = 2` → تعريف خاصية قابلة للتغيير بقيمة ابتدائية `2`
+2. `get() { return field }` → دالة قراءة صريحة تُعيد قيمة `field` (نفس السلوك الافتراضي)
+3. `set(value) { field = value }` → دالة تعيين صريحة تخزّن القيمة الجديدة في `field` (نفس السلوك الافتراضي أيضاً هنا)
+
+---
+
+#### 1.6 الحقل الخلفي (Backing Field)
+
+#### النص الأصلي يقول (English):
+> "Kotlin properties use a backing field to hold a value in memory. A backing field is basically a class variable defined internally in the properties. A backing field is scoped to a property, which means that you can only access it through the get() or set() property functions. To read the property value in the get() function or update the value in the set() function, you need to use the property's backing field. It's autogenerated by the Kotlin compiler and referenced with a field identifier."
+
+#### الترجمة الحرفية:
+> خصائص `Kotlin` تستخدم حقلاً خلفياً (`backing field`) لتخزين القيمة في الذاكرة.
+> الحقل الخلفي هو أساساً متغير صنف يُعرَّف داخلياً ضمن الخصائص.
+> الحقل الخلفي محصور النطاق ضمن الخاصية، أي أنه لا يمكن الوصول إليه إلا عبر دالتَي `get()` أو `set()` الخاصتين بتلك الخاصية.
+> لقراءة قيمة الخاصية داخل `get()` أو تحديثها داخل `set()`، تحتاج لاستخدام الحقل الخلفي للخاصية.
+> يُولَّد تلقائياً بواسطة مترجم `Kotlin` ويُشار إليه بالمعرِّف `field`.
+
+#### الشرح المبسّط:
+`field` هو "الصندوق الفعلي" الذي تُخزَّن فيه القيمة الحقيقية في الذاكرة، بينما `get()`/`set()` هما "البوابتان" اللتان تتحكمان بمن يدخل ومن يخرج من هذا الصندوق. لماذا لا نستخدم اسم الخاصية نفسها (`speakerVolume`) داخل `set()`؟ لأن كتابة `speakerVolume = value` داخل `set()` الخاصة بـ `speakerVolume` نفسها ستستدعي `set()` من جديد بلا نهاية (حلقة لا متناهية) — لذلك يوفّر `Kotlin` `field` كمرجع مباشر للذاكرة يتجاوز هذه المشكلة. هذا يمهّد مباشرة للمثال العملي التالي: التحقق من أن مستوى الصوت بين 0 و100 قبل قبول القيمة الجديدة.
+
+**لماذا؟** بدون `field`، لن تستطيع كتابة أي منطق تحقق (`validation`) داخل `set()` دون الوقوع في استدعاء ذاتي لا نهائي؛ `field` هو الحل الآمن لهذه المشكلة.
+
 #### مهم للامتحان ⚠️:
-> عبارة `field` هنا هي **backing field** — متغير داخلي مخفي يولّده الكومبايلر تلقائياً، ولا يمكن الوصول إليه إلا من داخل `get()` أو `set()` الخاصة بنفس الخاصية.
+> `field` متاح فقط داخل `get()`/`set()` الخاصة بنفس الخاصية — لا يمكن استخدامه خارجهما.
+
+#### 💻 الكود: تحقق من النطاق باستخدام set() و field
+
+##### ما هذا الكود؟
+> يضمن أن قيمة `speakerVolume` المسندة تقع دائماً بين 0 و100، وإلا تُرفض القيمة الجديدة ضمنياً (يبقى `field` بقيمته السابقة).
 
 ```kotlin
-// مثال عملي: حصر قيمة الصوت بين 0 و 100
 var speakerVolume = 2
     set(value) {
+        // Only accept the new value if it's within the valid range
         if (value in 0..100) {
             field = value
         }
     }
 ```
 
+##### شرح كل سطر:
+1. `var speakerVolume = 2` → خاصية قابلة للتغيير بقيمة ابتدائية 2
+2. `set(value) {` → بداية دالة التعيين المخصصة، `value` هو المُدخَل الجديد المطلوب إسناده
+3. `if (value in 0..100) {` → شرط: هل القيمة الجديدة ضمن المجال المسموح؟
+4. `field = value` → إذا تحقق الشرط فقط، يُحدَّث الحقل الخلفي الفعلي؛ وإلا تُتجاهل القيمة بصمت وتبقى القيمة القديمة
+
 ---
 
-### 6. تعريف الباني (Constructor)
+#### 1.7 تعريف المُنشِئ (Define a Constructor)
 
 #### النص الأصلي يقول (English):
-> "The primary purpose of the constructor is to specify how the objects of the class are created... A default constructor is a constructor without parameters... Kotlin aims to be concise, so you can remove the constructor keyword if there are no annotations or visibility modifiers on the constructor."
+> "The primary purpose of the constructor is to specify how the objects of the class are created. In other words, constructors initialize an object and make the object ready for use. A default constructor is a constructor without parameters. Kotlin aims to be concise, so you can remove the constructor keyword if there are no annotations or visibility modifiers on the constructor. You can also remove the parentheses if the constructor has no parameters. The Kotlin compiler autogenerates the default constructor. To maintain immutability but avoid hardcoded values, use a parameterized constructor to initialize them."
+
+#### الترجمة الحرفية:
+> الغرض الأساسي من المُنشِئ (`constructor`) هو تحديد كيف تُنشأ كائنات الصنف.
+> بعبارة أخرى، المُنشِئات تُهيّئ الكائن وتجعله جاهزاً للاستخدام.
+> المُنشِئ الافتراضي (`default constructor`) هو مُنشِئ بلا وسائط.
+> `Kotlin` يهدف إلى الإيجاز، لذا يمكنك حذف الكلمة المفتاحية `constructor` إن لم توجد تعليقات توضيحية (`annotations`) أو معدِّلات رؤية على المُنشِئ.
+> يمكنك أيضاً حذف الأقواس الهلالية إن لم يكن للمُنشِئ أي وسائط.
+> مترجم `Kotlin` يُولِّد المُنشِئ الافتراضي تلقائياً.
+> للحفاظ على عدم القابلية للتغيير مع تجنّب القيم المكتوبة يدوياً بشكل ثابت (`hardcoded`)، استخدم مُنشِئاً بوسائط لتهيئتها.
 
 #### الشرح المبسّط:
-الـConstructor هو دالة خاصة تُنفَّذ تلقائياً عند إنشاء كائن جديد، ومهمتها تهيئة الكائن (إعطاء قيم ابتدائية للخصائص). كوتلن يولّد باني افتراضي تلقائياً إذا لم تكتب واحداً بنفسك.
+المُنشِئ هو الخطوة الفاصلة بين "الكائن أُنشئ في الذاكرة" و"الكائن جاهز فعلاً للاستخدام بقيم منطقية". حتى الآن كنا نكتب `SmartDevice()` بلا أي وسائط — هذا استدعاء لمُنشِئ افتراضي (`default constructor`) لم نكتبه صراحة لكن `Kotlin` ولّده لنا تلقائياً. المشكلة أن القيم في الأمثلة السابقة كانت "مكتوبة يدوياً بشكل ثابت" (`hardcoded`) — كل كائن `SmartDevice` جديد سيحمل نفس الاسم `"Android TV"` بالضبط، وهذا غير منطقي إن أردنا إنشاء تلفاز ومصباح مختلفين. الحل هو مُنشِئ بوسائط (`parameterized constructor`) يستقبل القيم من الخارج وقت الإنشاء، وهذا ما سيُشرح بالتفصيل في القسم التالي.
+
+**لماذا؟** المُنشِئ الافتراضي مناسب فقط عندما تكون كل كائنات الصنف متطابقة القيم؛ أما في الحالات الواقعية (كل جهاز له اسمه الخاص) فنحتاج مُنشِئاً يستقبل بيانات مختلفة لكل كائن.
+
+#### 💻 الكود: من مُنشِئ افتراضي إلى مُنشِئ بوسائط
+
+##### ما هذا الكود؟
+> يُظهر التطور من مُنشِئ افتراضي فارغ إلى مُنشِئ يستقبل `name` و`category` كوسيطين، مع تغيّر طريقة إنشاء الكائن تبعاً لذلك.
 
 ```kotlin
-class SmartDevice constructor() {
-    // ...
-}
-
-// مكافئ ومختصر (الشكل المُفضّل في كوتلن)
+// Step 1: default constructor (implicit) — Kotlin compiler generates it
 class SmartDevice {
     // ...
 }
-```
 
-#### 💡 التشبيه:
-> الباني (Constructor) مثل "استمارة التسجيل" عند فتح حساب بنكي جديد — تملأ البيانات الأساسية (الاسم، الرقم...) أول ما يُفتح الحساب، فيبدأ الحساب بحالة صحيحة من اليوم الأول.
-> **وجه الشبه:** استمارة التسجيل = `constructor` | الحساب البنكي = الكائن (Object)
-
-**مثال — نقل الخصائص إلى الباني الرئيسي (Primary Constructor):**
-```kotlin
-class SmartDevice (val name: String, val category: String) {
+// Step 2: move name and category into the primary constructor
+class SmartDevice(val name: String, val category: String) {
     var deviceStatus = "online"
     fun turnOn() { println("Smart device is turned on.") }
     fun turnOff() { println("Smart device is turned off.") }
@@ -193,38 +344,68 @@ class SmartDevice (val name: String, val category: String) {
 
 fun main() {
     val smartTvDevice = SmartDevice("Android TV", "Entertainment")
-    // or: val smartTvDevice = SmartDevice(name = "Android TV", category = "Entertainment")
+    // or, using named arguments:
+    // val smartTvDevice = SmartDevice(name = "Android TV", category = "Entertainment")
     println("Device name is: ${smartTvDevice.name}")
     println("Device category is: ${smartTvDevice.category}")
 }
 ```
 
----
+##### شرح كل سطر:
+1. `class SmartDevice(val name: String, val category: String) {` → الوسائط داخل أقواس المُنشِئ الرئيسي وأمامها `val` تصبح تلقائياً خصائص عامة للصنف
+2. `var deviceStatus = "online"` → خاصية عادية داخل جسم الصنف بقيمة ابتدائية ثابتة (غير مُمرَّرة عبر المُنشِئ)
+3. `val smartTvDevice = SmartDevice("Android TV", "Entertainment")` → تمرير القيم الفعلية حسب ترتيب المعاملات
+4. `SmartDevice(name = "Android TV", category = "Entertainment")` → الطريقة البديلة باستخدام الوسائط المُسمّاة (`named arguments`) لزيادة الوضوح
 
-### 7. نوعا الباني: الرئيسي (Primary) والثانوي (Secondary)
-
-#### النص الأصلي يقول (English):
-> "Primary constructor. A class can have only one primary constructor... The primary constructor doesn't have a body... Secondary constructor. A class can have multiple secondary constructors... If the class has a primary constructor, each secondary constructor needs to initialize the primary constructor."
-
-#### الشرح المبسّط:
-| النوع | العدد المسموح | له جسم (body)؟ | الاستخدام |
-| --- | --- | --- | --- |
-| Primary constructor | واحد فقط | ❌ لا | تهيئة الخصائص مباشرة في ترويسة الصنف |
-| Secondary constructor | عدة (متعددة) | ✅ نعم | منطق تهيئة إضافي (تحويل بيانات، حالات خاصة...) |
-
-**لماذا نحتاج Secondary Constructor؟** أحياناً البيانات الواردة (مثل رمز حالة `Int` من API خارجي) لا تُستخدم مباشرة كخاصية، بل تحتاج معالجة قبل التخزين.
-
-```algorithm
-1 | استقبال statusCode | Secondary constructor | يستقبل قيمة رقمية (0/1/غيرها)
-2 | تفويض للـ Primary | this(name, category) | يهيئ name و category أولاً
-3 | تحويل القيمة | when(statusCode) | يحوّل الرقم إلى نص واضح (offline/online/unknown)
-4 | تخزين النتيجة | deviceStatus = ... | يحفظ الحالة النهائية كخاصية
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Device name is: Android TV
+Device category is: Entertainment
 ```
 
+---
+
+#### 1.8 نوعا المُنشِئ: الرئيسي والثانوي (Primary and Secondary Constructors)
+
+#### النص الأصلي يقول (English):
+> "There are two main types of constructors in Kotlin: Primary constructor. A class can have only one primary constructor, which is defined as part of the class header. The primary constructor doesn't have a body. Secondary constructor. A class can have multiple secondary constructors. The secondary constructor can initialize the class and has a body, which can contain initialization logic. If the class has a primary constructor, each secondary constructor needs to initialize the primary constructor. The secondary constructor is enclosed in the body of the class and its syntax includes three parts: declaration with the constructor keyword, initialization of the primary constructor using a colon and the this keyword, and the secondary constructor body in curly braces."
+
+#### الترجمة الحرفية:
+> يوجد نوعان رئيسيان من المُنشِئات في `Kotlin`: المُنشِئ الرئيسي (`Primary constructor`). يمكن أن يمتلك الصنف مُنشِئاً رئيسياً واحداً فقط، ويُعرَّف كجزء من ترويسة الصنف. المُنشِئ الرئيسي لا يملك جسماً.
+> المُنشِئ الثانوي (`Secondary constructor`). يمكن أن يمتلك الصنف عدة مُنشِئات ثانوية. المُنشِئ الثانوي يستطيع تهيئة الصنف ويمتلك جسماً يمكن أن يحتوي منطق تهيئة.
+> إذا كان للصنف مُنشِئ رئيسي، يجب على كل مُنشِئ ثانوي أن يُهيّئ المُنشِئ الرئيسي.
+> المُنشِئ الثانوي محاط بجسم الصنف، وصياغته تتضمن ثلاثة أجزاء: التصريح بالكلمة المفتاحية `constructor`، تهيئة المُنشِئ الرئيسي باستخدام نقطتين رأسيتين والكلمة المفتاحية `this`، وجسم المُنشِئ الثانوي بين أقواس معقوفة.
+
+#### الشرح المبسّط:
+الفرق الجوهري بين النوعين: المُنشِئ الرئيسي "خفيف" — مجرد قائمة وسائط في ترويسة الصنف بلا أي منطق تنفيذي، بينما المُنشِئ الثانوي "كامل" — له جسم حقيقي يمكن أن يحتوي عمليات حسابية أو شرطية أثناء التهيئة. القاعدة المهمة هنا هي أن المُنشِئ الثانوي لا يعمل بمعزل عن الرئيسي؛ يجب أن "يمرّ" عبره أولاً باستخدام `: this(...)`، تماماً كما لو قلت "أولاً نفّذ التهيئة الأساسية، ثم أضف عليها هذا المنطق الإضافي". هذا يشبه سلّم بيت: المُنشِئ الرئيسي هو الأساس الذي لا بد من بنائه أولاً، والمُنشِئ الثانوي هو طابق إضافي يُبنى فوقه.
+
+**لماذا؟** فصل "التهيئة البسيطة" (رئيسي) عن "التهيئة المنطقية المعقدة" (ثانوي) يبقي الحالة الشائعة (مُنشِئ رئيسي فقط) نظيفة وموجزة، بينما يوفّر مرونة لحالات خاصة تحتاج معالجة إضافية أثناء الإنشاء.
+
+#### ⚙️ الخطوات / الخوارزمية: تعريف مُنشِئ ثانوي يهيّئ المُنشِئ الرئيسي
+
+#### ما هدف هذه العملية؟
+> إضافة طريقة بديلة لإنشاء الكائن تقبل بيانات خام (مثل رمز حالة رقمي) وتحوّلها لصيغة مناسبة قبل تمريرها للمُنشِئ الرئيسي.
+
+```algorithm
+1 | كتابة constructor(parameters) داخل جسم الصنف | الكلمة المفتاحية constructor | يبدأ تعريف المُنشِئ الثانوي
+2 | إضافة : this(primary_parameters) بعد قائمة الوسائط | عامل : و this | يربط المُنشِئ الثانوي بالمُنشِئ الرئيسي ويُنفّذه أولاً
+3 | كتابة جسم { } يحتوي منطق إضافي | أقواس معقوفة | يُنفَّذ بعد اكتمال تهيئة المُنشِئ الرئيسي مباشرة
+```
+
+#### نقاط التنفيذ:
+- المُنشِئ الرئيسي يُنفَّذ دائماً أولاً، ثم جسم المُنشِئ الثانوي
+- يمكن أن يكون للصنف أكثر من مُنشِئ ثانوي، بشرط اختلاف قوائم الوسائط (توقيعات مختلفة)
+
+#### 💻 الكود: مُنشِئ ثانوي لتحويل رمز الحالة
+
+##### ما هذا الكود؟
+> يتخيل المثال أن واجهة برمجية خارجية (`API`) تعيد حالة الجهاز كرقم صحيح (`0`, `1`, أو أي قيمة أخرى)، والمُنشِئ الثانوي يترجم هذا الرقم إلى نص مفهوم.
+
 ```kotlin
-class SmartDevice (val name: String, val category: String) {
+class SmartDevice(val name: String, val category: String) {
     var deviceStatus = "online"
 
+    // Secondary constructor: accepts a raw status code and converts it
     constructor(name: String, category: String, statusCode: Int) : this(name, category) {
         deviceStatus = when (statusCode) {
             0 -> "offline"
@@ -245,63 +426,91 @@ fun main() {
 }
 ```
 
+##### شرح كل سطر:
+1. `constructor(name: String, category: String, statusCode: Int) : this(name, category) {` → مُنشِئ ثانوي يستقبل وسيطاً إضافياً `statusCode`، ويُهيّئ المُنشِئ الرئيسي أولاً عبر `this(name, category)`
+2. `deviceStatus = when (statusCode) { ... }` → تعبير `when` يحوّل الرقم إلى نص مناسب ويُسند النتيجة للخاصية `deviceStatus`
+3. `val smartTvDevice = SmartDevice("Android TV", "Entertainment", 0)` → استدعاء المُنشِئ الثانوي (لأنه يمرر 3 وسائط تطابق توقيعه)
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Device name is: Android TV
+Device category is: Entertainment
+Device status is: offline
+```
+
 ---
 
-### 8. العلاقات بين الأصناف: الوراثة (Inheritance / IS-A)
+#### 1.9 العلاقة بين الأصناف: مبدأ الوراثة (Implement a Relationship Between Classes — Inheritance)
 
 #### النص الأصلي يقول (English):
-> "Inheritance lets you build a class upon the characteristics and behavior of another class... In Kotlin, all the classes are final by default, which means that you can't extend them... The open keyword informs the compiler that this class is extendable."
+> "Inheritance lets you build a class upon the characteristics and behavior of another class. It's a powerful mechanism that helps you write reusable code and establish relationships between classes. In Kotlin, all the classes are final by default, which means that you can't extend them, so you have to define the relationships between them. The open keyword informs the compiler that this class is extendable, so now other classes can extend it. The syntax to create a subclass starts with the creation of the class header. The constructor's closing parenthesis is followed by a space, a colon, another space, the superclass name, and a set of parentheses."
+
+#### الترجمة الحرفية:
+> الوراثة (`Inheritance`) تتيح لك بناء صنف اعتماداً على خصائص وسلوك صنف آخر. إنها آلية قوية تساعدك على كتابة كود قابل لإعادة الاستخدام وإقامة علاقات بين الأصناف.
+> في `Kotlin`، كل الأصناف نهائية (`final`) بشكل افتراضي، أي أنه لا يمكن توسيعها (وراثتها)، لذا يتوجب عليك تحديد العلاقات بينها صراحة.
+> الكلمة المفتاحية `open` تُخبر المترجم أن هذا الصنف قابل للتوسيع، فتستطيع أصناف أخرى الآن وراثته.
+> صياغة إنشاء صنف فرعي (`subclass`) تبدأ بترويسة الصنف. القوس الهلالي الأخير للمُنشِئ يتبعه مسافة، ثم نقطتان رأسيتان، ثم مسافة، ثم اسم الصنف الأعلى (`superclass`)، ثم مجموعة أقواس هلالية.
 
 #### الشرح المبسّط:
-الوراثة تسمح لصنف فرعي (Subclass) يستفيد من خصائص ودوال صنف أب (Superclass) بدون إعادة كتابتها. لكن كوتلن **يمنع الوراثة افتراضياً** (كل صنف `final`) حماية من الأخطاء، ولازم تصرّح صراحة بكلمة `open` إذا تبي غيرك يرث صنفك.
+الوراثة تحل مشكلة عملية: `SmartTvDevice` و`SmartLightDevice` كلاهما "جهاز ذكي" يشترك في نفس الخصائص الأساسية (`name`, `category`, `deviceStatus`) ونفس الدوال الأساسية (`turnOn`, `turnOff`) التي رأيناها في `SmartDevice` سابقاً. بدل تكرار كتابة هذا الكود في كل صنف جهاز جديد، تجعل `SmartDevice` صنفاً أعلى (`superclass`/`parent`) قابلاً للتوسيع بكلمة `open`، ثم تبني `SmartTvDevice` و`SmartLightDevice` كأصناف فرعية (`subclass`/`child`) ترث منه تلقائياً كل ما يملكه. نقطة الأمان المهمة هنا هي أن `Kotlin` يمنع الوراثة افتراضياً (كل صنف `final`) لتجنّب أخطاء غير مقصودة؛ يجب أن تُصرّح صراحةً بنيّتك في السماح بالتوسيع عبر `open`. الصياغة `class Child(...) : Parent(...)` تشبه جملة "الابن يرث من الأب" حيث الاسم الثاني بعد النقطتين هو اسم الأب.
 
-**لماذا الوضع الافتراضي "ممنوع"؟** لتشجيع التصميم الواعي — الوراثة العشوائية تسبب تعقيداً وأخطاء يصعب تتبعها.
+**لماذا؟** الوراثة تمنع تكرار الكود المشترك (مبدأ `DRY` — Don't Repeat Yourself) وتنظّم الأصناف في تسلسل هرمي منطقي يعكس بنية العالم الحقيقي (كل تلفاز ذكي هو أولاً وقبل كل شيء "جهاز ذكي").
 
-#### 📊 المخطط: علاقة الوراثة بين SmartDevice و SmartTvDevice / SmartLightDevice
+#### 💡 التشبيه:
+> الوراثة أشبه بشجرة عائلة: الابن (الصنف الفرعي) يرث صفات الأب (الصنف الأعلى) تلقائياً، لكن يمكنه أيضاً أن يضيف صفاته الخاصة به.
+> **وجه الشبه:** الأب في شجرة العائلة = الصنف الأعلى `superclass`، الابن = الصنف الفرعي `subclass`.
+
+#### 📊 المخطط: تسلسل الوراثة بين SmartDevice والأصناف الفرعية
 
 #### ما هذا المخطط؟
-> يوضّح كيف يرث كل من `SmartTvDevice` و`SmartLightDevice` من الصنف الأب `SmartDevice`.
+> يوضّح أن `SmartDevice` هو الصنف الأعلى (`parent`)، وأن `SmartTvDevice` و`SmartLightDevice` صنفان فرعيان (`child`) يرثان منه عبر الوراثة.
 
 #### وصف العُقد:
 | # | العُقدة | النوع `kind` | الشرح |
 | --- | --- | --- | --- |
-| 1 | SmartDevice | class | الصنف الأب (Superclass) — يحمل الخصائص المشتركة |
-| 2 | SmartTvDevice | class | صنف فرعي متخصص بجهاز تلفزيون |
-| 3 | SmartLightDevice | class | صنف فرعي متخصص بجهاز إضاءة |
+| 1 | SmartDevice | class | الصنف الأعلى (`superclass`/`parent`) المُعلَّم بـ `open` |
+| 2 | SmartTvDevice | class | صنف فرعي يرث من `SmartDevice` |
+| 3 | SmartLightDevice | class | صنف فرعي يرث من `SmartDevice` |
 
 #### وصف الروابط:
 | من | إلى | التسمية | نوع السهم | الشرح |
 | --- | --- | --- | --- | --- |
-| SmartTvDevice | SmartDevice | inheritance | سهم مثلث (IS-A) | التلفزيون "هو" جهاز ذكي |
-| SmartLightDevice | SmartDevice | inheritance | سهم مثلث (IS-A) | الإضاءة "هي" جهاز ذكي |
+| SmartTvDevice | SmartDevice | inheritance | سهم مفتوح للأعلى | يرث `SmartTvDevice` كل خصائص ودوال `SmartDevice` |
+| SmartLightDevice | SmartDevice | inheritance | سهم مفتوح للأعلى | يرث `SmartLightDevice` كل خصائص ودوال `SmartDevice` |
 
 ```diagram
 type: class
-title: SmartDevice Inheritance
+title: تسلسل وراثة SmartDevice
 direction: TD
 nodes:
-  - id: SmartDevice
+  - id: smart_device
     label: SmartDevice (Superclass)
     kind: class
     level: 0
-  - id: SmartTvDevice
+  - id: smart_tv
     label: SmartTvDevice (Subclass)
     kind: class
     level: 1
-  - id: SmartLightDevice
+  - id: smart_light
     label: SmartLightDevice (Subclass)
     kind: class
     level: 1
 edges:
-  - from: SmartTvDevice
-    to: SmartDevice
-  - from: SmartLightDevice
-    to: SmartDevice
+  - from: smart_tv
+    to: smart_device
+  - from: smart_light
+    to: smart_device
 ```
+
+#### 💻 الكود: تعريف صنف قابل للتوسيع وصنفين فرعيين منه
+
+##### ما هذا الكود؟
+> يجعل `SmartDevice` قابلاً للتوسيع بـ `open`، ثم يبني `SmartTvDevice` و`SmartLightDevice` كأصناف فرعية، كل منها يضيف خصائص ودوالاً خاصة به فوق ما يرثه.
 
 ```kotlin
 open class SmartDevice(val name: String, val category: String) {
     var deviceStatus = "online"
+
     constructor(name: String, category: String, statusCode: Int) : this(name, category) {
         deviceStatus = when (statusCode) {
             0 -> "offline"
@@ -309,14 +518,17 @@ open class SmartDevice(val name: String, val category: String) {
             else -> "unknown"
         }
     }
+
     fun turnOn() { println("Smart device is turned on.") }
     fun turnOff() { println("Smart device is turned off.") }
 }
 
 class SmartTvDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
+
     var speakerVolume = 2
         set(value) { if (value in 0..100) { field = value } }
+
     var channelNumber = 1
         set(value) { if (value in 0..200) { field = value } }
 
@@ -332,6 +544,7 @@ class SmartTvDevice(deviceName: String, deviceCategory: String) :
 
 class SmartLightDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
+
     var brightnessLevel = 0
         set(value) { if (value in 0..100) { field = value } }
 
@@ -342,23 +555,92 @@ class SmartLightDevice(deviceName: String, deviceCategory: String) :
 }
 ```
 
+##### شرح كل سطر:
+1. `open class SmartDevice(...) {` → `open` تسمح لأصناف أخرى بوراثة `SmartDevice`
+2. `class SmartTvDevice(deviceName: String, deviceCategory: String) :` → ترويسة الصنف الفرعي، وسائطه مؤقتة (`deviceName`, `deviceCategory`) بلا `val`/`var` لأنها ستُمرَّر للأب فقط
+3. `SmartDevice(name = deviceName, category = deviceCategory) {` → استدعاء مُنشِئ الأب وتمرير القيم إليه لتهيئة `name` و`category` الموروثتين
+4. `var speakerVolume = 2 ... set(value) { ... }` → خاصية جديدة خاصة بـ `SmartTvDevice` فقط، بمنطق تحقق من النطاق كما تعلمنا في القسم 1.6
+5. `fun increaseSpeakerVolume() { speakerVolume++; println(...) }` → دالة جديدة خاصة بهذا الصنف الفرعي فقط، غير موجودة في `SmartDevice`
+6. نفس المنطق يتكرر لـ `SmartLightDevice` مع خاصية `brightnessLevel` بدل `speakerVolume`/`channelNumber`
+
 ---
 
-### 9. علاقة HAS-A (التركيب / Composition)
+#### 1.10 علاقات IS-A وHAS-A بين الأصناف (IS-A and HAS-A Relationships)
 
 #### النص الأصلي يقول (English):
-> "In a HAS-A relationship, an object can own an instance of another class without actually being an instance of that class itself... The HAS-A relationship between two classes is also referred to as composition."
+> "When you use inheritance, you establish a relationship between two classes in something called an IS-A relationship. An object is also an instance of the class from which it inherits. In a HAS-A relationship, an object can own an instance of another class without actually being an instance of that class itself. The relationship is unidirectional, so you can say that every smart TV is a smart device, but you can't say that every smart device is a smart TV. The HAS-A relationship between two classes is also referred to as composition."
+
+#### الترجمة الحرفية:
+> عندما تستخدم الوراثة، تُقيم علاقة بين صنفين تُسمى علاقة "هو-عبارة-عن" (`IS-A relationship`). الكائن هو أيضاً نسخة من الصنف الذي يرث منه.
+> في علاقة "يملك" (`HAS-A relationship`)، يمكن للكائن أن يمتلك نسخة من صنف آخر دون أن يكون هو نفسه نسخة من ذلك الصنف.
+> العلاقة أحادية الاتجاه، فيمكنك القول إن كل تلفاز ذكي هو جهاز ذكي، لكن لا يمكنك القول إن كل جهاز ذكي هو تلفاز ذكي.
+> علاقة "يملك" بين صنفين تُسمى أيضاً التركيب (`composition`).
 
 #### الشرح المبسّط:
-بعكس IS-A (الوراثة)، علاقة HAS-A تعني أن الكائن "يملك" كائناً آخر كخاصية بداخله، دون أن يكون هو نفسه من نفس النوع. مثال: `SmartHome` **تملك** جهاز تلفزيون وجهاز إضاءة، لكن `SmartHome` نفسها ليست جهازاً ذكياً.
+هذان النمطان يوضحان طريقتين مختلفتين تماماً لربط الأصناف ببعضها، ومن المهم عدم الخلط بينهما. علاقة `IS-A` هي ما رأيناه في القسم السابق: `SmartTvDevice` **هو** `SmartDevice` (عبر الوراثة `:`)، والعلاقة أحادية الاتجاه تماماً كما تقول "كل قطة هي حيوان، لكن ليس كل حيوان قطة". أما علاقة `HAS-A` فهي مختلفة جوهرياً: صنف `SmartHome` لا يرث من `SmartTvDevice`، بل **يمتلك** كائناً منه كخاصية داخلية — تماماً كما "البيت يملك تلفازاً" لكن "البيت ليس تلفازاً". هذا النمط الثاني يُسمى تركيباً (`composition`) لأنك تُركّب كائناً من كائنات أصغر بدل أن تجعله يرث منها.
 
-#### 💡 التشبيه:
-> البيت "يملك" أثاثاً (تلفزيون، مصباح)، لكن البيت نفسه ليس تلفزيوناً ولا مصباحاً.
-> **وجه الشبه:** SmartHome = البيت | SmartTvDevice/SmartLightDevice = الأثاث الذي يملكه البيت
+**لماذا؟** التمييز بين النمطين أساسي لتصميم صحيح: تستخدم `IS-A` (وراثة) فقط عندما يكون الصنف الفرعي فعلاً نوعاً خاصاً من الصنف الأعلى، وتستخدم `HAS-A` (تركيب) عندما يكون الصنف مجرد "يحتوي على" أو "يستخدم" كائناً آخر دون أن يكون من نفس نوعه.
+
+#### 📊 المخطط: العلاقتان IS-A وHAS-A معاً
+
+#### ما هذا المخطط؟
+> يجمع بين علاقة الوراثة (`IS-A`) وعلاقة التركيب (`HAS-A`) في مخطط واحد لتوضيح الفرق بينهما بصرياً.
+
+#### وصف العُقد:
+| # | العُقدة | النوع `kind` | الشرح |
+| --- | --- | --- | --- |
+| 1 | SmartDevice | class | الصنف الأعلى |
+| 2 | SmartTvDevice | class | يرث من SmartDevice (علاقة IS-A) |
+| 3 | SmartHome | class | يمتلك كائناً من SmartTvDevice (علاقة HAS-A) |
+
+#### وصف الروابط:
+| من | إلى | التسمية | نوع السهم | الشرح |
+| --- | --- | --- | --- | --- |
+| SmartTvDevice | SmartDevice | Inherits (IS-A) | سهم مصمت للأعلى | وراثة حقيقية — SmartTvDevice هو نوع من SmartDevice |
+| SmartHome | SmartTvDevice | contains/uses (HAS-A) | سهم متقطع | تركيب — SmartHome يملك خاصية من نوع SmartTvDevice دون أن يكون منه |
+
+```diagram
+type: class
+title: IS-A مقابل HAS-A
+direction: TD
+nodes:
+  - id: smart_device
+    label: SmartDevice
+    kind: class
+    level: 0
+  - id: smart_tv
+    label: SmartTvDevice
+    kind: class
+    level: 1
+  - id: smart_home
+    label: SmartHome
+    kind: class
+    level: 1
+edges:
+  - from: smart_tv
+    to: smart_device
+    label: "Inherits (IS-A)"
+  - from: smart_home
+    to: smart_tv
+    label: "contains/uses (HAS-A)"
+```
+
+#### ⚖️ المقايضة: علاقة IS-A مقابل علاقة HAS-A
+
+| | IS-A (وراثة) | HAS-A (تركيب) |
+| --- | --- | --- |
+| المزايا | إعادة استخدام مباشرة لكل الخصائص والدوال، مناسبة عند وجود تخصص حقيقي (`specialization`) | مرونة أكبر، لا يفرض تسلسلاً هرمياً صارماً، يسمح بالجمع بين عدة كائنات مختلفة الأنواع |
+| العيوب | ربط قوي (`tight coupling`) بين الصنفين، وتعديل الأب قد يكسر الأبناء | يتطلب كتابة دوال "تفويض" (`delegation`) صريحة لاستخدام سلوك الكائن الممتلَك |
+| متى تختاره | عندما تكون العلاقة فعلاً "نوع من" (تلفاز ذكي هو جهاز ذكي) | عندما تكون العلاقة "يحتوي على" أو "يستخدم" (المنزل يحتوي تلفازاً) |
+
+#### 💻 الكود: SmartHome — علاقة HAS-A عبر التركيب
+
+##### ما هذا الكود؟
+> صنف `SmartHome` **يمتلك** كائنين من `SmartTvDevice` و`SmartLightDevice` كخصائص، ويوفّر دوالاً تفوّض العمل الفعلي لتلك الكائنات الداخلية.
 
 ```kotlin
 // The SmartHome class HAS-A smart TV device and smart light.
-class SmartHome (
+class SmartHome(
     val smartTvDevice: SmartTvDevice,
     val smartLightDevice: SmartLightDevice
 ) {
@@ -366,9 +648,11 @@ class SmartHome (
     fun turnOffTv() { smartTvDevice.turnOff() }
     fun increaseTvVolume() { smartTvDevice.increaseSpeakerVolume() }
     fun changeTvChannelToNext() { smartTvDevice.nextChannel() }
+
     fun turnOnLight() { smartLightDevice.turnOn() }
     fun turnOffLight() { smartLightDevice.turnOff() }
     fun increaseLightBrightness() { smartLightDevice.increaseBrightness() }
+
     fun turnOffAllDevices() {
         turnOffTv()
         turnOffLight()
@@ -376,23 +660,128 @@ class SmartHome (
 }
 ```
 
-#### ⚖️ المقايضة: IS-A مقابل HAS-A
-
-| | IS-A (Inheritance) | HAS-A (Composition) |
-| --- | --- | --- |
-| المزايا | إعادة استخدام مباشر للسلوك والخصائص | مرونة أكبر، لا يفرض تسلسلاً هرمياً صارماً |
-| العيوب | علاقة أحادية الاتجاه وصارمة (كل تغيير في الأب يؤثر على الجميع) | يتطلب كتابة دوال "تفويض" (delegation) صريحة |
-| متى تختاره | عندما يكون الكائن فعلاً "نوعاً من" الصنف الأب | عندما يكون الكائن "يستخدم/يملك" كائناً آخر |
+##### شرح كل سطر:
+1. `class SmartHome(val smartTvDevice: SmartTvDevice, val smartLightDevice: SmartLightDevice) {` → المُنشِئ الرئيسي يستقبل كائنين جاهزين من صنفين آخرين ويخزّنهما كخصائص — هذا هو جوهر علاقة `HAS-A`
+2. `fun turnOnTv() { smartTvDevice.turnOn() }` → لا يوجد منطق جديد هنا؛ `SmartHome` يُفوِّض (`delegates`) الاستدعاء مباشرة إلى الكائن الذي يملكه
+3. `fun turnOffAllDevices() { turnOffTv(); turnOffLight() }` → دالة مركّبة تستدعي دالتين سابقتين من نفس الصنف لإطفاء كل الأجهزة دفعة واحدة
 
 ---
 
-### 10. تجاوز الدوال (Override Methods) واستخدام super
+#### 1.11 تجاوز دوال الصنف الأعلى من الأصناف الفرعية (Override Superclass Methods from Subclasses)
 
 #### النص الأصلي يقول (English):
-> "To override means to intercept the action, typically to take manual control. When you override a method, the method in the subclass interrupts the execution of the method defined in the superclass and provides its own execution... To call the overridden method in the superclass from the subclass, you need to use the super keyword."
+> "To override means to intercept the action, typically to take manual control. When you override a method, the method in the subclass interrupts the execution of the method defined in the superclass and provides its own execution."
+
+#### الترجمة الحرفية:
+> التجاوز (`override`) يعني اعتراض الفعل، عادةً لأخذ التحكم اليدوي به.
+> عندما تُجاوِز دالة، فإن الدالة في الصنف الفرعي تقاطع تنفيذ الدالة المُعرَّفة في الصنف الأعلى وتقدّم تنفيذها الخاص بها بدلاً منها.
 
 #### الشرح المبسّط:
-كلمة `override` تسمح للصنف الفرعي بإعادة كتابة سلوك دالة موروثة من الأب بسلوك خاص فيه. ولازم الدالة الأصلية في الأب تكون معرّفة بـ`open` حتى يُسمح بتجاوزها. أما `super.functionName()` فيُستخدم عندما تبي "تستدعي السلوك الأصلي من الأب" **بالإضافة** إلى السلوك الجديد، بدل استبداله بالكامل.
+حتى الآن كانت `turnOn()`/`turnOff()` في القسم 1.9 تُطبع نفس الرسالة العامة بغض النظر عن نوع الجهاز — وهذا غير واقعي، فتشغيل تلفاز يختلف فعلياً عن تشغيل مصباح (يجب ضبط مستوى الصوت والقناة للتلفاز، ومستوى الإضاءة للمصباح). التجاوز (`override`) يسمح لكل صنف فرعي أن "يعترض" السلوك الموروث ويستبدله بسلوك خاص به يناسب طبيعته. لكي يسمح الصنف الأعلى بهذا الاعتراض، يجب تعليم الدالة فيه بـ `open` أيضاً (تماماً كما فعلنا مع الصنف نفسه في 1.9) — بدون `open` على الدالة، لن يستطيع أي صنف فرعي تجاوزها. ثم في الصنف الفرعي، تُكتب الدالة بنفس الاسم والتوقيع لكن مسبوقة بالكلمة المفتاحية `override`.
+
+**لماذا؟** التجاوز يحقق ما يُعرف بتعدد الأشكال (`polymorphism`) — نفس الاستدعاء `smartDevice.turnOn()` ينتج سلوكاً مختلفاً فعلياً حسب النوع الحقيقي للكائن، دون أن يحتاج الكود المستدعي لمعرفة ذلك النوع مسبقاً.
+
+#### الفهم الخاطئ الشائع ❌: نسيان كتابة `open` أمام الدالة في الصنف الأعلى ثم محاولة `override` عليها في الصنف الفرعي، ما يسبب خطأ ترجمة.
+#### الفهم الصحيح ✅: يجب أن تكون الدالة `open` في الصنف الأعلى ليُسمح بتجاوزها؛ وكل دالة `override` تكون بحكم اللغة `open` ضمنياً أيضاً لمن يرث منها لاحقاً.
+
+#### 💻 الكود: تجاوز turnOn() وturnOff() في الأصناف الفرعية
+
+##### ما هذا الكود؟
+> يجعل `turnOn`/`turnOff` قابلتين للتجاوز في `SmartDevice` عبر `open`، ثم يُجاوِزهما كل من `SmartTvDevice` و`SmartLightDevice` بسلوك مختلف يناسب كل جهاز.
+
+```kotlin
+open class SmartDevice(val name: String, val category: String) {
+    var deviceStatus = "online"
+    open fun turnOn() { println("Smart device is turned on.") }
+    open fun turnOff() { println("Smart device is turned off.") }
+}
+
+class SmartTvDevice(deviceName: String, deviceCategory: String) :
+    SmartDevice(name = deviceName, category = deviceCategory) {
+
+    var speakerVolume = 2
+        set(value) { if (value in 0..100) { field = value } }
+    var channelNumber = 1
+        set(value) { if (value in 0..200) { field = value } }
+
+    fun increaseSpeakerVolume() { speakerVolume++; println("Speaker volume increased to $speakerVolume.") }
+    fun nextChannel() { channelNumber++; println("Channel number increased to $channelNumber.") }
+
+    // Override: provide TV-specific turn-on/off behavior
+    override fun turnOn() {
+        deviceStatus = "on"
+        println("$name is turned on. Speaker volume is set to $speakerVolume and channel number is " +
+            "set to $channelNumber.")
+    }
+    override fun turnOff() {
+        deviceStatus = "off"
+        println("$name turned off")
+    }
+}
+
+class SmartLightDevice(deviceName: String, deviceCategory: String) :
+    SmartDevice(name = deviceName, category = deviceCategory) {
+
+    var brightnessLevel = 0
+        set(value) { if (value in 0..100) { field = value } }
+
+    fun increaseBrightness() { brightnessLevel++; println("Brightness increased to $brightnessLevel.") }
+
+    // Override: provide light-specific turn-on/off behavior
+    override fun turnOn() {
+        deviceStatus = "on"
+        brightnessLevel = 2
+        println("$name turned on. The brightness level is $brightnessLevel.")
+    }
+    override fun turnOff() {
+        deviceStatus = "off"
+        brightnessLevel = 0
+        println("Smart Light turned off")
+    }
+}
+
+fun main() {
+    var smartDevice: SmartDevice = SmartTvDevice("Android TV", "Entertainment")
+    smartDevice.turnOn()
+    smartDevice = SmartLightDevice("Google Light", "Utility")
+    smartDevice.turnOn()
+}
+```
+
+##### شرح كل سطر:
+1. `open fun turnOn() { ... }` داخل `SmartDevice` → `open` هنا على مستوى الدالة (وليس الصنف فقط) تسمح تحديداً لهذه الدالة بالتجاوز
+2. `override fun turnOn() { ... }` داخل `SmartTvDevice` → يستبدل تنفيذ الأب بمنطق خاص يستخدم `speakerVolume` و`channelNumber`
+3. `var smartDevice: SmartDevice = SmartTvDevice(...)` → المتغير من النوع المُعلَن `SmartDevice` لكن الكائن الفعلي `SmartTvDevice` — هذا يوضح تعدد الأشكال
+4. `smartDevice.turnOn()` → يُنفَّذ `override` الخاص بـ `SmartTvDevice` تلقائياً رغم أن نوع المتغير المُعلَن هو الأب
+5. `smartDevice = SmartLightDevice(...)` → إعادة إسناد نفس المتغير (`var`) لكائن من نوع فرعي آخر، فيتغير السلوك عند الاستدعاء التالي
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Android TV is turned on. Speaker volume is set to 2 and channel number is set to 1.
+Google Light turned on. The brightness level is 2.
+```
+
+---
+
+#### 1.12 إعادة استخدام كود الصنف الأعلى بالكلمة المفتاحية super (Reuse Superclass Code with the super Keyword)
+
+#### النص الأصلي يقول (English):
+> "To call the overridden method in the superclass from the subclass, you need to use the super keyword. Calling a method from the superclass is similar to calling the method from outside the class. Instead of using a . operator between the object and method, you need to use the super keyword, which informs the Kotlin compiler to call the method on the superclass instead of the subclass."
+
+#### الترجمة الحرفية:
+> لاستدعاء الدالة المُجاوَزة في الصنف الأعلى من داخل الصنف الفرعي، تحتاج لاستخدام الكلمة المفتاحية `super`.
+> استدعاء دالة من الصنف الأعلى يشبه استدعاءها من خارج الصنف.
+> بدل استخدام عامل النقطة `.` بين الكائن والدالة، تحتاج لاستخدام الكلمة المفتاحية `super`، التي تُخبر مترجم `Kotlin` باستدعاء الدالة على الصنف الأعلى بدلاً من الصنف الفرعي.
+
+#### الشرح المبسّط:
+في القسم السابق، `override` استبدل سلوك الأب بالكامل — لكن ماذا لو أردنا **إضافة** سلوك جديد فوق سلوك الأب بدل استبداله كلياً؟ هنا يأتي دور `super`: يسمح لك بتنفيذ منطق الأب أولاً (مثل تحديث `deviceStatus` الموروثة) ثم إضافة منطقك الخاص بعده. هذا يحل مشكلة تكرار الكود: بدل أن تعيد كتابة `deviceStatus = "on"` يدوياً في كل صنف فرعي (كما فعلنا في القسم 1.11)، تستدعي `super.turnOn()` فينفّذ الأب هذا السطر نيابة عنك، ثم يكمل الصنف الفرعي بمنطقه الإضافي الخاص. لاحظ الفرق الدقيق: عامل النقطة العادي `smartDevice.turnOn()` يستدعي النسخة "الحقيقية" حسب نوع الكائن (تعدد الأشكال)، بينما `super.turnOn()` يفرض تحديداً استدعاء نسخة الأب بغض النظر عن أي تجاوز.
+
+**لماذا؟** `super` يحقق التوازن بين إعادة استخدام كود الأب (تجنّب التكرار) والتخصيص الإضافي في الابن (تعدد الأشكال)، بدل الاختيار بين أحدهما فقط.
+
+#### 💻 الكود: استخدام super.turnOn() لإعادة استخدام منطق الأب
+
+##### ما هذا الكود؟
+> بدل تكرار `deviceStatus = "on"` في كل صنف فرعي، يُنقل هذا المنطق إلى `SmartDevice` ويُستدعى عبر `super.turnOn()` من كل صنف فرعي قبل إضافة سلوكه الخاص.
 
 ```kotlin
 open class SmartDevice(val name: String, val category: String) {
@@ -403,15 +792,11 @@ open class SmartDevice(val name: String, val category: String) {
 
 class SmartTvDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
-    var speakerVolume = 2
-    var channelNumber = 1
-
+    // ...
     override fun turnOn() {
-        super.turnOn() // إعادة استخدام سلوك الأب أولاً
-        println(
-            "$name is turned on. Speaker volume is set to $speakerVolume and channel number is " +
-            "set to $channelNumber."
-        )
+        super.turnOn()
+        println("$name is turned on. Speaker volume is set to $speakerVolume and channel number is " +
+            "set to $channelNumber.")
     }
     override fun turnOff() {
         super.turnOff()
@@ -420,87 +805,1827 @@ class SmartTvDevice(deviceName: String, deviceCategory: String) :
 }
 ```
 
-#### الفهم الخاطئ الشائع ❌: نسيان استدعاء `super.turnOn()` عند التجاوز، مما يعني فقدان تحديث `deviceStatus` الأصلي في الأب.
-#### الفهم الصحيح ✅: استدعِ `super.functionName()` كلما احتجت "تمديد" السلوك الأصلي لا استبداله بالكامل.
+##### شرح كل سطر:
+1. `open fun turnOn() { deviceStatus = "on" }` في `SmartDevice` → المنطق المشترك أصبح موجوداً مرة واحدة فقط في الأب
+2. `super.turnOn()` داخل `override fun turnOn()` → يستدعي تحديداً نسخة الأب من `turnOn()`، فيُنفَّذ `deviceStatus = "on"` أولاً
+3. سطر `println(...)` بعده → يُضيف السلوك الخاص بـ `SmartTvDevice` بعد اكتمال تنفيذ منطق الأب
 
 ---
 
-### 11. تجاوز خصائص الصنف الأب (Override Properties)
+#### 1.13 تجاوز خصائص الصنف الأعلى من الأصناف الفرعية (Override Superclass Properties from Subclasses)
 
 #### النص الأصلي يقول (English):
 > "Similar to methods, you can also override properties with the same steps."
 
+#### الترجمة الحرفية:
+> على غرار الدوال، يمكنك أيضاً تجاوز الخصائص بنفس الخطوات.
+
 #### الشرح المبسّط:
-نفس مبدأ تجاوز الدوال ينطبق على الخصائص — الخاصية في الأب يجب أن تكون `open` حتى يقدر الصنف الفرعي يكتب لها قيمة مختلفة بـ`override`.
+هذا القسم قصير لأنه ببساطة يُطبِّق نفس فكرة القسم 1.11 (`open`/`override`) لكن على الخصائص بدل الدوال. تُعلَّم الخاصية في الأب بـ `open val` بدل `open fun`، وفي الصنف الفرعي تُكتب `override val` بدل `override fun`. المثال العملي هنا مفيد جداً: خاصية `deviceType` في `SmartDevice` تحمل قيمة عامة `"unknown"`، بينما كل صنف فرعي يُجاوِزها بقيمة أكثر تحديداً تعكس نوعه الحقيقي (`"Smart TV"` أو `"Smart Light"`).
+
+**لماذا؟** تجاوز الخصائص — تماماً كتجاوز الدوال — يسمح لكل صنف فرعي بتخصيص بيانات وصفية عن نفسه دون كسر البنية العامة الموروثة من الأب.
+
+#### 💻 الكود: تجاوز الخاصية deviceType
+
+##### ما هذا الكود؟
+> يعرّف خاصية `deviceType` عامة في `SmartDevice` بقيمة افتراضية، ثم يُجاوِزها كل صنف فرعي بقيمة خاصة به.
 
 ```kotlin
 open class SmartDevice(val name: String, val category: String) {
     var deviceStatus = "online"
     open val deviceType = "unknown"
+    // ...
 }
 
 class SmartTvDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
     override val deviceType = "Smart TV"
+    // ...
 }
 
 class SmartLightDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
     override val deviceType = "Smart Light"
+    // ...
 }
 ```
 
+##### شرح كل سطر:
+1. `open val deviceType = "unknown"` → خاصية قابلة للتجاوز، قيمتها العامة الافتراضية `"unknown"`
+2. `override val deviceType = "Smart TV"` → كل صنف فرعي يستبدل هذه القيمة بقيمة أكثر دقة تخصه
+
 ---
 
-### 12. معدّلات الرؤية (Visibility Modifiers)
+#### 1.14 معدِّلات الرؤية: المفهوم العام (Visibility Modifiers — The Concept)
 
 #### النص الأصلي يقول (English):
-> "public. Default visibility modifier. Makes the declaration accessible everywhere... private. Makes the declaration accessible in the same class or source file... protected. Makes the declaration accessible in subclasses... internal. Makes the declaration accessible in the same module."
+> "Visibility modifiers play an important role to achieve encapsulation: In a class, they let you hide your properties and methods from unauthorized access outside the class. In a package, they let you hide the classes and interfaces from unauthorized access outside the package. Kotlin provides four visibility modifiers: public, private, protected, internal. A package is like a directory or a folder that groups related classes, whereas a module provides a container for your app's source code, resource files, and app-level settings."
+
+#### الترجمة الحرفية:
+> معدِّلات الرؤية (`Visibility modifiers`) تلعب دوراً مهماً لتحقيق التغليف (`encapsulation`): داخل الصنف، تتيح لك إخفاء خصائصك ودوالك عن الوصول غير المصرَّح به من خارج الصنف. داخل الحزمة (`package`)، تتيح لك إخفاء الأصناف والواجهات عن الوصول غير المصرَّح به من خارج الحزمة.
+> يوفّر `Kotlin` أربعة معدِّلات رؤية: `public`، `private`، `protected`، `internal`.
+> الحزمة (`package`) أشبه بمجلد يجمع أصنافاً مترابطة، بينما الوحدة (`module`) توفّر حاوية لكود مصدر التطبيق وملفات الموارد وإعدادات مستوى التطبيق.
 
 #### الشرح المبسّط:
-معدّلات الرؤية تتحكم بـ"من يقدر يشوف/يستخدم" خاصية أو دالة أو صنف معين — وهذا هو مبدأ **Encapsulation** (التغليف) في البرمجة الكائنية.
+التغليف (`encapsulation`) هو أحد أعمدة البرمجة الكائنية الأربعة، ومعناه ببساطة: "لا تسمح لأي جزء خارجي بالعبث ببيانات الصنف الداخلية دون رقابة". معدِّلات الرؤية هي الأداة العملية لتطبيق هذا المبدأ — تحدد بدقة "من يستطيع رؤية واستخدام هذه الخاصية أو الدالة". الأربعة معدِّلات تمثل دوائر تحكم متدرجة الاتساع: `private` هي الأضيق (نفس الصنف فقط)، تليها `protected` (الصنف والأبناء)، ثم `internal` (نفس الوحدة البرمجية)، وأخيراً `public` وهي الأوسع (الجميع). هذا مثل طبقات الأمان في مبنى: بعض الغرف مفتوحة للجميع (`public`)، وبعضها لموظفي القسم فقط (`internal`)، وبعضها لعائلة واحدة فقط (`protected` للأبناء)، وبعضها لشخص واحد فقط (`private`).
 
-| المُعدِّل | داخل نفس الصنف | في الأصناف الفرعية | داخل نفس الموديول | خارج الموديول |
+**لماذا؟** بدون معدِّلات رؤية، يستطيع أي كود خارجي تعديل أي خاصية داخلية مباشرة (مثل `deviceStatus`) بقيم قد تكسر منطق الصنف؛ التغليف يحمي "الحالة الداخلية" ويجبر أي تعديل على المرور عبر دوال مضبوطة (مثل `set()` مع تحقق من النطاق).
+
+#### 💡 التشبيه:
+> معدِّلات الرؤية أشبه بدوائر الوصول في مبنى مكتبي: بعض الغرف عامة للزوار، وبعضها لموظفي القسم فقط، وبعضها لصاحب المكتب وحده.
+> **وجه الشبه:** مكتب شخصي مغلق = `private`، قسم بأكمله = `protected`، مبنى الشركة كله = `internal`، الشارع العام = `public`.
+
+#### الأصناف والدوال والخصائص العامة افتراضياً في Kotlin
+#### النص الأصلي يقول (English):
+> "When you define a class, it's publicly visible and can be accessed by any package that imports it, which means that it's public by default unless you specify a visibility modifier. When you define or declare properties and methods in the class, by default they can be accessed outside the class through the class object."
+#### الترجمة الحرفية:
+> عندما تُعرِّف صنفاً، فهو مرئي علنياً ويمكن الوصول إليه من أي حزمة تستورده، ما يعني أنه `public` افتراضياً ما لم تحدد معدِّل رؤية آخر.
+> عندما تُعرِّف أو تُصرِّح خصائص ودوالاً داخل الصنف، فهي بشكل افتراضي قابلة للوصول من خارج الصنف عبر كائن الصنف.
+#### الشرح المبسّط:
+هذه نقطة يجب تذكّرها جيداً: إن لم تكتب أي معدِّل رؤية إطلاقاً، فـ`Kotlin` يفترض `public` تلقائياً لكل شيء (الأصناف، الدوال، الخصائص). هذا يفسّر لماذا كل الأمثلة في الأقسام السابقة عملت بشكل طبيعي رغم أننا لم نكتب `public` أبداً — كانت `public` ضمنياً طوال الوقت.
+
+---
+
+#### 1.15 تطبيق معدِّلات الرؤية على الخصائص والدوال والمُنشِئات والأصناف
+
+#### النص الأصلي يقول (English):
+> "public. Makes the declaration accessible everywhere. private. Makes the declaration accessible in the same class or source file. protected. Makes the declaration accessible in subclasses. internal. Makes the declaration accessible in the same module. The syntax to specify a visibility modifier for a property/method/class starts with the private, protected, or internal modifier followed by the syntax that defines it. For a constructor, the modifier is specified after the class name but before the constructor keyword, and you must keep the constructor keyword and parentheses even with no parameters."
+
+#### الترجمة الحرفية:
+> `public`: تجعل التصريح قابلاً للوصول من أي مكان.
+> `private`: تجعل التصريح قابلاً للوصول ضمن نفس الصنف أو نفس ملف المصدر فقط.
+> `protected`: تجعل التصريح قابلاً للوصول في الأصناف الفرعية.
+> `internal`: تجعل التصريح قابلاً للوصول ضمن نفس الوحدة (`module`).
+> صياغة تحديد معدِّل رؤية لخاصية/دالة/صنف تبدأ بالمعدِّل `private` أو `protected` أو `internal` متبوعاً بصياغة تعريفها.
+> بالنسبة للمُنشِئ، يُكتب المعدِّل بعد اسم الصنف لكن قبل الكلمة المفتاحية `constructor`، ويجب الإبقاء على الكلمة المفتاحية `constructor` والأقواس حتى لو لم توجد وسائط.
+
+#### الشرح المبسّط:
+الميزة الجميلة هنا أن الصياغة موحّدة تماماً بغض النظر عمّا تُطبِّق عليه معدِّل الرؤية: تكتب المعدِّل مباشرة قبل `var`/`val`/`fun`/`class`. الاستثناء الوحيد هو المُنشِئ — لأن `Kotlin` عادة يسمح بحذف الكلمة `constructor` تماماً عند عدم وجود وسائط (كما رأينا في 1.7)، لكن بمجرد إضافة معدِّل رؤية عليه، يصبح إعادة كتابة `constructor()` صراحةً أمراً إلزامياً حتى يعرف المترجم أين يضع المعدِّل بالضبط. مثال شائع عملياً: خاصية `deviceStatus` يجب أن تُقرأ من الخارج لكن لا تُعدَّل إلا من داخل الصنف أو أبنائه — هنا تُستخدم حيلة "معدِّل على `set` فقط" (`protected set`) بدل تقييد الخاصية كلها.
+
+**لماذا؟** تطبيق نفس فكرة "دوائر التحكم" (1.14) على أربعة عناصر مختلفة (خاصية، دالة، مُنشِئ، صنف) يعطي مرونة دقيقة: يمكنك مثلاً السماح بقراءة قيمة من الخارج بينما تمنع تعديلها إلا من الداخل.
+
+#### 💻 الكود: أمثلة معدِّلات الرؤية الأربعة على عناصر مختلفة
+
+##### ما هذا الكود؟
+> يوضّح تطبيق `private`، `protected`، `internal` على خاصية، على دالة الـ`set` فقط، على دالة عضو، على المُنشِئ، وعلى الصنف نفسه — كلٌ في سياقه.
+
+```kotlin
+open class SmartDevice(val name: String, val category: String) {
+    // 1) Property fully private: hidden even from subclasses
+    private var deviceStatus = "online"
+}
+
+open class SmartDeviceV2(val name: String, val category: String) {
+    // 2) Only the setter is restricted — readable everywhere, writable only from subclasses
+    var deviceStatus = "online"
+        protected set
+}
+
+class SmartTvDevice(deviceName: String, deviceCategory: String) :
+    SmartDeviceV2(name = deviceName, category = deviceCategory) {
+    // 3) Method restricted to this class and its subclasses only
+    protected fun nextChannel() {
+        println("Channel changed.")
+    }
+}
+
+// 4) Constructor restricted: object can only be created from within the same module
+open class SmartDeviceV3 protected constructor(val name: String, val category: String) {
+    // ...
+}
+
+// 5) Class restricted: usable only within the same module
+internal open class SmartDeviceV4(val name: String, val category: String) {
+    // ...
+}
+```
+
+##### شرح كل سطر:
+1. `private var deviceStatus = "online"` → لا يمكن الوصول لـ`deviceStatus` إلا من داخل نفس الصنف `SmartDevice` تحديداً، حتى الأصناف الفرعية ممنوعة
+2. `var deviceStatus = "online" \n protected set` → القراءة عامة (`public` افتراضياً) لكن الكتابة (`set`) مقيدة على الصنف وأبنائه فقط
+3. `protected fun nextChannel() { ... }` → الدالة قابلة للاستدعاء فقط من داخل `SmartTvDevice` أو أي صنف يرثه لاحقاً، وليس من خارج التسلسل
+4. `open class SmartDeviceV3 protected constructor(...)` → لاحظ وجوب إبقاء `constructor` صراحةً هنا لأن معدِّل الرؤية يسبقها مباشرة
+5. `internal open class SmartDeviceV4(...)` → الصنف بأكمله غير مرئي خارج نفس الوحدة (`module`) حتى لو كانت حزمة أخرى تستورده
+
+#### ⚖️ المقايضة: مقارنة معدِّلات الرؤية الأربعة (جدول مرجعي)
+
+| Modifier | Accessible in same class | Accessible in subclass | Accessible in same module | Accessible outside module |
 | --- | --- | --- | --- | --- |
 | `private` | ✔ | ✗ | ✗ | ✗ |
 | `protected` | ✔ | ✔ | ✗ | ✗ |
 | `internal` | ✔ | ✔ | ✔ | ✗ |
-| `public` (افتراضي) | ✔ | ✔ | ✔ | ✔ |
+| `public` | ✔ | ✔ | ✔ | ✔ |
 
-**لماذا نحتاجها؟** لمنع الوصول أو التعديل غير المقصود على تفاصيل داخلية للصنف، مما يقلل الأخطاء ويجعل الكود أسهل للفهم والصيانة.
+#### مهم للامتحان ⚠️:
+> `internal` تشبه `private` من حيث إخفاء التفاصيل عن العالم الخارجي، لكنها أوسع لأنها تسمح بالوصول من أي مكان داخل **نفس الوحدة** وليس فقط نفس الصنف.
+
+---
+
+#### 1.16 تعريف مفوِّضات الخصائص (Define Property Delegates)
+
+#### النص الأصلي يقول (English):
+> "The syntax to create property delegates starts with the declaration of a variable followed by the by keyword, and the delegate object that handles the getter and setter functions for the property. An interface is a contract to which classes that implement it need to adhere. It focuses on what to do instead of how to do the action. With interfaces, the class implements the interface. The class provides implementation details for the methods and properties declared in the interface. To create the delegate class: For the var type, you need to implement the ReadWriteProperty interface. For the val type, you need to implement the ReadOnlyProperty interface."
+
+#### الترجمة الحرفية:
+> صياغة إنشاء مفوِّضات الخصائص (`property delegates`) تبدأ بتصريح متغير متبوعاً بالكلمة المفتاحية `by`، ثم كائن المفوَّض (`delegate object`) الذي يتولى دالتَي القراءة والتعيين للخاصية.
+> الواجهة (`interface`) هي عقد يجب على الأصناف المُنفِّذة له الالتزام به. تركّز على "ماذا يجب أن يُفعل" بدل "كيف يُفعل".
+> مع الواجهات، الصنف يُنفِّذ (`implements`) الواجهة، ويقدّم تفاصيل التنفيذ للدوال والخصائص المُصرَّح عنها في الواجهة.
+> لإنشاء صنف المفوَّض: بالنسبة للنوع `var`، تحتاج لتنفيذ واجهة `ReadWriteProperty`. بالنسبة للنوع `val`، تحتاج لتنفيذ واجهة `ReadOnlyProperty`.
+
+#### الشرح المبسّط:
+تذكّر القسم 1.6: كتبنا يدوياً منطق تحقق (`if (value in 0..100)`) داخل `set()` لكل خاصية على حدة (`speakerVolume`, `channelNumber`, `brightnessLevel`) — وهذا تكرار للمنطق نفسه في أماكن متعددة. مفوِّضات الخصائص تحل هذه المشكلة: بدل كتابة نفس منطق التحقق مراراً، تكتبه **مرة واحدة** داخل صنف منفصل (المفوَّض)، ثم "تُفوِّض" كل خاصية لتستخدم ذلك الصنف عبر الكلمة المفتاحية `by`. الآلية التقنية خلف ذلك هي الواجهات (`interfaces`): يجب أن ينفّذ صنف المفوَّض واجهة جاهزة من مكتبة `Kotlin` القياسية (`ReadWriteProperty` لخصائص `var` القابلة للقراءة والتعديل، أو `ReadOnlyProperty` لخصائص `val` للقراءة فقط)، وهذه الواجهة تفرض عليه تعريف دالتين محددتين: `getValue()` و`setValue()`.
+
+**لماذا؟** فصل منطق التحقق في صنف مفوَّض منفصل وقابل لإعادة الاستخدام يمنع تكرار الكود عبر خصائص متعددة، ويجعل تعديل قاعدة التحقق (مثلاً تغيير النطاق المسموح) بتغيير مكان واحد فقط بدل عدة أماكن متفرقة.
+
+#### 💻 الكود: صنف RangeRegulator كمفوِّض قابل لإعادة الاستخدام
+
+##### ما هذا الكود؟
+> يبني صنف `RangeRegulator` الذي ينفّذ واجهة `ReadWriteProperty<Any?, Int>` القياسية، ثم يستخدمه كل من `speakerVolume` و`channelNumber` و`brightnessLevel` عبر `by` بدل تكرار منطق التحقق يدوياً في كل خاصية.
 
 ```kotlin
-open class SmartDevice(val name: String, val category: String) {
-    var deviceStatus = "online"
-        protected set // يمكن قراءتها من أي مكان، لكن تعديلها فقط من الصنف أو الأصناف الفرعية
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
+
+class RangeRegulator(
+    initialValue: Int,
+    private val minValue: Int,
+    private val maxValue: Int
+) : ReadWriteProperty<Any?, Int> {
+
+    var fieldData = initialValue
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        return fieldData
+    }
+
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in minValue..maxValue) {
+            fieldData = value
+        }
+    }
+}
+
+class SmartTvDevice(deviceName: String, deviceCategory: String) :
+    SmartDevice(name = deviceName, category = deviceCategory) {
+
+    override val deviceType = "Smart TV"
+
+    // Delegate speakerVolume and channelNumber to RangeRegulator
+    private var speakerVolume by RangeRegulator(initialValue = 2, minValue = 0, maxValue = 100)
+    private var channelNumber by RangeRegulator(initialValue = 1, minValue = 0, maxValue = 200)
+
+    fun increaseSpeakerVolume() {
+        speakerVolume++
+        println("Speaker volume increased to $speakerVolume.")
+    }
 }
 ```
 
+##### شرح كل سطر:
+1. `class RangeRegulator(...) : ReadWriteProperty<Any?, Int> {` → الصنف المفوَّض ينفّذ واجهة `ReadWriteProperty` المخصصة لأعداد صحيحة (`Int`)
+2. `var fieldData = initialValue` → متغير داخلي يخزّن القيمة الفعلية للمفوَّض (يشبه دور `field` من القسم 1.6 لكن هنا يدوياً)
+3. `override fun getValue(...): Int { return fieldData }` → تُستدعى تلقائياً كلما قرأت الخاصية المفوَّضة
+4. `override fun setValue(...) { if (value in minValue..maxValue) { fieldData = value } }` → تُستدعى تلقائياً كلما أسندت قيمة جديدة، وتحتوي منطق التحقق من النطاق مرة واحدة فقط
+5. `private var speakerVolume by RangeRegulator(initialValue = 2, minValue = 0, maxValue = 100)` → الكلمة المفتاحية `by` تربط الخاصية بكائن مفوَّض جاهز بدل كتابة `get()`/`set()` يدوياً
+
+**المكتبات المطلوبة (Imports):**
+> `import kotlin.properties.ReadWriteProperty`
+> `import kotlin.reflect.KProperty`
+
+---
+
+### 2. الأنواع العامة، الكائنات، والامتدادات (Generics, Objects, and Extensions)
+
+#### النص الأصلي يقول (English):
+> "In Kotlin language, there are a number of features intended to help developers write more expressive code: Generics, Different kinds of classes (enum classes and data classes), Singleton and companion objects, Extension properties and functions, Scope functions."
+#### الترجمة الحرفية:
+> في لغة `Kotlin`، يوجد عدد من الميزات المُصمَّمة لمساعدة المطورين على كتابة كود أكثر تعبيراً ووضوحاً: الأنواع العامة (`Generics`)، أنواع مختلفة من الأصناف (أصناف التعداد وأصناف البيانات)، الكائنات المفردة والمرافقة، خصائص ودوال التوسيع، دوال النطاق.
+#### الشرح المبسّط:
+بعد أن أتقنّا في القسم 1 أساسيات بناء الأصناف والعلاقات بينها، ينتقل هذا القسم لأدوات "متقدمة" في `Kotlin` تجعل الكود أقصر وأكثر أماناً وتعبيراً عن النية بوضوح أكبر، دون تغيير المنطق الأساسي للبرمجة الكائنية. هذه الأدوات الست (الأنواع العامة، أصناف التعداد، أصناف البيانات، الكائنات المفردة/المرافقة، الامتدادات، ودوال النطاق) ستُبنى جميعها فوق مثال متكامل واحد: نظام أسئلة اختبار (`Quiz`)، بحيث يرى الطالب كيف تتراكب هذه الأدوات فوق بعضها في مشروع واقعي.
+
+**لماذا؟** تعلّم هذه الأدوات مجتمعة على نفس المثال يوضح كيف تُستخدم معاً في مشروع حقيقي، بدل تعلّم كل أداة بمعزل عن الأخرى.
+
+---
+
+#### 2.1 الأنواع العامة (Generics)
+
+#### النص الأصلي يقول (English):
+> "Generic types, or generics for short, allow a data type, such as a class, to specify an unknown placeholder data type that can be used with its properties and methods. The syntax for defining a generic type for a class: After the class name comes a left-facing angle bracket (<), followed by a placeholder name for the data type, followed by a right-facing angle bracket (>). The data type that the generic type uses is passed as a parameter in angle brackets when you instantiate the class."
+
+#### الترجمة الحرفية:
+> الأنواع العامة (`Generic types`)، أو `generics` اختصاراً، تتيح لنوع بيانات، كصنف مثلاً، أن يحدد نوع بيانات غير معروف كعنصر نائب (`placeholder`) يمكن استخدامه مع خصائصه ودواله.
+> صياغة تعريف نوع عام لصنف: بعد اسم الصنف يأتي قوس زاوي يفتح لليسار (`<`)، متبوعاً باسم نائب لنوع البيانات، متبوعاً بقوس زاوي يفتح لليمين (`>`).
+> نوع البيانات الذي يستخدمه النوع العام يُمرَّر كوسيط بين قوسين زاويين عند إنشاء نسخة من الصنف.
+
+#### الشرح المبسّط:
+تخيّل أنك تريد بناء صنف "سؤال اختبار" (`Question`) يحتوي نص السؤال والإجابة الصحيحة — لكن الإجابة قد تكون نصاً (`String`) في سؤال، أو `Boolean` (صح/خطأ) في سؤال آخر، أو رقماً (`Int`) في سؤال ثالث. بدون الأنواع العامة، ستُضطر لكتابة ثلاثة أصناف منفصلة (`QuestionString`, `QuestionBoolean`, `QuestionInt`) رغم أن بنيتها متطابقة تماماً — وهذا تكرار غير ضروري. الحل هو استخدام نوع عام نائب مثل `T` بدل تحديد نوع ثابت للإجابة، بحيث "يُملأ" هذا النائب بنوع حقيقي فقط عند إنشاء الكائن الفعلي، كأنك تقول "سأخبرك لاحقاً أي نوع بيانات أريد استخدامه هنا".
+
+**لماذا؟** الأنواع العامة تمنع تكرار نفس بنية الصنف لكل نوع بيانات محتمل، مع الحفاظ الكامل على أمان الأنواع (`type safety`) وقت الترجمة — فمترجم `Kotlin` يعرف بالضبط نوع `answer` في كل كائن `Question` تنشئه.
+
+#### 💡 التشبيه:
+> النوع العام أشبه بقالب حاوية شحن قابل للتخصيص: نفس القالب الخارجي، لكن يمكن ملؤه بأي نوع بضاعة (نصوص، أرقام، قيم منطقية) دون تغيير تصميم الحاوية نفسها.
+> **وجه الشبه:** الحاوية الفارغة القابلة للتخصيص = الصنف العام `class Question<T>`، نوع البضاعة المحدد لاحقاً = `T` الفعلي عند إنشاء الكائن (`String`, `Boolean`, `Int`).
+
+#### 💻 الكود: صنف Question عام يدعم أي نوع إجابة
+
+##### ما هذا الكود؟
+> يبني صنف `Question<T>` عاماً يخزّن نص السؤال، والإجابة (بنوع نائب `T`)، ومستوى الصعوبة، ثم يُنشئ ثلاثة كائنات بأنواع إجابة مختلفة.
+
 ```kotlin
-// معدّل الرؤية على الباني (Constructor)
-open class SmartDevice protected constructor (val name: String, val category: String) {
-    // ...
+class Question<T>(
+    val questionText: String,
+    val answer: T,
+    val difficulty: String
+)
+
+fun main() {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", "medium")
+    val question2 = Question<Boolean>("The sky is green. True or false", false, "easy")
+    val question3 = Question<Int>("How many days are there between full moons?", 28, "hard")
 }
 ```
 
+##### شرح كل سطر:
+1. `class Question<T>(...) {` → `<T>` بعد اسم الصنف يُعرِّف `T` كنوع نائب عام يمكن استخدامه داخل الصنف
+2. `val answer: T,` → الخاصية `answer` تأخذ النوع `T` النائب بدل نوع ثابت محدد مسبقاً
+3. `Question<String>("...", "nevermore", "medium")` → عند الإنشاء، يُستبدل `T` فعلياً بـ `String`، فيصبح `answer` من نوع `String` في هذا الكائن تحديداً
+4. `Question<Boolean>(...)` و`Question<Int>(...)` → نفس الصنف بالضبط، لكن بنوع إجابة مختلف في كل مرة دون أي تكرار للكود
+
+---
+
+#### 2.2 استخدام صنف التعداد (Use an Enum Class)
+
+#### النص الأصلي يقول (English):
+> "An enum class is used to create types with a limited set of possible values. Each possible value of an enum is called an enum constant. Enum constants are placed inside the curly braces separated by commas. The convention is to capitalize every letter in the constant name. You refer to enum constants using the dot operator."
+
+#### الترجمة الحرفية:
+> صنف التعداد (`enum class`) يُستخدم لإنشاء أنواع بمجموعة محدودة من القيم الممكنة.
+> كل قيمة ممكنة في التعداد تُسمى ثابت تعداد (`enum constant`).
+> ثوابت التعداد تُوضع داخل الأقواس المعقوفة مفصولة بفواصل.
+> العُرف المتبع هو كتابة كل حرف في اسم الثابت بحروف كبيرة (`CAPS`).
+> يُشار إلى ثوابت التعداد باستخدام عامل النقطة.
+
+#### الشرح المبسّط:
+في المثال السابق (2.1)، كانت `difficulty` من نوع `String` عادي — وهذا يفتح الباب لأخطاء إملائية خطيرة مثل كتابة `"medum"` بدل `"medium"` دون أن يكتشف المترجم الخطأ، لأن أي نص يُعتبر صالحاً من منظور اللغة. صنف التعداد يحل هذه المشكلة بالضبط: يحدد مسبقاً القيم الوحيدة المسموحة (`EASY`, `MEDIUM`, `HARD` مثلاً) بحيث يرفض المترجم أي قيمة أخرى فوراً وقت الترجمة قبل حتى تشغيل البرنامج. الرابط بالقسم السابق مباشر: سنستبدل الآن `val difficulty: String` بـ `val difficulty: Difficulty` في صنف `Question` العام نفسه.
+
+**لماذا؟** صنف التعداد يحوّل مجموعة قيم نصية "مفتوحة" وعرضة للأخطاء إلى مجموعة قيم "مغلقة" ومضبوطة بأمان الأنواع، فيكتشف المترجم أي خطأ إملائي أو قيمة غير منطقية فوراً بدل اكتشافها أثناء التشغيل أو عدم اكتشافها إطلاقاً.
+
+#### 💻 الكود: صنف Difficulty كتعداد ودمجه مع Question
+
+##### ما هذا الكود؟
+> يعرّف `enum class Difficulty` بثلاثة ثوابت، ثم يستخدمه كنوع لخاصية `difficulty` بدل `String` الخام.
+
 ```kotlin
-// معدّل الرؤية على الصنف نفسه
-internal open class SmartDevice(val name: String, val category: String) {
-    // ...
+enum class Difficulty {
+    EASY, MEDIUM, HARD
 }
+
+class Question<T>(
+    val questionText: String,
+    val answer: T,
+    val difficulty: Difficulty
+)
+
+fun main() {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    val question2 = Question<Boolean>("The sky is green. True or false", false, Difficulty.EASY)
+    val question3 = Question<Int>("How many days are there between full moons?", 28, Difficulty.HARD)
+}
+```
+
+##### شرح كل سطر:
+1. `enum class Difficulty { EASY, MEDIUM, HARD }` → تعريف نوع مغلق بثلاث قيم ممكنة فقط، مفصولة بفواصل وبأحرف كبيرة حسب العُرف
+2. `val difficulty: Difficulty` → الخاصية الآن من نوع `Difficulty` المخصص بدل `String` العام
+3. `Difficulty.MEDIUM` → الوصول لقيمة التعداد عبر اسم الصنف، عامل النقطة، ثم اسم الثابت
+
+---
+
+#### 2.3 استخدام صنف البيانات (Use a Data Class)
+
+#### النص الأصلي يقول (English):
+> "Classes that only contain data and don't have any methods that perform an action can be defined as a data class. Defining a class as a data class allows the Kotlin compiler to make certain assumptions, and to automatically implement some methods. To define a data class, simply add the data keyword before the class keyword. When a class is defined as a data class, the following methods are implemented: equals(), hashCode(), toString(), componentN(), copy()."
+
+#### الترجمة الحرفية:
+> الأصناف التي تحتوي فقط على بيانات ولا تمتلك أي دوال تنفّذ فعلاً يمكن تعريفها كصنف بيانات (`data class`).
+> تعريف صنف كـ`data class` يسمح لمترجم `Kotlin` بافتراض أمور معينة، وتنفيذ بعض الدوال تلقائياً.
+> لتعريف صنف بيانات، ببساطة أضف الكلمة المفتاحية `data` قبل الكلمة المفتاحية `class`.
+> عندما يُعرَّف صنف كـ`data class`، تُنفَّذ الدوال التالية تلقائياً: `equals()`، `hashCode()`، `toString()`، `componentN()`, `copy()`.
+
+#### الشرح المبسّط:
+انظر مجدداً إلى صنف `Question` من القسم 2.1 — هو تماماً المثال المثالي لصنف بيانات: يحمل ثلاث خصائص فقط (`questionText`, `answer`, `difficulty`) ولا يحتوي أي دالة سلوك حقيقية. عادةً في `Kotlin` (كما في لغات أخرى) يحتاج المبرمج كتابة دوال يدوية مثل `toString()` (لعرض الكائن كنص مقروء) أو `equals()` (لمقارنة كائنين) بنفسه — وهذا كود مكرر ومملّ لأي صنف بيانات جديد. كلمة `data` تلغي هذا العناء بالكامل: يفحص المترجم كل الخصائص المعرّفة في المُنشِئ الرئيسي، ويولّد تلقائياً دوال المقارنة والعرض والنسخ استناداً إليها. لاحظ الفرق العملي: `println(question1.toString())` سيطبع الآن تمثيلاً نصياً مقروءاً تلقائياً يحتوي كل قيم الخصائص، بدل نص تقني غامض كان سيظهر بدون `data`.
+
+**لماذا؟** توليد هذه الدوال تلقائياً يوفّر وقت المطور ويمنع أخطاء يدوية شائعة (مثل نسيان تحديث `equals()` بعد إضافة خاصية جديدة)، وهو مناسب تحديداً للأصناف التي وظيفتها الوحيدة حمل بيانات بلا سلوك.
+
+#### 💻 الكود: تحويل Question إلى صنف بيانات
+
+##### ما هذا الكود؟
+> يضيف `data` أمام `class Question<T>` فيكتسب الصنف تلقائياً دوال `toString()` وغيرها، ثم يطبع كائناً لإظهار الفرق.
+
+```kotlin
+enum class Difficulty {
+    EASY, MEDIUM, HARD
+}
+
+data class Question<T>(
+    val questionText: String,
+    val answer: T,
+    val difficulty: Difficulty
+)
+
+fun main() {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    println(question1.toString())
+}
+```
+
+##### شرح كل سطر:
+1. `data class Question<T>(...) {` → إضافة `data` قبل `class` تكفي لتوليد `equals()`, `hashCode()`, `toString()`, `componentN()`, `copy()` تلقائياً
+2. `println(question1.toString())` → استدعاء `toString()` المُولَّدة تلقائياً، والتي تطبق كل خصائص الكائن بصيغة مقروءة دون كتابة أي كود إضافي
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+Question(questionText=Quoth the raven ___, answer=nevermore, difficulty=MEDIUM)
 ```
 
 ---
 
-### 13. تفويض الخصائص (Property Delegates)
+#### 2.4 استخدام الكائن المفرد (Use a Singleton Object)
 
 #### النص الأصلي يقول (English):
-> "The syntax to create property delegates starts with the declaration of a variable followed by the by keyword, and the delegate object that handles the getter and setter functions for the property... For the var type, you need to implement the ReadWriteProperty interface."
+> "A singleton is a class that can only have a single instance. Kotlin provides a special construct, called an object, that can be used to make a singleton class. The syntax for an object is similar to that of a class. Simply use the object keyword instead of the class keyword. A singleton object can't have a constructor as you can't create instances directly. Instead, all the properties are defined within the curly braces and are given an initial value. You can access singleton object properties by referring to the name of the object itself, followed by the dot operator, followed by the property name."
+
+#### الترجمة الحرفية:
+> الكائن المفرد (`singleton`) هو صنف لا يمكن أن يكون له إلا نسخة واحدة فقط.
+> يوفّر `Kotlin` بنية خاصة تُسمى `object`، تُستخدم لإنشاء صنف مفرد.
+> صياغة `object` مشابهة لصياغة `class`. ببساطة استخدم الكلمة المفتاحية `object` بدل `class`.
+> الكائن المفرد لا يمكن أن يمتلك مُنشِئاً لأنه لا يمكن إنشاء نسخ منه مباشرة.
+> بدلاً من ذلك، تُعرَّف كل الخصائص داخل الأقواس المعقوفة وتُعطى قيمة ابتدائية.
+> يمكنك الوصول لخصائص الكائن المفرد بالإشارة لاسم الكائن نفسه، متبوعاً بعامل النقطة، متبوعاً باسم الخاصية.
 
 #### الشرح المبسّط:
-بدل ما تكرر نفس منطق التحقق (مثل `if (value in 0..100)`) في كل خاصية على حدة، تقدر "تفوّض" مسؤولية الـget/set لكائن خارجي واحد يطبّق واجهة `ReadWriteProperty`، فتوفر تكرار الكود.
+حتى الآن كل الأصناف التي رأيناها (`SmartDevice`, `Question`, ...) يمكن إنشاء عدد غير محدود من الكائنات منها. لكن أحياناً تحتاج فعلياً كائناً **واحداً فقط** يشترك فيه كل البرنامج — مثل تتبع "عدد الأسئلة التي أجاب عنها الطالب" في اختبار واحد؛ لا معنى منطقياً لوجود أكثر من نسخة واحدة من هذه الحالة. الكلمة المفتاحية `object` تفرض هذا القيد تلقائياً: بما أنك لا تستدعي `StudentProgress()` أبداً (لا يوجد مُنشِئ إطلاقاً)، فإن `Kotlin` ينشئ النسخة الوحيدة تلقائياً أول مرة يُستخدم فيها الكائن، ويعيد استخدام نفس النسخة في كل مكان آخر بالبرنامج. هذا يختلف جوهرياً عن `class`: لا حاجة لكتابة `val x = StudentProgress()` إطلاقاً؛ تصل مباشرة عبر `StudentProgress.answered`.
 
-**لماذا؟** مبدأ DRY (Don't Repeat Yourself) — إذا عندك أكثر من خاصية تحتاج نفس نوع التحقق (مثل حصر بين حد أدنى وأقصى)، تكتب المنطق مرة واحدة فقط في صنف الـDelegate.
+**لماذا؟** بعض البيانات في البرنامج منطقياً يجب أن تكون فريدة وموحّدة (كحالة تقدّم طالب واحد)؛ الكائن المفرد يضمن هذا على مستوى اللغة نفسها بدل الاعتماد على انضباط المبرمج يدوياً.
+
+#### 💻 الكود: StudentProgress ككائن مفرد
+
+##### ما هذا الكود؟
+> يعرّف `object StudentProgress` بخاصيتين (`total`, `answered`)، ثم يقرأهما مباشرة عبر اسم الكائن دون إنشاء أي نسخة.
+
+```kotlin
+object StudentProgress {
+    var total: Int = 10
+    var answered: Int = 3
+}
+
+fun main() {
+    println("${StudentProgress.answered} of ${StudentProgress.total} answered.")
+}
+```
+
+##### شرح كل سطر:
+1. `object StudentProgress {` → `object` بدل `class` — لا مُنشِئ، ولا حاجة لكلمة `()` بعد الاسم
+2. `var total: Int = 10` و `var answered: Int = 3` → خصائص عادية لكنها فريدة على مستوى البرنامج بأكمله
+3. `println("${StudentProgress.answered} of ${StudentProgress.total} answered.")` → الوصول المباشر عبر اسم الكائن دون إنشاء نسخة منه
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+3 of 10 answered.
+```
+
+---
+
+#### 2.5 تعريف الكائنات كأصناف مرافقة (Declare Objects as Companion Objects)
+
+#### النص الأصلي يقول (English):
+> "Classes and objects in Kotlin can be defined inside other types, and can be a great way to organize your code. You can define a singleton object inside another class using a companion object. A companion object allows you to access its properties and methods from inside the class, if the object's properties and methods belong to that class, allowing for more concise syntax. To declare a companion object, simply add the companion keyword before the object keyword."
+
+#### الترجمة الحرفية:
+> الأصناف والكائنات في `Kotlin` يمكن تعريفها داخل أنواع أخرى، وهذا يمكن أن يكون طريقة رائعة لتنظيم الكود.
+> يمكنك تعريف كائن مفرد داخل صنف آخر باستخدام كائن مرافق (`companion object`).
+> الكائن المرافق يتيح لك الوصول لخصائصه ودواله من داخل الصنف، إن كانت خصائص الكائن ودواله تخص فعلياً ذلك الصنف، مما يسمح بصياغة أكثر إيجازاً.
+> لتعريف كائن مرافق، ببساطة أضف الكلمة المفتاحية `companion` قبل الكلمة المفتاحية `object`.
+
+#### الشرح المبسّط:
+في القسم السابق (2.4) كان `StudentProgress` كائناً مستقلاً منفصلاً تماماً عن صنف `Quiz`، رغم أن تقدّم الطالب منطقياً يخص اختباراً محدداً وليس البرنامج ككل. الكائن المرافق يحل هذا التضارب المفاهيمي: يسمح "بوضع" الكائن المفرد **داخل** صنف آخر (هنا `Quiz`)، بحيث يصبح تابعاً منطقياً له بدل أن يكون معزولاً عنه. الميزة العملية الإضافية هي إيجاز الصياغة: من داخل صنف `Quiz` نفسه، يمكن الوصول لخصائص الكائن المرافق مباشرة باسمها فقط أحياناً (دون تكرار اسمه)، بينما من خارج الصنف يبقى الوصول عبر `Quiz.answered` تماماً كما كان `StudentProgress.answered` من قبل.
+
+**لماذا؟** الكائن المرافق يربط منطقياً بين بيانات "ثابتة/مشتركة" (تشبه المتغيرات الساكنة `static` في لغات أخرى) وبين الصنف الذي تخصه فعلياً، بدل تركها ككائن منفصل بلا سياق واضح.
+
+#### 💻 الكود: StudentProgress ككائن مرافق داخل Quiz
+
+##### ما هذا الكود؟
+> ينقل `object StudentProgress` ليصبح `companion object` معرَّفاً داخل صنف `Quiz`، فيصبح الوصول إليه عبر اسم الصنف `Quiz` مباشرة.
+
+```kotlin
+class Quiz {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    val question2 = Question<Boolean>("The sky is green. True or false", false, Difficulty.EASY)
+    val question3 = Question<Int>("How many days are there between full moons?", 28, Difficulty.HARD)
+
+    companion object StudentProgress {
+        var total: Int = 10
+        var answered: Int = 3
+    }
+}
+
+fun main() {
+    println("${Quiz.answered} of ${Quiz.total} answered.")
+}
+```
+
+##### شرح كل سطر:
+1. `companion object StudentProgress { ... }` → `companion` قبل `object` يجعل هذا الكائن المفرد جزءاً "مرافقاً" لصنف `Quiz` تحديداً
+2. `println("${Quiz.answered} of ${Quiz.total} answered.")` → الوصول من خارج الصنف يتم عبر اسم الصنف الحاوي (`Quiz`) مباشرة، وليس اسم الكائن المرافق نفسه
+
+---
+
+#### 2.6 توسيع الأصناف بخصائص ودوال جديدة (Extend Classes with New Properties and Methods)
+
+#### النص الأصلي يقول (English):
+> "To define an extension property, add the type name and a dot operator (.) before the variable name. To define an extension function, add the type name and a dot operator (.) before the function name."
+
+#### الترجمة الحرفية:
+> لتعريف خاصية توسيع (`extension property`)، أضف اسم النوع وعامل نقطة `.` قبل اسم المتغير.
+> لتعريف دالة توسيع (`extension function`)، أضف اسم النوع وعامل نقطة `.` قبل اسم الدالة.
+
+#### الشرح المبسّط:
+حتى الآن كنا نضيف كل خاصية أو دالة جديدة من **داخل** تعريف الصنف نفسه (بين قوسيه المعقوفين). دوال وخصائص التوسيع تكسر هذا القيد: تسمح لك بإضافة سلوك جديد لصنف موجود مسبقاً (حتى لو كان صنفاً من مكتبة خارجية لا تملك حق تعديل كودها المصدري) **من الخارج تماماً**، بدون فتح ملف الصنف الأصلي وتعديله. الصياغة تشبه كتابة دالة عادية، لكن مع إضافة "اسم النوع + نقطة" مباشرة قبل اسم الدالة أو الخاصية — وكأنك تقول "هذه الدالة تنتمي منطقياً لهذا النوع، رغم أنها مكتوبة في مكان آخر تماماً". المثال العملي هنا يوسّع `Quiz.StudentProgress` (الكائن المرافق من القسم السابق) بخاصية `progressText` ودالة `printProgressBar()` جديدتين تماماً، دون العودة لتعديل تعريف `Quiz` الأصلي.
+
+**لماذا؟** التوسيع مفيد جداً عند التعامل مع أصناف لا تملك صلاحية تعديلها (من مكتبات خارجية)، أو لإبقاء الصنف الأصلي "نظيفاً" ومركّزاً بينما تُضاف الوظائف الإضافية أو المساعدة في ملفات منفصلة.
+
+#### 💻 الكود: خاصية ودالة توسيع لـ Quiz.StudentProgress
+
+##### ما هذا الكود؟
+> يضيف خاصية توسيع `progressText` ودالة توسيع `printProgressBar()` للكائن المرافق `Quiz.StudentProgress`، من خارج تعريف صنف `Quiz` تماماً.
+
+```kotlin
+class Quiz {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    val question2 = Question<Boolean>("The sky is green. True or false", false, Difficulty.EASY)
+    val question3 = Question<Int>("How many days are there between full moons?", 28, Difficulty.HARD)
+
+    companion object StudentProgress {
+        var total: Int = 10
+        var answered: Int = 3
+    }
+}
+
+// Extension property: adds progressText to Quiz.StudentProgress from the outside
+val Quiz.StudentProgress.progressText: String
+    get() = "${answered} of ${total} answered"
+
+// Extension function: adds printProgressBar() to Quiz.StudentProgress from the outside
+fun Quiz.StudentProgress.printProgressBar() {
+    repeat(Quiz.answered) { print("▓") }
+    repeat(Quiz.total - Quiz.answered) { print("▒") }
+    println()
+    println(Quiz.progressText)
+}
+
+fun main() {
+    println(Quiz.progressText)
+    Quiz.printProgressBar()
+}
+```
+
+##### شرح كل سطر:
+1. `val Quiz.StudentProgress.progressText: String` → `Quiz.StudentProgress` قبل اسم الخاصية `progressText` يوسّع تحديداً ذلك الكائن المرافق
+2. `get() = "${answered} of ${total} answered"` → منطق الخاصية يستخدم `answered`/`total` مباشرة كأنه مكتوب داخل الصنف نفسه
+3. `fun Quiz.StudentProgress.printProgressBar() { ... }` → دالة توسيع بنفس المنطق، تستخدم `repeat()` لطباعة شريط تقدم بصري
+4. `repeat(Quiz.answered) { print("▓") }` → تكرار طباعة رمز الجزء "المكتمل" من الشريط بعدد الأسئلة المُجاب عنها
+
+**الناتج المتوقع (لقطة الشاشة):**
+```
+3 of 10 answered
+▓▓▓▒▒▒▒▒▒▒
+3 of 10 answered
+```
+
+---
+
+#### 2.7 إعادة كتابة دوال التوسيع باستخدام الواجهات (Rewrite Extension Functions Using Interfaces)
+
+#### النص الأصلي يقول (English):
+> "An interface is defined using the interface keyword, followed by a name in UpperCamelCase, followed by opening and closing curly braces. Within the curly braces, you can define any method signatures or get-only properties that any class conforming to the interface must implement. An interface is a contract. A class that conforms to an interface is said to extend the interface. In return, the class must implement all properties and methods specified in the interface. Interfaces allow for variation in the behavior of classes that extend them. It's up to each class to provide the implementation."
+
+#### الترجمة الحرفية:
+> الواجهة (`interface`) تُعرَّف باستخدام الكلمة المفتاحية `interface`، متبوعة باسم بصيغة `UpperCamelCase`، متبوعة بأقواس معقوفة فاتحة وخاتمة.
+> داخل الأقواس المعقوفة، يمكنك تعريف أي توقيعات دوال أو خصائص للقراءة فقط يجب على أي صنف يتوافق مع الواجهة تنفيذها.
+> الواجهة عقد. الصنف الذي يتوافق مع واجهة يُقال إنه يوسّع الواجهة (`extends`).
+> في المقابل، يجب على الصنف تنفيذ كل الخصائص والدوال المحددة في الواجهة.
+> الواجهات تتيح تبايناً في سلوك الأصناف التي توسّعها؛ الأمر متروك لكل صنف لتقديم التنفيذ الخاص به.
+
+#### الشرح المبسّط:
+في القسم السابق (2.6) كانت `progressText` و`printProgressBar()` مرتبطتين تحديداً وحصراً بـ `Quiz.StudentProgress` — لا يمكن لأي صنف آخر مختلف تماماً (يملك بنية بيانات مختلفة) أن يعيد استخدام نفس الفكرة بسهولة. الواجهة تحل هذه المحدودية عبر تحويل الفكرة إلى "عقد عام": بدل كتابة دوال توسيع مرتبطة بصنف واحد بالتحديد، تُعرِّف واجهة `ProgressPrintable` تنص على "أي صنف يريد طباعة شريط تقدم يجب أن يمتلك `progressText` و`printProgressBar()`"، ثم يلتزم `Quiz` (ويمكن أي صنف آخر لاحقاً) بهذا العقد عبر `class Quiz : ProgressPrintable`. الفرق الجوهري عن الوراثة (القسم 1.9): الواجهة لا تحمل أي تنفيذ فعلي، فقط "توقيعات" فارغة يلتزم كل صنف بملئها بطريقته الخاصة.
+
+**لماذا؟** الواجهات تفصل "ماذا يجب أن يفعل الصنف" عن "كيف يفعله فعلياً"، فتسمح لأصناف مختلفة تماماً في بنيتها الداخلية أن تشترك في نفس السلوك المتوقَّع (`ProgressPrintable`) دون فرض تسلسل وراثي واحد عليها جميعاً.
+
+#### 💻 الكود: واجهة ProgressPrintable وتطبيقها في Quiz
+
+##### ما هذا الكود؟
+> يستبدل دوال التوسيع المرتبطة حصراً بـ`Quiz.StudentProgress` بواجهة عامة `ProgressPrintable`، ثم يجعل `Quiz` ينفّذها مباشرة.
+
+```kotlin
+interface ProgressPrintable {
+    val progressText: String
+    fun printProgressBar()
+}
+
+class Quiz : ProgressPrintable {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    val question2 = Question<Boolean>("The sky is green. True or false", false, Difficulty.EASY)
+    val question3 = Question<Int>("How many days are there between full moons?", 28, Difficulty.HARD)
+
+    companion object StudentProgress {
+        var total: Int = 10
+        var answered: Int = 3
+    }
+
+    override val progressText: String
+        get() = "${answered} of ${total} answered"
+
+    override fun printProgressBar() {
+        repeat(Quiz.answered) { print("▓") }
+        repeat(Quiz.total - Quiz.answered) { print("▒") }
+        println()
+        println(progressText)
+    }
+}
+
+fun main() {
+    Quiz().printProgressBar()
+}
+```
+
+##### شرح كل سطر:
+1. `interface ProgressPrintable { val progressText: String; fun printProgressBar() }` → عقد يفرض خاصية واحدة للقراءة ودالة واحدة، بلا أي تنفيذ فعلي
+2. `class Quiz : ProgressPrintable {` → نفس صياغة الوراثة (`:`) لكن مع واجهة بدل صنف عادي
+3. `override val progressText: String` و `override fun printProgressBar() { ... }` → `Quiz` يلتزم بالعقد ويقدّم تنفيذاً فعلياً خاصاً به لكل عنصر في الواجهة
+
+---
+
+#### 2.8 دالة النطاق let() — التخلص من الإشارة المتكررة لاسم الكائن (Eliminate Repetitive Object References with let())
+
+#### النص الأصلي يقول (English):
+> "Scope functions are higher-order functions that allow you to access properties and methods of an object without referring to the object's name. The let() function allows you to refer to an object in a lambda expression using the identifier it, instead of the object's actual name. This can help you avoid using a long, more descriptive object name repeatedly when accessing more than one property. The let() function is an extension function that can be called on any Kotlin object using dot notation."
+
+#### الترجمة الحرفية:
+> دوال النطاق (`Scope functions`) هي دوال من الرتبة الأعلى (`higher-order functions`) تتيح لك الوصول لخصائص ودوال كائن دون الإشارة لاسم الكائن.
+> دالة `let()` تتيح لك الإشارة لكائن داخل تعبير لامدا (`lambda expression`) باستخدام المُعرِّف `it` بدل الاسم الفعلي للكائن.
+> هذا يساعدك على تجنّب استخدام اسم كائن طويل ووصفي بشكل متكرر عند الوصول لأكثر من خاصية واحدة.
+> دالة `let()` هي دالة توسيع يمكن استدعاؤها على أي كائن في `Kotlin` باستخدام صيغة النقطة.
+
+#### الشرح المبسّط:
+تخيّل أنك تريد طباعة ثلاث خصائص من نفس السؤال (`question1.questionText`, `question1.answer`, `question1.difficulty`) — تكرار اسم `question1` ثلاث مرات متتالية أمر مزعج بصرياً خصوصاً إن كان الاسم طويلاً. `let()` تحل هذه المشكلة بأناقة: تستدعيها على الكائن (`question1.let { ... }`)، وداخل الأقواس المعقوفة (تعبير لامدا) يصبح بإمكانك الإشارة لنفس الكائن عبر الكلمة المختصرة `it` فقط، دون كتابة `question1` مجدداً على الإطلاق. من الناحية التقنية، `let()` هي في الأصل دالة توسيع عادية (بنفس مبدأ القسم 2.6) لكنها معرَّفة مسبقاً داخل مكتبة `Kotlin` القياسية، متاحة تلقائياً على أي كائن دون الحاجة لكتابتها بنفسك.
+
+**لماذا؟** تقليل التكرار البصري لاسم كائن طويل يجعل الكود أقصر وأسهل قراءة، خصوصاً عند تنفيذ عدة عمليات متتالية على نفس الكائن داخل كتلة واحدة.
+
+#### 💻 الكود: استخدام let() لطباعة أسئلة الاختبار
+
+##### ما هذا الكود؟
+> دالة `printQuiz()` تستخدم `let()` على كل سؤال لطباعة خصائصه الثلاث دون تكرار اسم متغير السؤال داخل الكتلة.
+
+```kotlin
+class Quiz : ProgressPrintable {
+    val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
+    val question2 = Question<Boolean>("The sky is green. True or false", false, Difficulty.EASY)
+    val question3 = Question<Int>("How many days are there between full moons?", 28, Difficulty.HARD)
+    // ...
+
+    fun printQuiz() {
+        question1.let {
+            println(it.questionText)
+            println(it.answer)
+            println(it.difficulty)
+        }
+        println()
+        question2.let {
+            println(it.questionText)
+            println(it.answer)
+            println(it.difficulty)
+        }
+        println()
+    }
+}
+
+fun main() {
+    val quiz = Quiz()
+    quiz.printQuiz()
+}
+```
+
+##### شرح كل سطر:
+1. `question1.let { ... }` → استدعاء `let()` على `question1`؛ كل ما بداخل الأقواس المعقوفة "نطاق" (`scope`) يمكنه الإشارة لـ`question1` عبر `it`
+2. `println(it.questionText)` → `it` يمثّل `question1` نفسه هنا، فـ`it.questionText` مطابق تماماً لـ`question1.questionText`
+3. نفس النمط يتكرر لـ`question2` — استدعاء منفصل لـ`let()` بنطاقه الخاص
+
+---
+
+#### 2.9 دالة النطاق apply() — استدعاء دوال الكائن قبل تخزينه في متغير (Call an Object's Methods Without a Variable Using apply())
+
+#### النص الأصلي يقول (English):
+> "One of the cool features of scope functions is that you can call them on an object before that object has even been assigned to a variable. The apply() function is an extension function that can be called on an object using dot notation. The apply() function also returns a reference to that object so that it can be stored in a variable."
+
+#### الترجمة الحرفية:
+> إحدى الميزات الرائعة لدوال النطاق أنه يمكنك استدعاءها على كائن حتى قبل إسناد ذلك الكائن إلى متغير.
+> دالة `apply()` هي دالة توسيع يمكن استدعاؤها على كائن باستخدام صيغة النقطة.
+> دالة `apply()` تُعيد أيضاً مرجعاً لذلك الكائن نفسه، بحيث يمكن تخزينه في متغير.
+
+#### الشرح المبسّط:
+في القسم السابق كنا نكتب خطوتين منفصلتين: أولاً `val quiz = Quiz()` لإنشاء الكائن وتخزينه، ثم ثانياً `quiz.printQuiz()` لاستدعاء دالة عليه. `apply()` تدمج هاتين الخطوتين في تعبير واحد متسلسل: تستدعي `Quiz().apply { printQuiz() }` مباشرة بعد الإنشاء دون الحاجة لتخزين الكائن في متغير مؤقت أولاً لمجرد استدعاء دالة عليه. الميزة الإضافية المهمة هي أن `apply()` — خلافاً لـ`let()` التي قد تُعيد قيمة مختلفة — تُعيد دائماً **نفس الكائن الأصلي**، لذلك يمكنك في النهاية إسناد النتيجة لمتغير (`val quiz = Quiz().apply { ... }`) إن احتجت الكائن لاحقاً أيضاً.
+
+**لماذا؟** `apply()` مفيدة تحديداً في سيناريو "أنشئ الكائن ثم هيّئه فوراً" — تجعل الكود أكثر تسلسلاً وإيجازاً بدل الحاجة لمتغير وسيط لا فائدة حقيقية منه سوى استدعاء دالة واحدة عليه.
+
+#### 💻 الكود: استخدام apply() عند إنشاء الكائن مباشرة
+
+##### ما هذا الكود؟
+> ينشئ كائن `Quiz` ويستدعي `printQuiz()` عليه في تعبير واحد متسلسل عبر `apply()`.
+
+```kotlin
+val quiz = Quiz().apply {
+    printQuiz()
+}
+```
+
+##### شرح كل سطر:
+1. `Quiz()` → إنشاء الكائن كما هو معتاد
+2. `.apply { printQuiz() }` → استدعاء `printQuiz()` مباشرة على الكائن حديث الإنشاء دون متغير وسيط
+3. `val quiz = ...` → `apply()` تُعيد نفس الكائن الأصلي، فيُخزَّن في `quiz` للاستخدام لاحقاً إن لزم
+
+#### ⚖️ المقايضة: let() مقابل apply()
+
+| | `let()` | `apply()` |
+| --- | --- | --- |
+| المزايا | مناسبة لتنفيذ عملية وإرجاع نتيجة مختلفة عن الكائن الأصلي، مرجع الكائن داخلها عبر `it` | مناسبة لتهيئة كائن مباشرة بعد إنشائه، تُعيد الكائن نفسه دائماً فيسمح بالتسلسل |
+| العيوب | لا تُعيد الكائن الأصلي تلقائياً إن احتجته لاحقاً | أقل وضوحاً عند استخدام دوال متعددة داخل الكتلة لأنها لا تستخدم `it` صراحة |
+| متى تختاره | عندما تريد تنفيذ عملية على كائن (خصوصاً غير قابل للـ`null`) والحصول على نتيجة منها | عندما تريد تهيئة كائن جديد فور إنشائه دون متغير وسيط |
+
+---
+
+## الجزء الثاني: ملخص منظم شامل
+
+### أهم التعاريف والمفاهيم
+
+| المصطلح | التعريف | مثال/ملاحظة |
+| --- | --- | --- |
+| `class` | قالب/مخطط يحدد خصائص ودوال كل كائن يُبنى منه | `class SmartDevice(...) { ... }` |
+| `object` (كائن فعلي) | نسخة حقيقية مُنشأة من صنف، تشغل ذاكرة فعلية | `val smartTvDevice = SmartDevice()` |
+| `property` | متغير مُعرَّف داخل جسم الصنف (`val`/`var`) | `val name: String` |
+| `method` | دالة عضو تمثل سلوك الصنف | `fun turnOn() { ... }` |
+| `constructor` | دالة خاصة تُهيّئ الكائن وقت إنشائه | رئيسي (`primary`) أو ثانوي (`secondary`) |
+| `field` | الحقل الخلفي الذي يخزّن قيمة الخاصية فعلياً في الذاكرة | يُستخدم داخل `get()`/`set()` فقط |
+| `inheritance` (وراثة) | بناء صنف اعتماداً على صنف آخر عبر `open`/`:` | `class SmartTvDevice : SmartDevice(...)` |
+| `IS-A` | علاقة وراثة — الابن هو نوع من الأب | `SmartTvDevice IS-A SmartDevice` |
+| `HAS-A` (composition) | علاقة تركيب — الكائن يمتلك كائناً آخر كخاصية | `SmartHome HAS-A SmartTvDevice` |
+| `override` | استبدال تنفيذ دالة/خاصية موروثة بتنفيذ خاص في الصنف الفرعي | يتطلب `open` في الأب |
+| `super` | استدعاء تنفيذ الأب صراحة من داخل الصنف الفرعي | `super.turnOn()` |
+| `visibility modifier` | يحدد نطاق الوصول لعنصر: `public`/`private`/`protected`/`internal` | `private var deviceStatus` |
+| `property delegate` | تفويض منطق `get()`/`set()` لصنف خارجي عبر `by` | `by RangeRegulator(...)` |
+| `Generics` (`<T>`) | نوع نائب يسمح للصنف بالعمل مع أي نوع بيانات حقيقي | `class Question<T>(...)` |
+| `enum class` | نوع بقيم محدودة ومغلقة مسبقاً | `enum class Difficulty { EASY, MEDIUM, HARD }` |
+| `data class` | صنف بيانات صرف تُولَّد له دوال `toString`/`equals`/... تلقائياً | `data class Question<T>(...)` |
+| `singleton` (`object`) | صنف له نسخة واحدة فقط في كامل البرنامج | `object StudentProgress { ... }` |
+| `companion object` | كائن مفرد مُعرَّف داخل صنف آخر، يُنسب إليه منطقياً | `companion object StudentProgress { ... }` داخل `Quiz` |
+| `extension function/property` | إضافة سلوك جديد لصنف موجود من خارج تعريفه | `fun Quiz.StudentProgress.printProgressBar() { ... }` |
+| `interface` | عقد يحدد توقيعات دوال/خصائص يجب على المُنفِّذ الالتزام بها | `interface ProgressPrintable { ... }` |
+| `scope function` | دوال جاهزة (`let`, `apply`, ...) للوصول لكائن دون تكرار اسمه | `question1.let { it.answer }` |
+
+### المكونات الرئيسية (مرجع سريع)
+
+| الأداة | الوظيفة | ملاحظة |
+| --- | --- | --- |
+| `val`/`var` كخاصية | تخزين بيانات الكائن | `val` للقراءة فقط، `var` قابلة للتغيير |
+| `open` | السماح بالوراثة أو التجاوز | على مستوى الصنف أو الدالة أو الخاصية |
+| `:` بعد ترويسة الصنف | تحديد الصنف الأعلى الذي يُورَّث منه، أو الواجهة المُنفَّذة | `class Child : Parent(...)` أو `class C : Interface` |
+| `this(...)` في مُنشِئ ثانوي | تهيئة المُنشِئ الرئيسي أولاً | إلزامي إن وُجد مُنشِئ رئيسي |
+| `field` | مرجع مباشر للقيمة المخزَّنة فعلياً خلف الخاصية | يمنع الاستدعاء الذاتي اللانهائي داخل `set()` |
+| `by` | ربط خاصية بكائن مفوَّض يتولى `get()`/`set()` | يتطلب تنفيذ `ReadWriteProperty`/`ReadOnlyProperty` |
+| `<T>` | تعريف نوع نائب عام | يُستبدل بنوع حقيقي عند الإنشاء `Question<String>(...)` |
+| `it` | الإشارة الضمنية للكائن داخل `let()` | بديل مختصر لاسم الكائن الطويل |
+
+### جداول مقارنات سريعة
+
+| المقارنة | الأول | الثاني | الفرق |
+| --- | --- | --- | --- |
+| المُنشِئ الرئيسي مقابل الثانوي | Primary constructor | Secondary constructor | الرئيسي بلا جسم وواحد فقط لكل صنف؛ الثانوي له جسم ويمكن تعدده، ويجب أن يُهيّئ الرئيسي أولاً |
+| IS-A مقابل HAS-A | Inheritance (`:`) | Composition (خاصية من نوع صنف آخر) | IS-A تعني "نوع من"، HAS-A تعني "يملك/يستخدم" |
+| `class` عادي مقابل `data class` | يحتاج دوال `toString`/`equals` يدوياً | تُولَّد تلقائياً من الخصائص | `data class` فقط للأصناف التي وظيفتها حمل بيانات بلا سلوك |
+| `object` مقابل `companion object` | كائن مفرد مستقل بذاته | كائن مفرد مُعرَّف داخل صنف آخر ومنسوب له | الوصول لـ`companion object` يتم عبر اسم الصنف الحاوي |
+| Inheritance مقابل Interface | تنقل تنفيذاً فعلياً جاهزاً من الأب | تفرض فقط توقيعات فارغة يجب تنفيذها | الوراثة صنف واحد فقط للأب، بينما يمكن تنفيذ عدة واجهات |
+| `let()` مقابل `apply()` | يُعيد نتيجة أي تعبير (قد تختلف عن الكائن) | يُعيد دوماً نفس الكائن الأصلي | `let` لتنفيذ عملية والحصول على نتيجة، `apply` للتهيئة والتسلسل |
+
+### قاموس المصطلحات
+
+| الفئة | المصطلحات |
+| --- | --- |
+| بنية الصنف | `class`, `object`, `property`, `method`, `constructor`, `field` |
+| الوراثة والتعدد | `open`, `override`, `super`, `IS-A`, `HAS-A`, `polymorphism`, `interface` |
+| التحكم بالوصول | `public`, `private`, `protected`, `internal`, `encapsulation` |
+| الأنواع المتقدمة | `Generics <T>`, `enum class`, `data class`, `singleton`, `companion object` |
+| التوسيع والنطاق | `extension function/property`, `scope function`, `let()`, `apply()`, `it` |
+| التفويض | `property delegate`, `by`, `ReadWriteProperty`, `ReadOnlyProperty`, `KProperty` |
+
+### أبرز النقاط الذهبية
+1. الصنف قالب، والكائن نسخة حقيقية منه — لا تخلط بينهما أبداً.
+2. كل شيء `public` افتراضياً في `Kotlin` ما لم تحدد معدِّل رؤية آخر صراحة.
+3. لا يمكن الوراثة أو التجاوز إلا بعد وضع `open` صراحة — كل شيء `final` افتراضياً.
+4. `super` يستدعي **دائماً** نسخة الأب تحديداً، بينما استدعاء عادي (`object.method()`) يستدعي النسخة الحقيقية حسب نوع الكائن الفعلي (تعدد الأشكال).
+5. `field` ضروري داخل `set()` المخصصة لتفادي استدعاء ذاتي لا نهائي.
+6. الأنواع العامة `<T>` تمنع تكرار نفس بنية الصنف لكل نوع بيانات محتمل.
+7. `data class` مخصصة فقط للأصناف التي تحمل بيانات بلا سلوك حقيقي.
+8. `companion object` هو المكان الطبيعي لبيانات "مشتركة" منسوبة لصنف محدد (شبيه بـ `static`).
+9. الواجهة (`interface`) تفرض "ماذا" يجب تنفيذه دون تحديد "كيف"، بعكس الوراثة التي تنقل تنفيذاً جاهزاً.
+10. `apply()` تُعيد الكائن نفسه دوماً (مناسبة للتهيئة)، بينما `let()` تعمل عبر `it` وقد تُعيد قيمة مختلفة.
+
+### الأخطاء الشائعة عند الطلاب ⚠️
+
+| الخطأ | التصحيح |
+| --- | --- |
+| محاولة وراثة صنف أو تجاوز دالة دون كتابة `open` | يجب إضافة `open` على الصنف والدالة/الخاصية في الأب قبل أي `override` |
+| كتابة `speakerVolume = value` داخل `set()` الخاصة بـ `speakerVolume` نفسها | يجب استخدام `field = value` لتفادي حلقة استدعاء لا نهائية |
+| نسيان `this(...)` عند تعريف مُنشِئ ثانوي في صنف يملك مُنشِئاً رئيسياً | كل مُنشِئ ثانوي يجب أن يُهيّئ المُنشِئ الرئيسي أولاً عبر `: this(...)` |
+| الخلط بين `class` عادي و`data class` عند الأصناف التي لا تحمل سلوكاً | استخدم `data class` لتوليد `toString`/`equals`/`copy` تلقائياً بدل كتابتها يدوياً |
+| افتراض أن `object` عادي مثل `companion object` من حيث طريقة الوصول | `object` مستقل يُستدعى باسمه مباشرة، بينما `companion object` يُستدعى عبر اسم الصنف الحاوي له |
+| استخدام الوراثة (`:` + صنف) بدل واجهة عند الحاجة لعقد سلوك بلا تنفيذ جاهز | استخدم `interface` عندما تريد فرض "ماذا" فقط دون تنفيذ مسبق |
+
+---
+
+### خطوات وإجراءات المحاضرة
+
+#### ⚙️ الخطوات / الخوارزمية: إنشاء صنف فرعي يرث من صنف أعلى مع تجاوز سلوك
+
+#### ما هدف هذه العملية؟
+> بناء تسلسل وراثة كامل بدءاً من صنف أعلى قابل للتوسيع وصولاً إلى صنف فرعي يخصص سلوكه الخاص.
+
+```algorithm
+1 | إضافة open قبل class في الصنف الأعلى | الكلمة المفتاحية open | يسمح للصنف بأن يُورَّث من أصناف أخرى
+2 | إضافة open قبل كل fun/val يُراد تجاوزها لاحقاً | open fun / open val | يسمح تحديداً بتجاوز تلك الدالة أو الخاصية
+3 | كتابة class Child(...) : Parent(...) | عامل : | يُنشئ العلاقة الوراثية ويُهيّئ مُنشِئ الأب بالقيم المناسبة
+4 | كتابة override أمام كل دالة/خاصية يُراد تخصيصها | الكلمة المفتاحية override | يستبدل تنفيذ الأب بتنفيذ خاص في الصنف الفرعي
+5 | استدعاء super.functionName() داخل التجاوز إن أردت إعادة استخدام منطق الأب | super | ينفّذ كود الأب أولاً قبل إضافة المنطق الخاص بالفرع
+```
+
+#### نقاط التنفيذ:
+- بدون `open` في الأب، أي محاولة وراثة أو تجاوز تُسبب خطأ ترجمة فوراً
+- يمكن للصنف الفرعي إضافة خصائص/دوال جديدة كلياً غير موجودة في الأب دون أي علاقة بالتجاوز
+
+---
+
+#### ⚙️ الخطوات / الخوارزمية: تفويض خاصية لصنف مفوَّض مخصص
+
+#### ما هدف هذه العملية؟
+> نقل منطق `get()`/`set()` المتكرر (مثل التحقق من نطاق قيمة) إلى صنف واحد قابل لإعادة الاستخدام عبر عدة خصائص.
+
+```algorithm
+1 | إنشاء صنف ينفّذ ReadWriteProperty<Any?, T> (أو ReadOnlyProperty للقراءة فقط) | interface من مكتبة kotlin.properties | يفرض تعريف getValue()/setValue() داخل الصنف
+2 | تعريف getValue() لإرجاع القيمة المخزَّنة داخلياً | override fun getValue | يُستدعى تلقائياً كل مرة تُقرأ فيها الخاصية المفوَّضة
+3 | تعريف setValue() مع منطق التحقق المطلوب | override fun setValue | يُستدعى تلقائياً كل مرة تُسند فيها قيمة جديدة
+4 | ربط الخاصية بالمفوَّض عبر by ClassName(parameters) | الكلمة المفتاحية by | يستبدل get()/set() اليدويين بالكامل بمنطق الصنف المفوَّض
+```
+
+#### نقاط التنفيذ:
+- يمكن استخدام نفس صنف المفوَّض (مثل `RangeRegulator`) لعدة خصائص مختلفة بمعاملات نطاق مختلفة لكل منها
+- يتطلب استيراد `kotlin.properties.ReadWriteProperty` و`kotlin.reflect.KProperty`
+
+---
+
+### أنماط الأكواد والبنى المتكررة
+
+| النمط | البنية الأساسية | متى تستخدمه |
+| --- | --- | --- |
+| خاصية بتحقق من نطاق | `var x = init \n set(value) { if (value in a..b) { field = value } }` | عندما تحتاج منع قيم غير منطقية لخاصية واحدة فقط |
+| مُنشِئ ثانوي محوِّل | `constructor(...) : this(primary) { deviceStatus = when(code) {...} }` | تحويل بيانات خام من مصدر خارجي (`API`) لصيغة داخلية مناسبة |
+| تجاوز مع إعادة استخدام | `override fun f() { super.f(); /* إضافة */ }` | عندما تريد سلوك الأب + إضافة خاصة بالفرع، لا استبداله كلياً |
+| صنف مفوَّض قابل لإعادة الاستخدام | `class R(...) : ReadWriteProperty<Any?, T> { getValue/setValue }` | عندما يتكرر نفس منطق التحقق عبر أكثر من خاصية |
+| دالة/خاصية توسيع | `fun Type.name(...) { ... }` أو `val Type.name: T get() = ...` | إضافة سلوك جديد لصنف موجود دون تعديل تعريفه الأصلي |
+
+### أنماط التعامل والسلوك
+
+| السيناريو | التعامل الصحيح | لماذا؟ |
+| --- | --- | --- |
+| الحاجة لعدة كائنات متشابهة البنية لكن بأنواع بيانات مختلفة | استخدام `Generics <T>` بدل تكرار الصنف لكل نوع | يحافظ على أمان الأنواع دون تكرار الكود |
+| الحاجة لمجموعة قيم محدودة ومغلقة | استخدام `enum class` بدل `String` خام | يمنع الأخطاء الإملائية ويُكتشف الخطأ وقت الترجمة |
+| صنف وظيفته الوحيدة حمل بيانات | استخدام `data class` | يولّد `toString`/`equals`/`copy` تلقائياً بلا كود إضافي |
+| الحاجة لحالة فريدة واحدة في كامل البرنامج | استخدام `object` (أو `companion object` إن كانت منسوبة لصنف محدد) | يضمن نسخة واحدة فقط على مستوى اللغة نفسها |
+| الحاجة لفرض سلوك مشترك على أصناف مختلفة البنية | استخدام `interface` بدل وراثة صنف واحد | يسمح لعدة أصناف غير مرتبطة وراثياً بالالتزام بنفس العقد |
+
+### الأفكار الرئيسية الشاملة
+> هذه المحاضرة تبني تدريجياً من "الصنف الأساسي" وصولاً إلى أدوات متقدمة، وكلها مترابطة عبر مبدأ واحد مشترك: **تقليل التكرار مع الحفاظ على الوضوح وأمان الأنواع**. الوراثة تمنع تكرار الخصائص/الدوال المشتركة بين أجهزة متشابهة. التفويض يمنع تكرار منطق التحقق عبر خصائص متعددة. الأنواع العامة تمنع تكرار بنية الصنف لكل نوع بيانات. `data class` تمنع كتابة دوال يدوية متكررة. الامتدادات تمنع الحاجة لتعديل كود لا تملكه. ودوال النطاق تقلل التكرار البصري لأسماء الكائنات الطويلة. فهم هذا الخيط المشترك يساعد على تذكّر متى تستخدم كل أداة دون حفظها بمعزل عن الأخرى.
+
+---
+
+## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
+
+> **16 سؤالاً** — مستوى: متوسط/صعب. التوزيع: مقارنات 25% (4 أسئلة) | سيناريو كود 35% (6 أسئلة) | تطبيق 40% (6 أسئلة).
+
+### السؤال 1 (متوسط)
+What is the main difference between a primary constructor and a secondary constructor in Kotlin?
+أ) A primary constructor can have a body, while a secondary constructor cannot
+ب) A primary constructor is part of the class header and has no body, while a secondary constructor has a body and must initialize the primary constructor
+ج) A class can have multiple primary constructors but only one secondary constructor
+د) A secondary constructor cannot accept any parameters
+**الإجابة الصحيحة: ب**
+**التعليل:** المُنشِئ الرئيسي جزء من ترويسة الصنف ولا يملك جسماً، بينما الثانوي له جسم ويجب أن يُهيّئ الرئيسي عبر `this(...)`. الخيار (أ) عكس الحقيقة تماماً. الخيار (ج) خاطئ لأن الصنف يملك مُنشِئاً رئيسياً واحداً فقط لكن يمكن أن يملك عدة مُنشِئات ثانوية. الخيار (د) خاطئ لأن المُنشِئ الثانوي يمكن أن يقبل وسائط بالتأكيد.
+
+---
+
+### السؤال 2 (متوسط)
+Which keyword must be added to a class in Kotlin before it can be inherited by another class?
+أ) `public`
+ب) `extendable`
+ج) `open`
+د) `abstract`
+**الإجابة الصحيحة: ج**
+**التعليل:** كل الأصناف في `Kotlin` نهائية (`final`) افتراضياً، وكلمة `open` هي التي تُخبر المترجم بأن الصنف قابل للتوسيع. الخيار (أ) `public` يتعلق بالرؤية وليس بإمكانية الوراثة. الخيار (ب) ليست كلمة مفتاحية موجودة في اللغة. الخيار (د) `abstract` مرتبطة بالأصناف المجرّدة (خارج نطاق هذه المحاضرة) وليست الكلمة المطلوبة هنا.
+
+---
+
+### السؤال 3 (صعب)
+```kotlin
+open class SmartDevice(val name: String) {
+    open fun turnOn() { println("Device on") }
+}
+class SmartLight(name: String) : SmartDevice(name) {
+    override fun turnOn() {
+        super.turnOn()
+        println("Light on")
+    }
+}
+fun main() {
+    val d: SmartDevice = SmartLight("Lamp")
+    d.turnOn()
+}
+```
+What will this code print?
+أ) `Device on`
+ب) `Light on`
+ج) `Device on` then `Light on`
+د) لن يُترجم الكود بسبب خطأ
+**الإجابة الصحيحة: ج**
+**التعليل:** `super.turnOn()` يُنفَّذ أولاً فيطبع `Device on`، ثم يكمّل تنفيذ سطر `println("Light on")` بعده. الخيار (أ) يتجاهل باقي الدالة بعد `super`. الخيار (ب) يفترض خطأً أن `super.turnOn()` لا يُنفَّذ. الخيار (د) خاطئ لأن الكود صحيح تماماً من ناحية `open`/`override`.
+
+---
+
+### السؤال 4 (متوسط)
+What does the `field` identifier refer to inside a custom `set()` function?
+أ) اسم الخاصية نفسها كنص
+ب) الحقل الخلفي (`backing field`) الذي يخزّن القيمة الفعلية للخاصية في الذاكرة
+ج) قيمة المعامل `value` الممرَّر للدالة
+د) الكائن الذي يملك الخاصية
+**الإجابة الصحيحة: ب**
+**التعليل:** `field` هو مرجع مباشر لمكان تخزين القيمة الفعلية في الذاكرة، ويُستخدم لتفادي استدعاء ذاتي لا نهائي. الخيار (أ) غير صحيح فـ`field` ليس نصاً. الخيار (ج) خاطئ لأن `value` هو المعامل الجديد المُدخَل، بينما `field` هو التخزين الفعلي القائم. الخيار (د) لا علاقة له بمفهوم `field`.
+
+---
+
+### السؤال 5 (صعب)
+```kotlin
+open class Animal {
+    open val sound = "..."
+}
+class Cat : Animal() {
+    override val sound = "Meow"
+}
+fun main() {
+    val a: Animal = Cat()
+    println(a.sound)
+}
+```
+What is printed?
+أ) `...`
+ب) `Meow`
+ج) خطأ ترجمة لأن `val` لا يمكن تجاوزه
+د) لا شيء يُطبع
+**الإجابة الصحيحة: ب**
+**التعليل:** الخاصية `sound` مُعلَّمة `open` في `Animal` ومُجاوَزة في `Cat`، وبفضل تعدد الأشكال يُنفَّذ التجاوز الفعلي بغض النظر عن نوع المتغير المُعلَن (`Animal`). الخيار (أ) يتجاهل مفهوم التجاوز. الخيار (ج) خاطئ لأن `val` يمكن تجاوزها تماماً كـ`fun` طالما هي `open`. الخيار (د) لا مبرر له.
+
+---
+
+### السؤال 6 (متوسط)
+Which visibility modifier allows a declaration to be accessed within the same module, but not from outside that module?
+أ) `private`
+ب) `protected`
+ج) `internal`
+د) `public`
+**الإجابة الصحيحة: ج**
+**التعليل:** `internal` تسمح بالوصول من أي مكان داخل نفس الوحدة (`module`) فقط. الخيار (أ) `private` أضيق بكثير (نفس الصنف/الملف فقط). الخيار (ب) `protected` تتعلق بالأصناف الفرعية وليس الوحدة. الخيار (د) `public` هي الأوسع وتسمح بالوصول من أي مكان حتى خارج الوحدة.
+
+---
+
+### السؤال 7 (متوسط)
+Comparing IS-A and HAS-A relationships, which statement is correct?
+أ) IS-A ينتج عن التركيب (composition)، وHAS-A ينتج عن الوراثة (inheritance)
+ب) IS-A ينتج عن الوراثة، وHAS-A ينتج عن التركيب، ولا يمكن اعتبار الكائن نسخة من الصنف الذي يملكه فقط
+ج) كلاهما ينتجان فقط عن الوراثة لكن بأشكال مختلفة
+د) لا فرق عملياً بين IS-A وHAS-A في Kotlin
+**الإجابة الصحيحة: ب**
+**التعليل:** `IS-A` تنتج عن الوراثة (`class Child : Parent`)، بينما `HAS-A` تنتج عن التركيب (خاصية من نوع صنف آخر). الخيار (أ) عكس الحقيقة تماماً. الخيار (ج) خاطئ لأن `HAS-A` لا تستخدم الوراثة إطلاقاً. الخيار (د) خاطئ لأن الفرق جوهري كما شُرح في القسم 1.10.
+
+---
+
+### السؤال 8 (صعب)
+```kotlin
+class RangeRegulator(
+    initialValue: Int,
+    private val minValue: Int,
+    private val maxValue: Int
+) : ReadWriteProperty<Any?, Int> {
+    var fieldData = initialValue
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = fieldData
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in minValue..maxValue) { fieldData = value }
+    }
+}
+class Speaker { var volume by RangeRegulator(5, 0, 10) }
+fun main() {
+    val s = Speaker()
+    s.volume = 15
+    println(s.volume)
+}
+```
+What is printed?
+أ) `15`
+ب) `5`
+ج) `10`
+د) خطأ وقت التشغيل (Exception)
+**الإجابة الصحيحة: ب**
+**التعليل:** القيمة `15` تقع خارج النطاق `0..10`، لذا يتجاهل `setValue()` الإسناد بصمت ويبقى `fieldData` بقيمته الابتدائية `5`. الخيار (أ) يفترض خطأً أن أي قيمة تُقبل. الخيار (ج) يفترض خطأً وجود "قص" (`clamping`) للقيمة عند الحد الأقصى، وهذا غير موجود في الكود. الخيار (د) خاطئ لأن الكود لا يرمي أي استثناء، بل يتجاهل القيمة بصمت فقط.
+
+---
+
+### السؤال 9 (متوسط)
+What is the primary purpose of using an `enum class` instead of a plain `String` for a property like `difficulty`?
+أ) لتحسين سرعة تنفيذ البرنامج فقط
+ب) لتقييد القيم الممكنة لمجموعة محددة مسبقاً، فيكتشف المترجم أي قيمة غير صالحة وقت الترجمة
+ج) لأن `String` غير مدعومة كنوع لخاصية في `Kotlin`
+د) لتمكين استخدام الأنواع العامة `Generics` فقط
+**الإجابة الصحيحة: ب**
+**التعليل:** `enum class` يحصر القيم الممكنة في مجموعة مغلقة فيمنع الأخطاء الإملائية ويكتشفها المترجم مباشرة. الخيار (أ) ليس السبب الأساسي المذكور في المحاضرة. الخيار (ج) خاطئ تماماً فـ`String` نوع أساسي مدعوم بالكامل. الخيار (د) لا علاقة مباشرة بين `enum class` واستخدام `Generics`.
+
+---
+
+### السؤال 10 (صعب)
+```kotlin
+data class Point(val x: Int, val y: Int)
+fun main() {
+    val p1 = Point(1, 2)
+    val p2 = Point(1, 2)
+    println(p1 == p2)
+}
+```
+What is printed, and why?
+أ) `false`، لأن `p1` و`p2` كائنان مختلفان في الذاكرة
+ب) `true`، لأن `data class` تولّد `equals()` تلقائياً بناءً على قيم الخصائص وليس مرجع الذاكرة
+ج) خطأ ترجمة لأن `==` لا يعمل على الأصناف
+د) `true` لكن فقط لأن `x` و`y` من نوع `Int`
+**الإجابة الصحيحة: ب**
+**التعليل:** `data class` تولّد `equals()` تلقائياً يقارن قيم كل الخصائص، فتُعتبر `p1` و`p2` متساويين رغم كونهما كائنين منفصلين في الذاكرة. الخيار (أ) يصف سلوك المقارنة الافتراضية بمرجع الذاكرة في صنف عادي (بدون `data`)، وهذا ليس الحال هنا. الخيار (ج) خاطئ لأن `==` يعمل ويستدعي `equals()`. الخيار (د) غير دقيق لأن السبب هو `data class` وليس نوع الخصائص تحديداً.
+
+---
+
+### السؤال 11 (متوسط)
+Which of the following correctly declares a companion object named `Factory` inside a class `Car`?
+أ) `object Factory { }` خارج الصنف `Car`
+ب) `companion object Factory { }` داخل جسم الصنف `Car`
+ج) `static object Factory { }` داخل جسم الصنف `Car`
+د) `Car.companion.Factory { }`
+**الإجابة الصحيحة: ب**
+**التعليل:** الصياغة الصحيحة هي إضافة `companion` قبل `object` واسمه، مكتوبة داخل جسم الصنف الحاوي. الخيار (أ) يصف كائناً مفرداً مستقلاً وليس مرافقاً. الخيار (ج) `static` ليست كلمة مفتاحية في `Kotlin` لهذا الغرض. الخيار (د) صياغة غير موجودة في اللغة إطلاقاً.
+
+---
+
+### السؤال 12 (متوسط)
+What is required for a class to use an extension function defined as `fun String.shout(): String`?
+أ) يجب أن يرث الصنف من `String`
+ب) لا شيء إضافي — يمكن استدعاؤها مباشرة على أي كائن `String` بصيغة النقطة كأنها دالة عضو أصلية
+ج) يجب إعادة تعريف `String` بالكامل لدعم الامتداد
+د) دوال التوسيع تعمل فقط داخل نفس الملف الذي عُرِّف فيه الصنف الأصلي
+**الإجابة الصحيحة: ب**
+**التعليل:** دوال التوسيع تُستدعى مباشرة عبر صيغة `الكائن.الدالة()` دون أي خطوة إضافية أو وراثة. الخيار (أ) غير منطقي فالتوسيع لا يتطلب وراثة. الخيار (ج) يناقض الفكرة الأساسية للتوسيع (إضافة سلوك دون تعديل الأصل). الخيار (د) خاطئ لأن دوال التوسيع متاحة من أي ملف يستوردها.
+
+---
+
+### السؤال 13 (صعب)
+```kotlin
+interface Shape { fun area(): Double }
+class Square(val side: Double) : Shape {
+    override fun area() = side * side
+}
+fun main() {
+    val s: Shape = Square(4.0)
+    println(s.area())
+}
+```
+What is printed?
+أ) `4.0`
+ب) `16.0`
+ج) خطأ ترجمة لأن `Shape` لا يمكن استخدامه كنوع متغير
+د) خطأ ترجمة لأن `Square` لم يُنفِّذ `Shape` بشكل صحيح
+**الإجابة الصحيحة: ب**
+**التعليل:** `Square` ينفّذ `Shape` بشكل صحيح ويقدّم تنفيذاً فعلياً لـ`area()` يساوي `side * side = 4.0 * 4.0 = 16.0`. الخيار (أ) حساب خاطئ. الخيار (ج) خاطئ لأن الواجهات يمكن استخدامها كنوع للمتغيرات تماماً كالأصناف. الخيار (د) خاطئ لأن `Square` نفّذ كل ما تتطلبه الواجهة (دالة `area()` واحدة فقط).
+
+---
+
+### السؤال 14 (متوسط)
+What does the `it` identifier refer to inside a `let()` block such as `question1.let { println(it.answer) }`?
+أ) الكائن `question1` نفسه
+ب) خاصية عشوائية من الكائن
+ج) دالة مجهولة الاسم
+د) القيمة التي تُعيدها `println()`
+**الإجابة الصحيحة: أ**
+**التعليل:** `it` هو الاسم الافتراضي الذي يشير لنفس الكائن الذي استُدعيت عليه `let()`، هنا `question1` تحديداً. الخيار (ب) و(ج) و(د) كلها تصورات خاطئة عن آلية عمل `it` كما شُرح في القسم 2.8.
+
+---
+
+### السؤال 15 (متوسط)
+What is the key difference between `let()` and `apply()` as scope functions?
+أ) `let()` تُعيد نفس الكائن الأصلي دائماً، بينما `apply()` تُعيد نتيجة آخر تعبير
+ب) `apply()` تُعيد نفس الكائن الأصلي دائماً، بينما `let()` تُعيد نتيجة آخر تعبير داخل الكتلة
+ج) لا فرق بينهما إطلاقاً ويمكن استبدال إحداهما بالأخرى دوماً
+د) `let()` لا تعمل إلا مع الكائنات القابلة لأخذ قيمة `null`
+**الإجابة الصحيحة: ب**
+**التعليل:** `apply()` مصمَّمة للتهيئة وتُعيد الكائن الأصلي نفسه دوماً لتمكين التسلسل، بينما `let()` تُعيد قيمة آخر سطر داخل كتلتها. الخيار (أ) عكس الحقيقة تماماً. الخيار (ج) خاطئ لأن اختلاف القيمة المُعادة يجعل استبدالهما غير آمن في كل الحالات. الخيار (د) خاطئ فـ`let()` قابلة للاستخدام على أي كائن.
+
+---
+
+### السؤال 16 (صعب)
+```kotlin
+open class Base(protected open var status: String = "off") {
+    open fun activate() { status = "on" }
+}
+class Sub(status: String) : Base(status) {
+    override fun activate() {
+        super.activate()
+        status = "on-sub"
+    }
+}
+fun main() {
+    val obj = Sub("off")
+    obj.activate()
+    println(obj.status)
+}
+```
+Assuming `status` is accessible from `main()` here, what would be printed?
+أ) `off`
+ب) `on`
+ج) `on-sub`
+د) خطأ ترجمة لأن `status` معدَّلة `protected` ولا يمكن الوصول إليها من `main()`
+**الإجابة الصحيحة: د**
+**التعليل:** `protected` تسمح بالوصول فقط من داخل الصنف نفسه أو الأصناف الفرعية، وليس من دالة `main()` الخارجية — لذا فإن `println(obj.status)` سيسبب خطأ ترجمة فعلياً. هذا سؤال يختبر فهم حدود `protected` بدقة وليس فقط تتبع منطق `super`. الخيارات (أ)، (ب)، (ج) تفترض جميعها خطأً أن الوصول من `main()` مسموح، متجاهلة قيد الرؤية `protected`.
+
+---
+
+## الجزء الرابع: أسئلة تصحيح الكود
+
+> **6 أسئلة** — أنواع: `syntax`، `logic`، `return_check`، `dead_code`، `misconception`.
+
+### Debug Question 1 (syntax)
+
+**The following code contains a bug:**
+```kotlin
+class SmartDevice(name: String, category: String) {
+    var deviceStatus = "online"
+}
+
+class SmartTvDevice(deviceName: String, deviceCategory: String)
+    SmartDevice(name = deviceName, category = deviceCategory) {
+    fun turnOn() { println("TV on") }
+}
+```
+**Find the bug:** Missing the colon (`:`) between the subclass header and the superclass constructor call, which is required to establish the inheritance relationship.
+
+**Fixed code:**
+```kotlin
+class SmartDevice(val name: String, val category: String) {
+    var deviceStatus = "online"
+}
+
+class SmartTvDevice(deviceName: String, deviceCategory: String) :
+    SmartDevice(name = deviceName, category = deviceCategory) {
+    fun turnOn() { println("TV on") }
+}
+```
+**شرح الحل:**
+1. صياغة إنشاء صنف فرعي تتطلب دائماً نقطتين رأسيتين `:` بين ترويسة الصنف الفرعي واسم الصنف الأعلى، وإلا يفشل المترجم في التعرف على نية الوراثة.
+2. كما أضفنا `val` أمام `name`/`category` في `SmartDevice` لتصبح خصائص فعلية يمكن الوصول إليها لاحقاً عبر `smartTvDevice.name` مثلاً — وإلا تبقى وسائط مُنشِئ عادية غير متاحة كخصائص.
+
+---
+
+### Debug Question 2 (logic)
+
+**The following code contains a bug:**
+```kotlin
+open class SmartDevice(val name: String) {
+    var deviceStatus = "online"
+    open fun turnOn() {
+        deviceStatus = "on"
+    }
+}
+class SmartLight(name: String) : SmartDevice(name) {
+    var brightnessLevel = 0
+    override fun turnOn() {
+        brightnessLevel = 2
+        println("$name turned on. Brightness is $brightnessLevel")
+    }
+}
+```
+**Find the bug:** The overridden `turnOn()` in `SmartLight` never calls `super.turnOn()`, so `deviceStatus` is never updated to `"on"` — it silently stays `"online"` forever, which is a logic error if other code depends on `deviceStatus`.
+
+**Fixed code:**
+```kotlin
+open class SmartDevice(val name: String) {
+    var deviceStatus = "online"
+    open fun turnOn() {
+        deviceStatus = "on"
+    }
+}
+class SmartLight(name: String) : SmartDevice(name) {
+    var brightnessLevel = 0
+    override fun turnOn() {
+        super.turnOn()
+        brightnessLevel = 2
+        println("$name turned on. Brightness is $brightnessLevel")
+    }
+}
+```
+**شرح الحل:**
+1. عند التجاوز (`override`)، إذا كان منطق الأب لا يزال مطلوباً (هنا تحديث `deviceStatus`)، يجب استدعاؤه صراحة عبر `super.turnOn()` — التجاوز لا يستدعي منطق الأب تلقائياً أبداً.
+2. هذا خطأ منطقي (`logic`) لأن الكود يُترجم وينفَّذ بلا أي رسالة خطأ ظاهرة، لكنه ينتج حالة داخلية غير متسقة قد تسبب أخطاءً لاحقاً في أجزاء أخرى تعتمد على `deviceStatus`.
+
+---
+
+### Debug Question 3 (misconception)
+
+**The following code contains a bug:**
+```kotlin
+var speakerVolume = 2
+    set(value) {
+        if (value in 0..100) {
+            speakerVolume = value
+        }
+    }
+```
+**Find the bug:** Inside a custom `set()` function, assigning to the property's own name (`speakerVolume = value`) instead of `field = value` causes infinite recursion — the compiler treats it as calling `set()` again, leading to a `StackOverflowError` at runtime.
+
+**Fixed code:**
+```kotlin
+var speakerVolume = 2
+    set(value) {
+        if (value in 0..100) {
+            field = value
+        }
+    }
+```
+**شرح الحل:**
+1. هذا سوء فهم شائع (`misconception`): الطلاب يعتقدون أن اسم الخاصية داخل `set()` يشير لمكان التخزين، بينما يشير فعلياً لدالة `set()` نفسها فيسبب استدعاءً ذاتياً لا نهائياً.
+2. الحل الصحيح هو استخدام المعرِّف الخاص `field` الذي يشير مباشرة للحقل الخلفي في الذاكرة، متجاوزاً `set()` تماماً.
+
+---
+
+### Debug Question 4 (return_check)
+
+**The following code contains a bug:**
+```kotlin
+class RangeRegulator(
+    initialValue: Int,
+    private val minValue: Int,
+    private val maxValue: Int
+) : ReadWriteProperty<Any?, Int> {
+    var fieldData = initialValue
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        // missing return statement
+    }
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in minValue..maxValue) { fieldData = value }
+    }
+}
+```
+**Find the bug:** `getValue()` is declared to return `Int` but its body is empty — it never returns `fieldData`, so the code will not compile at all (a function with a non-`Unit` return type must return a value on every path).
+
+**Fixed code:**
+```kotlin
+class RangeRegulator(
+    initialValue: Int,
+    private val minValue: Int,
+    private val maxValue: Int
+) : ReadWriteProperty<Any?, Int> {
+    var fieldData = initialValue
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        return fieldData
+    }
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in minValue..maxValue) { fieldData = value }
+    }
+}
+```
+**شرح الحل:**
+1. أي دالة توقيعها يعيد نوعاً محدداً (هنا `Int`) يجب أن تحتوي `return` فعلياً يعيد قيمة من ذلك النوع؛ نسيان `return` يسبب خطأ ترجمة مباشرة وليس مجرد سلوك خاطئ وقت التشغيل.
+2. الإصلاح بسيط: إضافة `return fieldData` لإعادة القيمة المخزَّنة فعلياً في الحقل الداخلي.
+
+---
+
+### Debug Question 5 (dead_code)
+
+**The following code contains a bug:**
+```kotlin
+open class SmartDevice(val name: String) {
+    open fun turnOn() {
+        println("Generic device on")
+        return
+        println("This device is: $name")
+    }
+}
+```
+**Find the bug:** The `println("This device is: $name")` line appears after an unconditional `return` statement, making it unreachable (dead code) — it will never execute, and the Kotlin compiler will actually flag this as an error/warning.
+
+**Fixed code:**
+```kotlin
+open class SmartDevice(val name: String) {
+    open fun turnOn() {
+        println("Generic device on")
+        println("This device is: $name")
+    }
+}
+```
+**شرح الحل:**
+1. أي سطر مكتوب بعد `return` غير مشروط مباشرة داخل نفس الكتلة يصبح كوداً ميتاً (`dead code`) لا يُنفَّذ إطلاقاً، لأن `return` ينهي تنفيذ الدالة فوراً.
+2. الحل هو إزالة `return` غير الضرورية إن أردنا تنفيذ السطرين معاً، أو إعادة ترتيب المنطق إذا كان القصد فعلاً إنهاء الدالة مبكراً في حالة معينة.
+
+---
+
+### Debug Question 6 (syntax)
+
+**The following code contains a bug:**
+```kotlin
+class Question<T>(
+    val questionText: String,
+    val answer: T
+)
+fun main() {
+    val q1 = Question("Capital of France?", "Paris")
+    val q2: Question<Int> = Question("2+2=?", "4")
+}
+```
+**Find the bug:** In `q2`, the answer `"4"` is a `String` literal (in quotes), but the variable is explicitly typed as `Question<Int>`, causing a type mismatch compilation error since the generic type `T` is being resolved as `Int` while a `String` is passed.
+
+**Fixed code:**
+```kotlin
+class Question<T>(
+    val questionText: String,
+    val answer: T
+)
+fun main() {
+    val q1 = Question("Capital of France?", "Paris")
+    val q2: Question<Int> = Question("2+2=?", 4)
+}
+```
+**شرح الحل:**
+1. عندما تحدد النوع العام صراحة (`Question<Int>`)، يجب أن تتطابق كل الوسائط المرتبطة بذلك النوع النائب `T` مع النوع المحدد فعلياً — هنا `Int` وليس `String`.
+2. الإصلاح هو إزالة علامتَي التنصيص وتمرير `4` كعدد صحيح فعلي بدل `"4"` كنص.
+
+---
+
+## تمارين إضافية (من إعداد الدليل للتدريب)
+
+> **هذه تمارين إضافية من إعداد الدليل للتدريب** — ليست في المحاضرة الأصلية. العدد: 6. الأنواع: `fill_gaps`، `code_fix`، `scenario`.
+
+### Exercise 1 (fill_gaps): Complete the Class Definition
+
+**Scenario / Task:**
+Complete the missing parts (marked `_______`) so that `SmartFan` inherits from `SmartDevice`, adds a `speed` property restricted to `0..5`, and overrides `turnOn()`.
+
+```kotlin
+open class SmartDevice(val name: String) {
+    var deviceStatus = "online"
+    open fun turnOn() { deviceStatus = "on" }
+}
+
+class SmartFan(name: String) : _______(name) {
+    var speed = 0
+        set(value) {
+            if (_______) { field = value }
+        }
+    _______ fun turnOn() {
+        _______.turnOn()
+        speed = 1
+        println("$name fan on at speed $speed")
+    }
+}
+```
+
+**Requirements:**
+1. Fill each `_______` with the correct keyword or expression.
+
+**نموذج الحل:**
+```kotlin
+class SmartFan(name: String) : SmartDevice(name) {
+    var speed = 0
+        set(value) {
+            if (value in 0..5) { field = value }
+        }
+    override fun turnOn() {
+        super.turnOn()
+        speed = 1
+        println("$name fan on at speed $speed")
+    }
+}
+```
+الفراغ الأول `SmartDevice` لأنه اسم الصنف الأعلى الذي نرثه. الفراغ الثاني `value in 0..5` لتقييد النطاق المطلوب. الفراغ الثالث `override` للتصريح بأننا نجاوز دالة موجودة في الأب. الفراغ الرابع `super` لاستدعاء منطق الأب أولاً.
+
+---
+
+### Exercise 2 (code_fix): Fix the Property Delegate
+
+**Scenario / Task:**
+The following delegate class doesn't compile because it's missing the interface implementation clause. Fix it.
+
+```kotlin
+class Percentage(initialValue: Int) {
+    var fieldData = initialValue
+    fun getValue(thisRef: Any?, property: KProperty<*>): Int = fieldData
+    fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in 0..100) { fieldData = value }
+    }
+}
+class Progress { var percent by Percentage(0) }
+```
+
+**Requirements:**
+1. Identify what's missing and correct the code.
+
+**نموذج الحل:**
+```kotlin
+class Percentage(initialValue: Int) : ReadWriteProperty<Any?, Int> {
+    var fieldData = initialValue
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Int = fieldData
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in 0..100) { fieldData = value }
+    }
+}
+class Progress { var percent by Percentage(0) }
+```
+الخلل أن `Percentage` لم يُصرَّح بأنه ينفّذ `ReadWriteProperty<Any?, Int>`، وبالتالي `by` لن يقبله كمفوَّض صالح، ولا تحتاج `getValue`/`setValue` لكلمة `override` بدونها. الإصلاح إضافة `: ReadWriteProperty<Any?, Int>` بعد ترويسة الصنف وإضافة `override` أمام الدالتين.
+
+---
+
+### Exercise 3 (scenario): Design a Vehicle Hierarchy
+
+**Scenario / Task:**
+A ride-sharing app needs a class hierarchy: an open `Vehicle` superclass with `plateNumber` (val) and an `open fun startTrip()`, and two subclasses `Car` and `Bike`, each overriding `startTrip()` with a message specific to the vehicle type, calling `super.startTrip()` first.
+
+**Requirements:**
+1. Write the full Kotlin code for `Vehicle`, `Car`, and `Bike`.
+
+**نموذج الحل:**
+```kotlin
+open class Vehicle(val plateNumber: String) {
+    open fun startTrip() {
+        println("Trip started for vehicle $plateNumber")
+    }
+}
+class Car(plateNumber: String) : Vehicle(plateNumber) {
+    override fun startTrip() {
+        super.startTrip()
+        println("Car ready — please fasten your seatbelt.")
+    }
+}
+class Bike(plateNumber: String) : Vehicle(plateNumber) {
+    override fun startTrip() {
+        super.startTrip()
+        println("Bike ready — please wear your helmet.")
+    }
+}
+```
+كل صنف فرعي يرث `plateNumber` والدالة العامة، ثم يضيف رسالة خاصة به بعد استدعاء `super.startTrip()`، بنفس النمط المشروح في القسم 1.12.
+
+---
+
+### Exercise 4 (fill_gaps): Complete the Generic Data Class
+
+**Scenario / Task:**
+Complete the code to build a generic `data class Pair2<A, B>` holding two values of possibly different types, then create an instance holding a `String` and a `Boolean`.
+
+```kotlin
+_______ class Pair2<A, B>(
+    val first: A,
+    val second: _______
+)
+fun main() {
+    val p = Pair2<String, _______>("Kotlin", true)
+    println(p)
+}
+```
+
+**Requirements:**
+1. Fill each `_______`.
+
+**نموذج الحل:**
+```kotlin
+data class Pair2<A, B>(
+    val first: A,
+    val second: B
+)
+fun main() {
+    val p = Pair2<String, Boolean>("Kotlin", true)
+    println(p)
+}
+```
+الفراغ الأول `data` لتوليد `toString()` تلقائياً. الفراغ الثاني `B` لأن `second` من النوع النائب الثاني، مختلف عن `first`. الفراغ الثالث `Boolean` لأن القيمة الفعلية الممرَّرة `true` من هذا النوع.
+
+---
+
+### Exercise 5 (code_fix): Fix the Companion Object Access
+
+**Scenario / Task:**
+The following code fails to compile. Find and fix the incorrect access to the companion object.
+
+```kotlin
+class Config {
+    companion object Settings {
+        var appName: String = "MyApp"
+    }
+}
+fun main() {
+    println(Settings.appName)
+}
+```
+
+**Requirements:**
+1. Correct the access expression in `main()`.
+
+**نموذج الحل:**
+```kotlin
+class Config {
+    companion object Settings {
+        var appName: String = "MyApp"
+    }
+}
+fun main() {
+    println(Config.appName)
+}
+```
+الوصول للكائن المرافق من خارج الصنف يتم دائماً عبر **اسم الصنف الحاوي** (`Config`) وليس اسم الكائن المرافق نفسه (`Settings`)، حتى وإن كان له اسم صريح — هذا مطابق تماماً لما شُرح في القسم 2.5.
+
+---
+
+### Exercise 6 (scenario): Extension Function for Validation
+
+**Scenario / Task:**
+Write an extension function `isValidEmail()` on the `String` type that returns `true` if the string contains exactly one `@` character, and demonstrate calling it.
+
+**Requirements:**
+1. Write the extension function and a `main()` that tests it on two example strings.
+
+**نموذج الحل:**
+```kotlin
+fun String.isValidEmail(): Boolean {
+    return this.count { it == '@' } == 1
+}
+fun main() {
+    println("user@example.com".isValidEmail())
+    println("invalid-email".isValidEmail())
+}
+```
+دالة التوسيع `String.isValidEmail()` تُستدعى مباشرة على أي كائن `String` بصيغة النقطة، بنفس النمط المشروح في القسم 2.6، لكن هنا مطبَّقة على `String` القياسي بدل صنف مخصص.
+
+---
+
+## تمارين تتبع التنفيذ
+
+> **3 تمارين تتبع.** كل تمرين: مدخل + جدول ناقص للطالب + نموذج الحل.
+
+### Trace Exercise 1: Polymorphism and super
+
+**Input:**
+```kotlin
+open class SmartDevice(val name: String) {
+    var deviceStatus = "online"
+    open fun turnOn() { deviceStatus = "on" }
+}
+class SmartTvDevice(name: String) : SmartDevice(name) {
+    override fun turnOn() {
+        super.turnOn()
+        println("$name: status=$deviceStatus")
+    }
+}
+class SmartLightDevice(name: String) : SmartDevice(name) {
+    override fun turnOn() {
+        super.turnOn()
+        println("$name: status=$deviceStatus, brightness=2")
+    }
+}
+fun main() {
+    var device: SmartDevice = SmartTvDevice("TV1")
+    device.turnOn()
+    device = SmartLightDevice("Lamp1")
+    device.turnOn()
+}
+```
+
+**Trace step by step (complete the table):**
+| الخطوة | الاستدعاء | الدالة المنفَّذة فعلياً | الحالة الناتجة (deviceStatus) |
+| --- | --- | --- | --- |
+| 1 | `device = SmartTvDevice("TV1")` | — | ؟ |
+| 2 | `device.turnOn()` | ؟ | ؟ |
+| 3 | `device = SmartLightDevice("Lamp1")` | — | ؟ |
+| 4 | `device.turnOn()` | ؟ | ؟ |
+
+**نموذج الحل:**
+| الخطوة | الاستدعاء | الدالة المنفَّذة فعلياً | الحالة الناتجة (deviceStatus) |
+| --- | --- | --- | --- |
+| 1 | `device = SmartTvDevice("TV1")` | — | `online` (لم يُستدعَ `turnOn()` بعد) |
+| 2 | `device.turnOn()` | `SmartTvDevice.turnOn()` (يستدعي `super.turnOn()` أولاً) | `on`؛ يُطبع `TV1: status=on` |
+| 3 | `device = SmartLightDevice("Lamp1")` | — | `online` (كائن جديد تماماً) |
+| 4 | `device.turnOn()` | `SmartLightDevice.turnOn()` (يستدعي `super.turnOn()` أولاً) | `on`؛ يُطبع `Lamp1: status=on, brightness=2` |
+
+**Result:**
+```
+TV1: status=on
+Lamp1: status=on, brightness=2
+```
+
+---
+
+### Trace Exercise 2: Property Delegate with Range Validation
+
+**Input:**
+```kotlin
+class RangeRegulator(
+    initialValue: Int,
+    private val minValue: Int,
+    private val maxValue: Int
+) : ReadWriteProperty<Any?, Int> {
+    var fieldData = initialValue
+    override fun getValue(thisRef: Any?, property: KProperty<*>) = fieldData
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        if (value in minValue..maxValue) { fieldData = value }
+    }
+}
+class Fan { var speed by RangeRegulator(0, 0, 3) }
+fun main() {
+    val fan = Fan()
+    fan.speed = 2
+    fan.speed = 10
+    fan.speed = -1
+    println(fan.speed)
+}
+```
+
+**Trace step by step (complete the table):**
+| الخطوة | العملية | القيمة المُرسلة | fieldData بعد العملية |
+| --- | --- | --- | --- |
+| 1 | `fan.speed = 2` | 2 | ؟ |
+| 2 | `fan.speed = 10` | 10 | ؟ |
+| 3 | `fan.speed = -1` | -1 | ؟ |
+| 4 | `println(fan.speed)` | — | ؟ |
+
+**نموذج الحل:**
+| الخطوة | العملية | القيمة المُرسلة | fieldData بعد العملية |
+| --- | --- | --- | --- |
+| 1 | `fan.speed = 2` | 2 | `2` (ضمن النطاق 0..3، تُقبل) |
+| 2 | `fan.speed = 10` | 10 | `2` (خارج النطاق، تُرفض وتبقى القيمة السابقة) |
+| 3 | `fan.speed = -1` | -1 | `2` (خارج النطاق أيضاً، تُرفض) |
+| 4 | `println(fan.speed)` | — | يطبع `2` (آخر قيمة صالحة قُبلت فعلياً) |
+
+**Result:**
+```
+2
+```
+
+---
+
+### Trace Exercise 3: Scope Function apply()
+
+**Input:**
+```kotlin
+class Counter {
+    var count = 0
+    fun increment() { count++ }
+    fun printCount() { println("Count = $count") }
+}
+fun main() {
+    val c = Counter().apply {
+        increment()
+        increment()
+        increment()
+    }
+    c.printCount()
+}
+```
+
+**Trace step by step (complete the table):**
+| الخطوة | العملية | count بعدها |
+| --- | --- | --- |
+| 1 | `Counter()` (إنشاء الكائن) | ؟ |
+| 2 | داخل `apply { }`: أول `increment()` | ؟ |
+| 3 | ثاني `increment()` | ؟ |
+| 4 | ثالث `increment()` | ؟ |
+| 5 | `c.printCount()` | ؟ (الناتج المطبوع) |
+
+**نموذج الحل:**
+| الخطوة | العملية | count بعدها |
+| --- | --- | --- |
+| 1 | `Counter()` (إنشاء الكائن) | `0` (القيمة الابتدائية) |
+| 2 | داخل `apply { }`: أول `increment()` | `1` |
+| 3 | ثاني `increment()` | `2` |
+| 4 | ثالث `increment()` | `3` |
+| 5 | `c.printCount()` | يطبع `Count = 3`؛ و`apply()` أعادت الكائن نفسه فخُزِّن في `c` بعد اكتمال التهيئة |
+
+**Result:**
+```
+Count = 3
+```
+
+---
+
+## أسئلة تصميم
+
+> **2 أسئلة تصميم.** أنواع: `uml_design`، `architecture`.
+
+### Design Question 1: Class Diagram for a Library System (uml_design)
+
+**Task:**
+Design a small class hierarchy for a library system: an open superclass `LibraryItem` with `title` (val) and `isAvailable` (var), and two subclasses `Book` (adds `author`) and `DVD` (adds `durationMinutes`). Draw the relationship as a class diagram, and show which properties/methods each subclass inherits versus adds.
+
+**نموذج الإجابة:**
+
+#### وصف العُقد:
+| # | العُقدة | النوع `kind` | الشرح |
+| --- | --- | --- | --- |
+| 1 | LibraryItem | class | الصنف الأعلى (`open`) — يحمل `title`, `isAvailable` |
+| 2 | Book | class | صنف فرعي يضيف `author` |
+| 3 | DVD | class | صنف فرعي يضيف `durationMinutes` |
+
+#### وصف الروابط:
+| من | إلى | التسمية | نوع السهم | الشرح |
+| --- | --- | --- | --- | --- |
+| Book | LibraryItem | Inherits (IS-A) | سهم مصمت للأعلى | Book هو نوع من LibraryItem |
+| DVD | LibraryItem | Inherits (IS-A) | سهم مصمت للأعلى | DVD هو نوع من LibraryItem |
+
+```diagram
+type: class
+title: Library System Class Diagram
+direction: TD
+nodes:
+  - id: library_item
+    label: LibraryItem (title, isAvailable)
+    kind: class
+    level: 0
+  - id: book
+    label: Book (+ author)
+    kind: class
+    level: 1
+  - id: dvd
+    label: DVD (+ durationMinutes)
+    kind: class
+    level: 1
+edges:
+  - from: book
+    to: library_item
+  - from: dvd
+    to: library_item
+```
+
+```kotlin
+open class LibraryItem(val title: String, var isAvailable: Boolean = true)
+class Book(title: String, val author: String) : LibraryItem(title)
+class DVD(title: String, val durationMinutes: Int) : LibraryItem(title)
+```
+
+**معايير التقييم:**
+- استخدام `open` بشكل صحيح على الصنف الأعلى
+- كل صنف فرعي يستدعي مُنشِئ الأب بشكل صحيح عبر `:`
+- تمييز واضح بين الخصائص الموروثة والخصائص الجديدة الخاصة بكل فرع
+
+---
+
+### Design Question 2: Architecture for a Notification Delegate System (architecture)
+
+**Task:**
+Design a small architecture using property delegates and an interface: a `Notifiable` interface with a `notify(message: String)` function, implemented by a `NotificationCenter` class that also uses a delegated property `unreadCount` (an `Int` restricted between 0 and 99, reusing `RangeRegulator` from this lecture). Describe how the pieces connect.
+
+**نموذج الإجابة:**
+
+```kotlin
+interface Notifiable {
+    fun notify(message: String)
+}
+
+class NotificationCenter : Notifiable {
+    var unreadCount by RangeRegulator(initialValue = 0, minValue = 0, maxValue = 99)
+
+    override fun notify(message: String) {
+        unreadCount++
+        println("[$unreadCount] $message")
+    }
+}
+```
+
+**وصف البنية:**
+- `Notifiable` (واجهة) تفرض عقداً واحداً: أي صنف يريد إرسال إشعارات يجب أن يمتلك `notify()`.
+- `NotificationCenter` ينفّذ `Notifiable` ويقدّم التنفيذ الفعلي.
+- الخاصية `unreadCount` تُفوَّض لصنف `RangeRegulator` (من القسم 1.16) لضمان بقاء العدّاد ضمن نطاق منطقي (0 حتى 99) دون تكرار منطق التحقق يدوياً.
+
+**معايير التقييم:**
+- تنفيذ صحيح للواجهة عبر `override`
+- استخدام صحيح لـ`by` مع صنف مفوَّض موجود مسبقاً بدل إعادة كتابة منطق التحقق
+- شرح واضح للعلاقة بين الواجهة (العقد) والتفويض (إعادة استخدام منطق) كأداتين منفصلتين تعملان معاً
+
+---
+
+## بطاقات سؤال وجواب (Q&A Cards)
+
+**Q1:** What is the difference between a class and an object in Kotlin?
+A: A class is a blueprint defining properties and methods; an object is an actual instance created from that class using its constructor.
+
+**Q2:** Why does Kotlin make all classes `final` by default?
+A: To prevent accidental, unintended inheritance; developers must explicitly opt in using the `open` keyword.
+
+**Q3:** What is a backing field, and what identifier is used to reference it?
+A: A backing field is the compiler-generated storage location for a property's value, referenced using the `field` identifier inside `get()`/`set()`.
+
+**Q4:** What must every secondary constructor do if the class has a primary constructor?
+A: It must initialize the primary constructor using `: this(...)` before executing its own body.
+
+**Q5:** What is the difference between an IS-A relationship and a HAS-A relationship?
+A: IS-A comes from inheritance (a subclass is a type of its superclass); HAS-A comes from composition (a class owns an instance of another class as a property).
+
+**Q6:** What keyword lets a subclass call the superclass's version of an overridden method?
+A: The `super` keyword.
+
+**Q7:** Which visibility modifier restricts access to the same class or source file only?
+A: `private`.
+
+**Q8:** What are the two interfaces used to build a property delegate for `var` and `val` respectively?
+A: `ReadWriteProperty` for `var` properties, and `ReadOnlyProperty` for `val` properties.
+
+**Q9:** What is the purpose of a generic type parameter like `<T>` in a class definition?
+A: It lets the class work with an unknown placeholder data type, avoiding duplicating the class for every possible data type.
+
+**Q10:** Why use an `enum class` instead of a plain `String` for a limited set of values?
+A: An `enum class` restricts values to a fixed, predefined set, letting the compiler catch invalid values at compile time.
+
+**Q11:** What methods does the Kotlin compiler automatically implement for a `data class`?
+A: `equals()`, `hashCode()`, `toString()`, `componentN()` functions, and `copy()`.
+
+**Q12:** How do you access a companion object's properties from outside its containing class?
+A: Through the containing class's name directly, e.g., `Quiz.answered`, not through the companion object's own name.
+
+**Q13:** What is the main difference between using inheritance and using an interface to share behavior?
+A: Inheritance transfers actual implemented code from a single superclass; an interface only defines a contract (method/property signatures) that each implementing class must provide its own implementation for.
+
+**Q14:** In a `let()` block like `obj.let { it.doSomething() }`, what does `it` refer to?
+A: It refers to the object the `let()` function was called on (`obj` in this example).
+
+**Q15:** What does `apply()` return, and why is that useful?
+A: `apply()` always returns the original object it was called on, which is useful for chaining initialization logic right after object creation.
+
+---
+
+## الجزء الخامس: كتابة الكود الكامل (مرجع شامل)
+
+> شُرحت أجزاء هذين البرنامجين على دفعات متفرقة عبر أقسام الشرح التفصيلي أعلاه (القسم 1 والقسم 2). فيما يلي النسخة النهائية المجمَّعة لكل برنامج كمرجع واحد شامل بلا شرح إضافي.
+
+### مرجع 1: نظام المنزل الذكي (SmartDevice, SmartTvDevice, SmartLightDevice, SmartHome)
 
 ```kotlin
 import kotlin.properties.ReadWriteProperty
@@ -522,1164 +2647,10 @@ class RangeRegulator(
         }
     }
 }
-```
 
-```kotlin
-class SmartTvDevice(deviceName: String, deviceCategory: String) :
-    SmartDevice(name = deviceName, category = deviceCategory) {
-    private var speakerVolume by RangeRegulator(initialValue = 2, minValue = 0, maxValue = 100)
-    private var channelNumber by RangeRegulator(initialValue = 1, minValue = 0, maxValue = 200)
-}
-```
-
----
-
-### 14. الأنواع العامة (Generics)
-
-#### النص الأصلي يقول (English):
-> "Generic types, or generics for short, allow a data type, such as a class, to specify an unknown placeholder data type that can be used with its properties and methods... The data type that the generic type uses is passed as a parameter in angle brackets when you instantiate the class."
-
-#### الشرح المبسّط:
-الـGenerics تسمح لصنف واحد يشتغل مع أكثر من نوع بيانات (String، Int، Boolean...) بدون تكرار الكود لكل نوع. ترمز للنوع "المجهول مؤقتاً" بحرف مثل `T`، ويُحدَّد النوع الفعلي وقت إنشاء الكائن.
-
-**لماذا؟** بدل كتابة `QuestionString`، `QuestionInt`، `QuestionBoolean` كأصناف منفصلة، تكتب صنفاً عاماً واحداً `Question<T>` يخدم جميع الحالات.
-
-```kotlin
-class Question<T>(
-    val questionText: String,
-    val answer: T,
-    val difficulty: String
-)
-
-fun main() {
-    val question1 = Question<String>("Quoth the raven ___", "nevermore", "medium")
-    val question2 = Question<Boolean>("The sky is green. True or false", false, "easy")
-    val question3 = Question<Int>("How many days are there between full moons?", 28, "hard")
-}
-```
-
-#### 💡 التشبيه:
-> `<T>` مثل "قالب حجز طاولة" فارغ في مطعم — تقدر تحجزه لأي عدد أشخاص (النوع الفعلي)، لكن شكل الحجز نفسه واحد.
-> **وجه الشبه:** القالب الفارغ = `<T>` | عدد الأشخاص الفعلي عند الحجز = النوع الممرَّر (String, Int, Boolean...)
-
----
-
-### 15. صنف التعداد (Enum Class)
-
-#### النص الأصلي يقول (English):
-> "An enum class is used to create types with a limited set of possible values... Each possible value of an enum is called an enum constant... You refer to enum constants using the dot operator."
-
-#### الشرح المبسّط:
-`enum class` يُستخدم عندما تعرف مسبقاً أن قيمة متغيّر معيّن محصورة بمجموعة ثابتة ومحدودة من الخيارات (مثل: سهل/متوسط/صعب)، بدل استخدام نص حر (`String`) عرضة للأخطاء الإملائية.
-
-```kotlin
-enum class Difficulty {
-    EASY, MEDIUM, HARD
-}
-
-class Question<T>(
-    val questionText: String,
-    val answer: T,
-    val difficulty: Difficulty
-)
-
-val question1 = Question<String>("Quoth the raven ___", "nevermore", Difficulty.MEDIUM)
-```
-
-#### مهم للامتحان ⚠️:
-> استخدام `enum class` بدل `String` يمنع أخطاء مثل كتابة `"mediun"` بدل `"medium"` — لأن الكومبايلر يتحقق من القيم وقت الترجمة (compile-time) وليس وقت التشغيل فقط.
-
----
-
-### 16. صنف البيانات (Data Class)
-
-#### النص الأصلي يقول (English):
-> "Classes that only contain data and don't have any methods that perform an action can be defined as a data class... Defining a class as a data class allows the Kotlin compiler to make certain assumptions, and to automatically implement some methods."
-
-#### الشرح المبسّط:
-عندما يكون الصنف مجرد "حاوية بيانات" بدون سلوك حقيقي، تضيف كلمة `data` قبل `class` فيولّد الكومبايلر تلقائياً دوال مفيدة جداً بدون ما تكتبها بنفسك.
-
-```kotlin
-data class Question<T>(
-    val questionText: String,
-    val answer: T,
-    val difficulty: Difficulty
-)
-```
-
-الدوال المولَّدة تلقائياً:
-- `equals()`
-- `hashCode()`
-- `toString()`
-- `componentN()`: `component1()`, `component2()`, ...
-- `copy()`
-
-```kotlin
-println(question1.toString())
-// الناتج:
-// Question(questionText=Quoth the raven ___, answer=nevermore, difficulty=MEDIUM)
-```
-
----
-
-### 17. الكائن المفرد (Singleton Object) والكائن المرافق (Companion Object)
-
-#### النص الأصلي يقول (English):
-> "A singleton is a class that can only have a single instance. Kotlin provides a special construct, called an object... A singleton object can't have a constructor as you can't create instances directly... You can define a singleton object inside another class using a companion object."
-
-#### الشرح المبسّط:
-- **`object`**: يُنشئ صنفاً له نسخة واحدة فقط تلقائياً في كامل البرنامج — لا تحتاج (ولا يمكنك) إنشاء كائن منه بـ`SomeObject()`.
-- **`companion object`**: كائن مفرد (singleton) لكن **معرَّف داخل صنف آخر**، مما يتيح الوصول لخصائصه من داخل ذلك الصنف مباشرة (صياغة أقصر وأوضح).
-
-```kotlin
-object StudentProgress {
-    var total: Int = 10
-    var answered: Int = 3
-}
-
-fun main() {
-    println("${StudentProgress.answered} of ${StudentProgress.total} answered.")
-}
-```
-
-```kotlin
-class Quiz {
-    companion object StudentProgress {
-        var total: Int = 10
-        var answered: Int = 3
-    }
-}
-
-fun main() {
-    println("${Quiz.answered} of ${Quiz.total} answered.")
-}
-```
-
-#### ⚖️ المقايضة: object مقابل companion object
-
-| | `object` (مستقل) | `companion object` (داخل صنف) |
-| --- | --- | --- |
-| المزايا | بسيط ومباشر عند عدم الحاجة لربطه بصنف | يجمّع البيانات المرتبطة منطقياً بصنف معين داخله |
-| العيوب | لا علاقة تنظيمية مع أي صنف | يزيد تعقيد بنية الصنف قليلاً |
-| متى تختاره | عندما تكون البيانات/الدوال عامة ومستقلة | عندما تكون البيانات جزءاً من "هوية" صنف معين |
-
----
-
-### 18. الدوال والخصائص الامتدادية (Extension Functions/Properties)
-
-#### النص الأصلي يقول (English):
-> "To define an extension property, add the type name and a dot operator (.) before the variable name... To define an extension function, add the type name and a dot operator (.) before the function name."
-
-#### الشرح المبسّط:
-الامتدادات (Extensions) تسمح لك تضيف دالة أو خاصية جديدة لصنف **موجود مسبقاً** (حتى لو ما تملك كوده الأصلي، مثل أصناف مكتبات خارجية) بدون تعديل ذلك الصنف أو وراثته.
-
-```kotlin
-val Quiz.StudentProgress.progressText: String
-    get() = "${answered} of ${total} answered"
-
-fun Quiz.StudentProgress.printProgressBar() {
-    repeat(Quiz.answered) { print("▓") }
-    repeat(Quiz.total - Quiz.answered) { print("▒") }
-    println()
-    println(Quiz.progressText)
-}
-```
-
-**الناتج المتوقع:**
-> ▓▓▓▒▒▒▒▒▒▒
-> 3 of 10 answered
-
----
-
-### 19. إعادة كتابة الامتدادات باستخدام الواجهات (Interfaces)
-
-#### النص الأصلي يقول (English):
-> "An interface is a contract. A class that conforms to an interface is said to extend the interface... In return, the class must implement all properties and methods specified in the interface... Interfaces allow for variation in the behavior of classes that extend them."
-
-#### الشرح المبسّط:
-الـ`interface` هو "عقد" يحدد **ماذا** يجب أن يفعله الصنف، بدون تحديد **كيف**. أي صنف "يوقّع" على هذا العقد (`class X : InterfaceName`) يلتزم بتطبيق كل الدوال والخصائص المذكورة فيه.
-
-**لماذا أفضل من Extensions أحياناً؟** لأن الـinterface يجبر أي صنف يطبّقه على الالتزام بنفس التوقيع (Signature)، فيضمن الاتساق عبر أصناف متعددة، وإذا عدّلت الـinterface يجبرك الكومبايلر على تحديث كل مكان يستخدمه.
-
-```kotlin
-interface ProgressPrintable {
-    val progressText: String
-    fun printProgressBar()
-}
-
-class Quiz : ProgressPrintable {
-    companion object StudentProgress {
-        var total: Int = 10
-        var answered: Int = 3
-    }
-    override val progressText: String
-        get() = "${answered} of ${total} answered"
-
-    override fun printProgressBar() {
-        repeat(Quiz.answered) { print("▓") }
-        repeat(Quiz.total - Quiz.answered) { print("▒") }
-        println()
-        println(progressText)
-    }
-}
-```
-
----
-
-### 20. دوال النطاق (Scope Functions): let() و apply()
-
-#### النص الأصلي يقول (English):
-> "The let() function allows you to refer to an object in a lambda expression using the identifier it, instead of the object's actual name... The apply() function is an extension function that can be called on an object using dot notation. The apply() function also returns a reference to that object."
-
-#### الشرح المبسّط:
-- **`let()`**: يسمح لك تشتغل مع خصائص كائن باستخدام الكلمة المختصرة `it` بدل تكرار اسم الكائن الطويل مراراً.
-- **`apply()`**: يُستدعى على كائن **قبل حتى تخزينه في متغير**، وينفّذ كتلة كود عليه، ثم "يرجّع" نفس الكائن — مفيد لتهيئة كائن وضبط إعداداته دفعة واحدة.
-
-```kotlin
-// let()
-question1.let {
-    println(it.questionText)
-    println(it.answer)
-    println(it.difficulty)
-}
-```
-
-```kotlin
-// apply()
-val quiz = Quiz().apply {
-    printQuiz()
-}
-```
-
-#### 🔄 قبل / بعد: استخدام let() بدل التكرار
-
-**قبل:**
-```kotlin
-println(question1.questionText)
-println(question1.answer)
-println(question1.difficulty)
-```
-
-**بعد:**
-```kotlin
-question1.let {
-    println(it.questionText)
-    println(it.answer)
-    println(it.difficulty)
-}
-```
-
-**ماذا تغيّر؟** استُبدل الاسم الطويل `question1` المتكرر بالضمير القصير `it` داخل نطاق `let`.
-
----
-
-## الجزء الثاني: ملخص منظم شامل
-
-### أهم التعاريف والمفاهيم
-
-| المصطلح | التعريف | مثال/ملاحظة |
-| --- | --- | --- |
-| `class` | مخطط لإنشاء كائنات تشترك في نفس الخصائص والدوال | `class SmartDevice { ... }` |
-| `object` (Instance) | نسخة فعلية تم إنشاؤها من صنف | `val tv = SmartDevice()` |
-| `constructor` | دالة خاصة تهيّئ الكائن عند إنشائه | `class X(val name: String)` |
-| `open` | كلمة مفتاحية تسمح للصنف/الدالة/الخاصية بأن تُورَّث أو تُتجاوَز | `open class SmartDevice` |
-| `override` | إعادة تعريف سلوك دالة/خاصية موروثة من الأب | `override fun turnOn()` |
-| `super` | يشير إلى الصنف الأب لاستدعاء سلوكه الأصلي | `super.turnOn()` |
-| `IS-A` | علاقة وراثة (الفرعي "هو نوع من" الأب) | `SmartTvDevice : SmartDevice` |
-| `HAS-A` | علاقة تركيب (الكائن "يملك" كائناً آخر كخاصية) | `SmartHome(val tv: SmartTvDevice)` |
-| `Generics <T>` | نوع عام يُحدَّد لاحقاً عند الاستخدام | `Question<String>` |
-| `enum class` | نوع بقيم محدودة وثابتة | `enum class Difficulty { EASY, MEDIUM, HARD }` |
-| `data class` | صنف يولّد تلقائياً `equals/hashCode/toString/copy` | `data class Question<T>(...)` |
-| `object` (Singleton) | صنف بنسخة واحدة فقط في البرنامج | `object StudentProgress { ... }` |
-| `companion object` | كائن مفرد معرَّف داخل صنف آخر | `companion object { ... }` |
-| Extension function/property | إضافة دالة/خاصية جديدة لصنف موجود دون تعديله | `fun Quiz.printProgressBar()` |
-| `interface` | عقد يحدد الدوال/الخصائص الواجب تطبيقها | `interface ProgressPrintable` |
-| Scope function | دالة تتيح الوصول لخصائص كائن ضمن نطاق مختصر | `let {}`, `apply {}` |
-| Property delegate | تفويض منطق get/set لكائن خارجي | `by RangeRegulator(...)` |
-| backing field (`field`) | متغير داخلي مخفي يمثل التخزين الفعلي للخاصية | داخل `get()`/`set()` فقط |
-
-### المكونات الرئيسية (مرجع سريع)
-
-| الأداة | الوظيفة | ملاحظة |
-| --- | --- | --- |
-| `val` | خاصية/متغير للقراءة فقط (immutable) | لا تملك `set()` |
-| `var` | خاصية/متغير قابل للتعديل (mutable) | تملك `get()` و`set()` |
-| `constructor` (Primary) | تهيئة سريعة في ترويسة الصنف | لا يحتوي جسماً |
-| `constructor` (Secondary) | تهيئة إضافية مع منطق معالجة | يجب أن يستدعي `this(...)` |
-| `ReadWriteProperty` | واجهة لبناء Delegate لخاصية `var` | تُستخدم مع `by` |
-
-### جداول مقارنات سريعة
-
-| المقارنة | الأول | الثاني | الفرق |
-| --- | --- | --- | --- |
-| val مقابل var | `val` | `var` | `val` غير قابل لإعادة التعيين، `var` قابل للتعديل |
-| class مقابل data class | `class` | `data class` | data class تولّد `equals/hashCode/toString/copy` تلقائياً |
-| object مقابل companion object | `object` مستقل | `companion object` | الثاني مرتبط ببنية صنف محدد |
-| IS-A مقابل HAS-A | Inheritance | Composition | IS-A علاقة وراثة، HAS-A علاقة امتلاك |
-| private مقابل protected | لا وصول من الأصناف الفرعية | وصول من الأصناف الفرعية مسموح | نطاق الرؤية |
-
-### قاموس المصطلحات (Glossary)
-
-| الفئة | المصطلحات |
-| --- | --- |
-| بنية الصنف | `class`, `constructor`, `properties`, `methods`, `body` |
-| الوراثة | `open`, `override`, `super`, `IS-A`, `HAS-A`, `composition` |
-| الرؤية | `public`, `private`, `protected`, `internal` |
-| الأنواع المتقدمة | `Generics <T>`, `enum class`, `data class` |
-| الكائنات الخاصة | `object`, `companion object`, `singleton` |
-| التمديد | `extension function`, `extension property`, `interface` |
-| النطاق | `scope function`, `let()`, `apply()`, `it` |
-| التفويض | `property delegate`, `by`, `ReadWriteProperty`, `field` |
-
-### أبرز النقاط الذهبية
-1. كل الأصناف في كوتلن `final` افتراضياً — الوراثة تتطلب `open` صراحة.
-2. `override` يتطلب أن يكون العنصر الأصلي في الأب معلَّماً بـ`open`.
-3. `data class` توفّر عليك كتابة دوال شائعة يدوياً (equals, toString...).
-4. `companion object` هو أقرب ما يوجد في كوتلن لمفهوم "Static Members" في لغات أخرى.
-5. الـ`interface` يضمن الاتساق بين عدة أصناف تطبّقه أكثر من مجرد Extension منفردة.
-6. `let()` تستخدم `it`، بينما `apply()` تتيح الوصول المباشر للخصائص وترجع الكائن نفسه.
-
-### الأخطاء الشائعة عند الطلاب ⚠️
-
-| الخطأ | التصحيح |
-| --- | --- |
-| محاولة وراثة صنف بدون `open` | أضف `open` قبل `class` في الصنف الأب |
-| تجاوز دالة/خاصية غير معلَّمة بـ`open` | أضف `open` للعنصر في الأب قبل استخدام `override` |
-| نسيان `super.method()` عند الحاجة لسلوك الأب | استدعِ `super.method()` صراحة داخل الدالة المتجاوَزة |
-| استخدام `String` بدل `enum class` لقيم محدودة | استبدلها بـ`enum class` لضمان التحقق وقت الترجمة |
-| الخلط بين IS-A و HAS-A | اسأل: "هل الكائن نوع من...؟" (IS-A) أم "هل الكائن يملك...؟" (HAS-A) |
-
----
-
-### خطوات وإجراءات المحاضرة
-
-#### ⚙️ الخطوات / الخوارزمية: إنشاء صنف فرعي بعلاقة وراثة (IS-A)
-> **ما هدفه؟** بناء صنف جديد يستفيد من خصائص ودوال صنف أب موجود.
-```algorithm
-1 | تعليم الصنف الأب | كلمة open | يسمح للصنف بأن يُورَّث
-2 | كتابة ترويسة الصنف الفرعي | class Sub(params) : Super(args) | يربط الصنف الفرعي بالأب
-3 | تمرير معاملات الباني الأب | Super(name = x, category = y) | يهيّئ خصائص الأب من داخل الفرعي
-4 | إضافة خصائص/دوال خاصة بالفرعي | داخل جسم الصنف الفرعي | يضيف سلوكاً إضافياً غير موجود بالأب
-```
-#### نقاط التنفيذ:
-- لا يمكن تجاوز الوراثة إذا كان الصنف الأب `final` (الوضع الافتراضي).
-- كل Secondary constructor في الصنف الأب يجب تفويضه بـ`this(...)`.
-
----
-
-#### ⚙️ الخطوات / الخوارزمية: تجاوز دالة موروثة مع الحفاظ على سلوك الأب
-> **ما هدفه؟** إضافة سلوك جديد في الصنف الفرعي دون فقدان السلوك الأصلي في الأب.
-```algorithm
-1 | تعليم الدالة في الأب | open fun | يسمح بتجاوزها لاحقاً
-2 | كتابة الدالة في الفرعي | override fun | يعيد تعريف الدالة بنفس التوقيع
-3 | استدعاء سلوك الأب (اختياري) | super.functionName() | يُنفّذ الكود الأصلي أولاً
-4 | إضافة سلوك جديد | كود إضافي بعد استدعاء super | يمدّد وظيفة الدالة الأصلية
-```
-#### نقاط التنفيذ:
-- تجاهل `super.functionName()` يعني استبدال سلوك الأب بالكامل بدل تمديده.
-
----
-
-#### ⚙️ الخطوات / الخوارزمية: بناء Property Delegate لخاصية `var` محكومة بنطاق
-> **ما هدفه؟** توحيد منطق التحقق (مثل حصر قيمة بين حد أدنى وأقصى) عبر خصائص متعددة.
-```algorithm
-1 | إنشاء صنف Delegate | class RangeRegulator(...) : ReadWriteProperty<Any?, Int> | يحدد نوع القيمة المُدارة
-2 | تخزين القيمة الداخلية | var fieldData = initialValue | يمثل التخزين الفعلي
-3 | تطبيق getValue() | return fieldData | يعيد القيمة الحالية عند القراءة
-4 | تطبيق setValue() | if (value in min..max) fieldData = value | يتحقق من صحة القيمة قبل الحفظ
-5 | ربط الخاصية بالـDelegate | var x by RangeRegulator(...) | يفوّض get/set لهذا الكائن
-```
-#### نقاط التنفيذ:
-- يجب استيراد `kotlin.properties.ReadWriteProperty` و`kotlin.reflect.KProperty`.
-
----
-
-### أنماط الأكواد والبنى المتكررة
-
-| النمط | البنية الأساسية | متى تستخدمه |
-| --- | --- | --- |
-| Primary constructor مختصر | `class X(val a: Type, val b: Type)` | عند عدم الحاجة لمنطق تهيئة إضافي |
-| Secondary constructor مفوَّض | `constructor(...) : this(...) { ... }` | عند الحاجة لمعالجة بيانات قبل التخزين |
-| تجاوز مع تمديد السلوك | `override fun f() { super.f(); /* جديد */ }` | عند رغبتك بإضافة سلوك بدل استبداله |
-| خاصية محمية القيمة | `var x = v \n set(value) { if (...) field = value }` | عند الحاجة لحصر مجال قيم مسموح |
-| Generics بسيطة | `class X<T>(val value: T)` | عندما يتكرر نفس هيكل الصنف لأنواع بيانات مختلفة |
-
-### أنماط التعامل والسلوك
-
-| السيناريو | التعامل الصحيح | لماذا؟ |
-| --- | --- | --- |
-| بيانات محدودة القيم (سهل/متوسط/صعب) | استخدم `enum class` | يمنع القيم الخاطئة إملائياً وقت الترجمة |
-| صنف بيانات بدون سلوك | استخدم `data class` | يوفر توليد تلقائي لدوال أساسية |
-| دالة/خاصية عامة مرتبطة بصنف معين | استخدم `companion object` | يتيح استدعاء مباشر باسم الصنف |
-| إضافة سلوك لصنف مغلق التعديل | استخدم Extension function | لا يتطلب تعديل الكود الأصلي أو وراثته |
-| تكرار الوصول لعدة خصائص لكائن واحد | استخدم `let { it... }` | يختصر الكود ويقلل التكرار |
-
-### الأفكار الرئيسية الشاملة
-- الفلسفة الأساسية لكوتلن في هذه المحاضرة: **الأمان بالافتراض** (final classes, immutability بـ`val`) مع إتاحة **المرونة عند الحاجة** (`open`, `var`, Generics).
-- كل أداة جديدة (enum, data class, object, extension, delegate) تحل مشكلة تكرار كود محددة رأيناها في الأمثلة الأساسية للصنف `SmartDevice`.
-
----
-
-## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
-
-> **16 سؤالاً** — مستوى: medium/hard. التوزيع: مقارنات 25% (4 أسئلة) | سيناريو كود 35% (6 أسئلة) | تطبيق 40% (6 أسئلة).
-
-### السؤال 1 (medium) — مقارنات
-What is the default visibility modifier of a class in Kotlin if none is specified?
-أ) `private`  ب) `protected`  ج) `public`  د) `internal`
-**الإجابة الصحيحة: ج**
-**التعليل:** كوتلن يجعل كل شيء `public` افتراضياً ما لم تحدد غير ذلك؛ (أ) و(ب) تتطلبان كتابة صريحة؛ (د) يقتصر الوصول على نفس الموديول فقط وليس الافتراضي.
-
----
-
-### السؤال 2 (medium) — مقارنات
-Which keyword must be added to a class to allow other classes to inherit from it?
-أ) `override`  ب) `open`  ج) `super`  د) `final`
-**الإجابة الصحيحة: ب**
-**التعليل:** `open` هي الكلمة التي تُلغي القفل الافتراضي (final)؛ (أ) لتجاوز عنصر موجود بالفعل؛ (ج) للوصول لسلوك الأب؛ (د) هي الحالة الافتراضية أصلاً (الصنف مقفل).
-
----
-
-### السؤال 3 (medium) — مقارنات
-What is generated automatically by the Kotlin compiler for a `data class`?
-أ) فقط `toString()`  ب) `equals()`, `hashCode()`, `toString()`, `copy()`, `componentN()`  ج) فقط باني افتراضي  د) لا شيء تلقائي
-**الإجابة الصحيحة: ب**
-**التعليل:** هذه الدوال الخمس هي بالضبط ما يذكره النص الأصلي؛ (أ) ناقصة؛ (ج) الباني الافتراضي متوفر لأي class عادي أيضاً؛ (د) خاطئة تماماً لأن الميزة الأساسية لـdata class هي التوليد التلقائي.
-
----
-
-### السؤال 4 (hard) — مقارنات
-In terms of accessibility, what is the key difference between `protected` and `internal`?
-أ) لا يوجد فرق  ب) `protected` يتيح الوصول من الأصناف الفرعية فقط بينما `internal` يتيحه لكل الموديول  ج) `internal` أكثر تقييداً من `private`  د) `protected` يتيح الوصول من خارج الموديول
-**الإجابة الصحيحة: ب**
-**التعليل:** بحسب الجدول، `protected` يقتصر على الصنف والأصناف الفرعية، بينما `internal` يوسّع الوصول لأي كود ضمن نفس الموديول حتى لو لم يكن صنفاً فرعياً؛ (ج) و(د) عكس الحقيقة.
-
----
-
-### السؤال 5 (medium) — سيناريو كود
-```kotlin
-open class SmartDevice(val name: String) {
-    open fun turnOn() { println("Device on") }
-}
-class Light(name: String) : SmartDevice(name) {
-    override fun turnOn() {
-        println("Light on")
-    }
-}
-fun main() {
-    val d: SmartDevice = Light("Lamp")
-    d.turnOn()
-}
-```
-What will be printed?
-أ) "Device on"  ب) "Light on"  ج) خطأ ترجمة (compile error)  د) لا شيء يُطبع
-**الإجابة الصحيحة: ب**
-**التعليل:** بما أن `turnOn()` تم تجاوزها في `Light` بدون استدعاء `super.turnOn()`، يُنفَّذ فقط السلوك الجديد "Light on"؛ (أ) كانت صحيحة فقط لو استُدعي `super.turnOn()`؛ (ج) و(د) لا سبب للخطأ أو الصمت هنا.
-
----
-
-### السؤال 6 (medium) — سيناريو كود
-```kotlin
-var volume = 5
-    set(value) {
-        if (value in 0..10) field = value
-    }
-fun main() {
-    volume = 15
-    println(volume)
-}
-```
-What is printed?
-أ) 15  ب) 5  ج) 0  د) خطأ ترجمة
-**الإجابة الصحيحة: ب**
-**التعليل:** القيمة 15 خارج المدى `0..10`، فالشرط في `set()` يفشل ولا يُحدَّث `field`، فتبقى القيمة القديمة 5؛ (أ) لو لم يكن هناك تحقق؛ (ج) لا سبب لتصفيرها؛ (د) الكود صحيح نحوياً.
-
----
-
-### السؤال 7 (hard) — سيناريو كود
-```kotlin
-class Question<T>(val answer: T)
-fun main() {
-    val q = Question<Int>("28")
-}
-```
-What happens?
-أ) يُطبع "28" بنجاح  ب) خطأ ترجمة (type mismatch)  ج) يعمل ويحوّل النص تلقائياً لرقم  د) خطأ وقت التشغيل فقط
-**الإجابة الصحيحة: ب**
-**التعليل:** حُدِّد `T` كـ`Int` بين الأقواس الزاوية، لكن تم تمرير `"28"` وهو `String`؛ كوتلن يتحقق من التطابق وقت الترجمة (compile-time) فيرفض الكود؛ (أ) و(ج) و(د) تفترض تحويلاً تلقائياً غير موجود.
-
----
-
-### السؤال 8 (medium) — سيناريو كود
-```kotlin
-object Counter {
-    var count = 0
-}
-fun main() {
-    Counter.count++
-    val c2 = Counter
-    c2.count++
-    println(Counter.count)
-}
-```
-What is printed?
-أ) 0  ب) 1  ج) 2  د) خطأ ترجمة لأن object لا يمكن نسخه لمتغير
-**الإجابة الصحيحة: ج**
-**التعليل:** `object` هو Singleton — نسخة واحدة فقط في الذاكرة، لذا `c2` يشير لنفس الكائن `Counter`، وأي تعديل عبر أي مرجع ينعكس على الجميع (0+1+1=2)؛ (د) خاطئة لأن الإشارة لكائن Singleton مسموحة تماماً.
-
----
-
-### السؤال 9 (hard) — سيناريو كود
-```kotlin
-open class A { open fun greet() = "A" }
-class B : A() { override fun greet() = "B: " + super.greet() }
-fun main() { println(B().greet()) }
-```
-What is printed?
-أ) "A"  ب) "B: "  ج) "B: A"  د) خطأ ترجمة
-**الإجابة الصحيحة: ج**
-**التعليل:** `super.greet()` يستدعي نسخة الأب التي ترجع "A"، ثم تُدمج مع "B: " فينتج "B: A"؛ (أ) تجاهل التجاوز؛ (ب) تجاهل استدعاء super؛ (د) لا خطأ نحوياً هنا.
-
----
-
-### السؤال 10 (medium) — تطبيق
-Which construct should you use to represent a fixed, limited set of values like `EASY`, `MEDIUM`, `HARD`?
-أ) `data class`  ب) `enum class`  ج) `interface`  د) `companion object`
-**الإجابة الصحيحة: ب**
-**التعليل:** `enum class` صُمِّم خصيصاً لهذا الغرض؛ (أ) لتخزين بيانات عامة؛ (ج) لتعريف عقد سلوكي؛ (د) لخصائص/دوال مرتبطة بصنف.
-
----
-
-### السؤال 11 (medium) — تطبيق
-You want to add a new function to a class from an external library without modifying its source code. What should you use?
-أ) Inheritance  ب) Extension function  ج) Property delegate  د) Secondary constructor
-**الإجابة الصحيحة: ب**
-**التعليل:** الامتدادات (Extensions) مصمَّمة لإضافة سلوك لصنف موجود دون تعديل مصدره أو حتى وراثته؛ (أ) تتطلب أن يكون الصنف `open`؛ (ج) لإدارة get/set لخاصية؛ (د) لمنطق تهيئة إضافي فقط.
-
----
-
-### السؤال 12 (hard) — تطبيق
-Why would you use a `companion object` instead of a top-level standalone `object`?
-أ) لأنه أسرع في الأداء  ب) لأنه يربط منطقياً الخصائص/الدوال المشتركة باسم صنف معين ويتيح الوصول عبر اسم الصنف مباشرة  ج) لأنه الطريقة الوحيدة لإنشاء Singleton  د) لأنه يسمح بإنشاء عدة نسخ من نفس الكائن
-**الإجابة الصحيحة: ب**
-**التعليل:** هذا بالضبط ما يوفره companion object — تنظيم وربط منطقي؛ (أ) لا فرق أداء يُذكر؛ (ج) الـobject المستقل أيضاً Singleton؛ (د) عكس مفهوم Singleton تماماً.
-
----
-
-### السؤال 13 (medium) — تطبيق
-Which visibility modifier should you use for a setter if you want the property readable everywhere but only modifiable within the class and its subclasses?
-أ) `private set`  ب) `protected set`  ج) `internal set`  د) لا حاجة لأي معدّل
-**الإجابة الصحيحة: ب**
-**التعليل:** `protected` يسمح بالوصول من داخل الصنف والأصناف الفرعية فقط، وهو تماماً المطلوب هنا مع بقاء الـgetter عاماً افتراضياً؛ (أ) يمنع حتى الأصناف الفرعية؛ (ج) يوسّع لكل الموديول وهذا أوسع من المطلوب؛ (د) يجعل التعديل مفتوحاً للجميع.
-
----
-
-### السؤال 14 (hard) — تطبيق
-When should you prefer a `property delegate` (`by`) over repeating the same `set()` logic in multiple properties?
-أ) عندما تحتاج نفس منطق التحقق (مثل حصر مجال قيم) في أكثر من خاصية  ب) عندما تحتاج خاصية واحدة فقط بدون أي تحقق  ج) عندما تريد صنفاً بدون أي خصائص  د) عندما تحتاج علاقة وراثة فقط
-**الإجابة الصحيحة: أ**
-**التعليل:** الهدف الأساسي من الـDelegate هو تجنّب تكرار نفس منطق get/set عبر خصائص متعددة؛ باقي الخيارات لا علاقة لها بمشكلة التكرار التي يحلها الـDelegate.
-
----
-
-### السؤال 15 (medium) — تطبيق
-Which scope function returns a reference to the object it was called on, allowing you to configure an object right after creating it?
-أ) `let()`  ب) `apply()`  ج) `super()`  د) `override()`
-**الإجابة الصحيحة: ب**
-**التعليل:** بحسب النص الأصلي، `apply()` تُرجع مرجع الكائن نفسه بعد تنفيذ كتلة التهيئة؛ (أ) تُستخدم بشكل مختلف عبر `it` ولا تُستخدم عادة لهذا الغرض بنفس الطريقة؛ (ج) و(د) ليستا scope functions أصلاً.
-
----
-
-### السؤال 16 (hard) — تطبيق
-What is the primary reason all Kotlin classes are `final` by default?
-أ) لتحسين سرعة تنفيذ البرنامج فقط  ب) لتشجيع تصميم واعٍ للوراثة ومنع الأخطاء الناتجة عن وراثة غير مقصودة  ج) لأن كوتلن لا يدعم الوراثة أصلاً  د) لتقليل حجم الملف التنفيذي
-**الإجابة الصحيحة: ب**
-**التعليل:** هذا هو المبرر التصميمي المذكور صراحة — منع الوراثة العشوائية غير المدروسة؛ (ج) خاطئة تماماً لأن كوتلن يدعم الوراثة عبر `open`؛ (أ) و(د) ليست الأسباب الأساسية المذكورة في المحاضرة.
-
----
-
-## الجزء الرابع: أسئلة تصحيح الكود
-
-> Cover error types: compilation, logic, return_check, dead code, misconception.
-
-### Debug Question 1 — `syntax`
-**The following code contains a bug:**
-```kotlin
-class SmartTvDevice(deviceName: String, deviceCategory: String) :
-    SmartDevice(deviceName, deviceCategory) {
-    override turnOn() {
-        println("On")
-    }
-}
-```
-**Find the bug:** Missing the `fun` keyword before `turnOn()`.
-
-**Fixed code:**
-```kotlin
-class SmartTvDevice(deviceName: String, deviceCategory: String) :
-    SmartDevice(deviceName, deviceCategory) {
-    override fun turnOn() {
-        println("On")
-    }
-}
-```
-**شرح الحل:**
-1. أي دالة في كوتلن (حتى المتجاوَزة بـ`override`) يجب أن تبدأ بكلمة `fun`.
-2. بدونها، الكومبايلر لا يميّز أن `turnOn()` تعريف دالة، فيحدث خطأ ترجمة.
-
----
-
-### Debug Question 2 — `logic`
-**The following code contains a bug:**
-```kotlin
-open class SmartDevice(val name: String) {
-    var deviceStatus = "online"
-    open fun turnOff() {
-        deviceStatus = "on" // wrong value assigned
-    }
-}
-```
-**Find the bug:** `turnOff()` sets `deviceStatus` to `"on"` instead of `"off"`.
-
-**Fixed code:**
-```kotlin
-open class SmartDevice(val name: String) {
-    var deviceStatus = "online"
-    open fun turnOff() {
-        deviceStatus = "off"
-    }
-}
-```
-**شرح الحل:**
-1. الخطأ منطقي وليس نحوياً — الكود يترجم بنجاح لكنه يعطي نتيجة خاطئة.
-2. اسم الدالة `turnOff` يوحي بأن الحالة يجب أن تصبح "off" وليس "on".
-
----
-
-### Debug Question 3 — `return_check`
-**The following code contains a bug:**
-```kotlin
-class RangeRegulator(
-    initialValue: Int,
-    private val minValue: Int,
-    private val maxValue: Int
-) : ReadWriteProperty<Any?, Int> {
-    var fieldData = initialValue
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        // missing return statement
-    }
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-        if (value in minValue..maxValue) { fieldData = value }
-    }
-}
-```
-**Find the bug:** `getValue()` has no `return` statement, but it declares a return type `Int`.
-
-**Fixed code:**
-```kotlin
-override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-    return fieldData
-}
-```
-**شرح الحل:**
-1. أي دالة تحدد نوع إرجاع صريح (`: Int`) يجب أن تحتوي على `return` بقيمة من نفس النوع.
-2. بدونها الكومبايلر يرفض الترجمة لأن الدالة لا "تفي" بوعدها بإرجاع `Int`.
-
----
-
-### Debug Question 4 — `dead_code`
-**The following code contains a bug:**
-```kotlin
-open class SmartDevice(val name: String) {
-    open fun turnOn() {
-        println("Device on")
-        return
-        println("This will never run") // dead code
-    }
-}
-```
-**Find the bug:** The line after `return` is unreachable (dead code).
-
-**Fixed code:**
-```kotlin
-open class SmartDevice(val name: String) {
-    open fun turnOn() {
-        println("Device on")
-    }
-}
-```
-**شرح الحل:**
-1. أي سطر يأتي بعد `return` داخل نفس الكتلة البرمجية لا يُنفَّذ أبداً.
-2. الكومبايلر في كوتلن يحذّر (Warning) عن هذا الكود الميت، ويُفضَّل حذفه أو إعادة ترتيب المنطق.
-
----
-
-### Debug Question 5 — `misconception`
-**The following code contains a bug:**
-```kotlin
-class SmartDevice(val name: String) {
-    // developer assumes this class can be inherited without extra keywords
-}
-class SmartTvDevice(name: String) : SmartDevice(name) {
-    // ...
-}
-```
-**Find the bug:** `SmartDevice` is not marked `open`, so it cannot be inherited — this is a misconception that all Kotlin classes are inheritable by default.
-
-**Fixed code:**
-```kotlin
-open class SmartDevice(val name: String) {
-    // ...
-}
-class SmartTvDevice(name: String) : SmartDevice(name) {
-    // ...
-}
-```
-**شرح الحل:**
-1. الفهم الخاطئ الشائع: افتراض أن أي صنف في كوتلن قابل للوراثة تلقائياً كما في بعض اللغات الأخرى.
-2. الحقيقة: كوتلن يجعل كل صنف `final` افتراضياً، ولازم تضيف `open` صراحة.
-
----
-
-### Debug Question 6 — `syntax`
-**The following code contains a bug:**
-```kotlin
-class Question<T>(
-    val questionText: String
-    val answer: T
-)
-```
-**Find the bug:** Missing comma between constructor parameters.
-
-**Fixed code:**
-```kotlin
-class Question<T>(
-    val questionText: String,
-    val answer: T
-)
-```
-**شرح الحل:**
-1. معاملات الباني (Constructor parameters) يجب أن تُفصل بفاصلة `,`.
-2. بدون الفاصلة، الكومبايلر لا يستطيع تمييز نهاية معامل وبداية آخر، فيحدث خطأ ترجمة.
-
----
-
-## الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)
-
-> **هذه تمارين إضافية من إعداد الدليل للتدريب** — ليست في المحاضرة الأصلية.
-
-### Exercise 1: Add a New Subclass — `scenario`
-**Scenario / Task:**
-Create a new subclass `SmartLockDevice` that inherits from `SmartDevice`, and add a property `isLocked: Boolean` and a function `toggleLock()`.
-
-**Requirements:**
-1. Make `SmartDevice` inheritable if it isn't already.
-2. Override `turnOn()` to also print the lock status.
-
-**نموذج الحل:**
-```kotlin
-open class SmartDevice(val name: String, val category: String) {
-    var deviceStatus = "online"
-    open fun turnOn() { deviceStatus = "on" }
-}
-
-class SmartLockDevice(deviceName: String, deviceCategory: String) :
-    SmartDevice(deviceName, deviceCategory) {
-    var isLocked: Boolean = true
-
-    fun toggleLock() {
-        isLocked = !isLocked
-        println("Lock status: ${if (isLocked) "Locked" else "Unlocked"}")
-    }
-    override fun turnOn() {
-        super.turnOn()
-        println("$name turned on. Lock status: ${if (isLocked) "Locked" else "Unlocked"}")
-    }
-}
-```
-
----
-
-### Exercise 2: Fill the Gaps — `fill_gaps`
-**Scenario / Task:**
-Complete the missing parts (`______`) so the code compiles and runs correctly.
-```kotlin
-______ class SmartDevice(val name: String) {
-    open fun turnOn() { println("$name on") }
-}
-class SmartFan(name: String) : ______(name) {
-    override fun turnOn() {
-        ______.turnOn()
-        println("Fan spinning")
-    }
-}
-```
-
-**نموذج الحل:**
-```kotlin
-open class SmartDevice(val name: String) {
-    open fun turnOn() { println("$name on") }
-}
-class SmartFan(name: String) : SmartDevice(name) {
-    override fun turnOn() {
-        super.turnOn()
-        println("Fan spinning")
-    }
-}
-```
-
----
-
-### Exercise 3: Convert to Enum — `code_fix`
-**Scenario / Task:**
-The following code uses `String` for difficulty, which allows invalid values. Refactor it to use `enum class`.
-```kotlin
-class Question(val text: String, val difficulty: String)
-val q = Question("2+2=?", "mediumm") // typo, still compiles!
-```
-
-**Requirements:**
-1. Define an `enum class Difficulty`.
-2. Update `Question` to use it.
-
-**نموذج الحل:**
-```kotlin
-enum class Difficulty { EASY, MEDIUM, HARD }
-class Question(val text: String, val difficulty: Difficulty)
-val q = Question("2+2=?", Difficulty.MEDIUM) // typo أصبح مستحيلاً الآن
-```
-
----
-
-### Exercise 4: Build a Property Delegate — `scenario`
-**Scenario / Task:**
-Create a delegate `PositiveNumber` that ensures a property can never be set to a negative value (silently ignore invalid assignments).
-
-**Requirements:**
-1. Implement `ReadWriteProperty<Any?, Int>`.
-2. Use it for a property `score`.
-
-**نموذج الحل:**
-```kotlin
-class PositiveNumber(initialValue: Int) : ReadWriteProperty<Any?, Int> {
-    var fieldData = initialValue
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Int = fieldData
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-        if (value >= 0) fieldData = value
-    }
-}
-
-class Player {
-    var score by PositiveNumber(0)
-}
-```
-
----
-
-### Exercise 5: Companion Object Counter — `scenario`
-**Scenario / Task:**
-Add a `companion object` inside class `Device` that tracks how many devices have been created (`deviceCount`), incrementing it in the primary constructor's `init` block.
-
-**نموذج الحل:**
-```kotlin
-class Device(val name: String) {
-    companion object {
-        var deviceCount: Int = 0
-    }
-    init {
-        deviceCount++
-    }
-}
-
-fun main() {
-    Device("A")
-    Device("B")
-    println(Device.deviceCount) // 2
-}
-```
-
----
-
-### Exercise 6: Extension Function Practice — `scenario`
-**Scenario / Task:**
-Write an extension function `String.isValidDeviceName()` that returns `true` if the string is not blank and has at least 3 characters.
-
-**نموذج الحل:**
-```kotlin
-fun String.isValidDeviceName(): Boolean {
-    return this.isNotBlank() && this.length >= 3
-}
-
-fun main() {
-    println("TV".isValidDeviceName())      // false
-    println("Android TV".isValidDeviceName()) // true
-}
-```
-
----
-
-## الجزء الرابع: تمارين تتبع التنفيذ
-
-### Trace Exercise 1: Overriding with super
-**Input:**
-```kotlin
-open class A { open fun show() = "A" }
-class B : A() { override fun show() = "B-" + super.show() }
-class C : B() { override fun show() = "C-" + super.show() }
-fun main() { println(C().show()) }
-```
-
-**Trace step by step (complete the table):**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | استدعاء `C().show()` | ؟ |
-| 2 | داخل `C.show()`، استدعاء `super.show()` (أي B) | ؟ |
-| 3 | داخل `B.show()`، استدعاء `super.show()` (أي A) | ؟ |
-| 4 | دمج النتائج | ؟ |
-
-**نموذج الحل:**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | استدعاء `C().show()` | يبدأ تنفيذ `"C-" + super.show()` |
-| 2 | `super.show()` في C يستدعي B | ينفّذ `"B-" + super.show()` في B |
-| 3 | `super.show()` في B يستدعي A | يُرجع `"A"` |
-| 4 | دمج النتائج تصاعدياً | B ترجع `"B-A"`، ثم C ترجع `"C-B-A"` |
-
-**Result:** `"C-B-A"`
-
----
-
-### Trace Exercise 2: Property Setter with Range Check
-**Input:**
-```kotlin
-var channel = 1
-    set(value) { if (value in 0..200) field = value }
-
-fun main() {
-    channel = 50
-    channel = 300
-    channel = -5
-    println(channel)
-}
-```
-
-**Trace step by step (complete the table):**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | `channel = 50` | ؟ |
-| 2 | `channel = 300` | ؟ |
-| 3 | `channel = -5` | ؟ |
-
-**نموذج الحل:**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | `channel = 50` → 50 ضمن `0..200` | `field = 50`، القيمة أصبحت 50 |
-| 2 | `channel = 300` → 300 خارج `0..200` | الشرط يفشل، `field` تبقى 50 |
-| 3 | `channel = -5` → -5 خارج `0..200` | الشرط يفشل، `field` تبقى 50 |
-
-**Result:** `50`
-
----
-
-### Trace Exercise 3: Singleton Shared State
-**Input:**
-```kotlin
-object Score {
-    var points = 0
-}
-fun addPoints(p: Int) { Score.points += p }
-fun main() {
-    addPoints(10)
-    addPoints(5)
-    val ref = Score
-    ref.points += 3
-    println(Score.points)
-}
-```
-
-**Trace step by step (complete the table):**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | `addPoints(10)` | ؟ |
-| 2 | `addPoints(5)` | ؟ |
-| 3 | `ref.points += 3` | ؟ |
-
-**نموذج الحل:**
-| الخطوة | العملية | الحالة |
-| --- | --- | --- |
-| 1 | `addPoints(10)` → `Score.points = 0 + 10` | `points = 10` |
-| 2 | `addPoints(5)` → `Score.points = 10 + 5` | `points = 15` |
-| 3 | `ref.points += 3` (نفس الكائن Singleton) → `15 + 3` | `points = 18` |
-
-**Result:** `18`
-
----
-
-## الجزء الرابع: أسئلة تصميم
-
-### Design Question 1: Class Hierarchy Design — `uml_design`
-**Task:**
-Design a class hierarchy for a "Smart Home Security System" containing a base class `SecurityDevice` (with `name`, `isActive`), and two subclasses: `SmartCamera` (with `resolution`) and `SmartAlarm` (with `volumeLevel`). Draw the relationship diagram and specify which members should be `open`/`override`.
-
-**نموذج الإجابة:**
-```diagram
-type: class
-title: Smart Home Security System
-direction: TD
-nodes:
-  - id: SecurityDevice
-    label: SecurityDevice (name, isActive)
-    kind: class
-    level: 0
-  - id: SmartCamera
-    label: SmartCamera (resolution)
-    kind: class
-    level: 1
-  - id: SmartAlarm
-    label: SmartAlarm (volumeLevel)
-    kind: class
-    level: 1
-edges:
-  - from: SmartCamera
-    to: SecurityDevice
-  - from: SmartAlarm
-    to: SecurityDevice
-```
-```kotlin
-open class SecurityDevice(val name: String) {
-    var isActive: Boolean = false
-    open fun activate() { isActive = true }
-}
-class SmartCamera(name: String, val resolution: String) : SecurityDevice(name) {
-    override fun activate() {
-        super.activate()
-        println("$name camera activated at $resolution")
-    }
-}
-class SmartAlarm(name: String, val volumeLevel: Int) : SecurityDevice(name) {
-    override fun activate() {
-        super.activate()
-        println("$name alarm activated at volume $volumeLevel")
-    }
-}
-```
-
-**معايير التقييم:**
-- استخدام `open` بشكل صحيح على الصنف الأب والدوال القابلة للتجاوز.
-- تطبيق علاقة IS-A بشكل منطقي (كاميرا/إنذار "هو نوع من" جهاز أمان).
-- استدعاء `super` عند الحاجة للحفاظ على السلوك المشترك.
-
----
-
-### Design Question 2: HAS-A Composition Design — `architecture`
-**Task:**
-Design a `SmartHome` system using composition (HAS-A) that contains one `SmartCamera` and one `SmartAlarm` (from Design Question 1), with a method `activateAllDevices()`.
-
-**نموذج الإجابة:**
-```kotlin
-class SmartHome(
-    val camera: SmartCamera,
-    val alarm: SmartAlarm
-) {
-    fun activateAllDevices() {
-        camera.activate()
-        alarm.activate()
-    }
-}
-```
-
-**معايير التقييم:**
-- التمييز الصحيح بين علاقة HAS-A (لا وراثة هنا) وIS-A.
-- تفويض الاستدعاءات بشكل صحيح لكل كائن فرعي.
-- وضوح التصميم في تجميع أجهزة متعددة داخل صنف واحد منسّق.
-
----
-
-## الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)
-
-**Q1:** What are the three major parts of a Kotlin class?
-A: Properties, methods, and constructors.
-
----
-
-**Q2:** Why are all Kotlin classes `final` by default?
-A: To prevent unintended inheritance and encourage deliberate class design.
-
----
-
-**Q3:** What keyword allows a class to be inherited?
-A: `open`.
-
----
-
-**Q4:** What is the difference between a primary and secondary constructor?
-A: The primary constructor is part of the class header and has no body; the secondary constructor is defined inside the class body and can contain initialization logic, but must delegate to the primary constructor with `this(...)`.
-
----
-
-**Q5:** What does the `super` keyword do?
-A: It calls the overridden method or property from the superclass instead of the subclass.
-
----
-
-**Q6:** What is a "backing field" in Kotlin properties?
-A: An auto-generated internal variable (`field`) used inside `get()`/`set()` to store the property's actual value.
-
----
-
-**Q7:** What is the difference between IS-A and HAS-A relationships?
-A: IS-A is an inheritance relationship (a subclass is a type of its superclass); HAS-A is a composition relationship (an object owns an instance of another class without being that type).
-
----
-
-**Q8:** Which visibility modifier restricts access to the same class or source file only?
-A: `private`.
-
----
-
-**Q9:** What is the purpose of a `data class`?
-A: To automatically generate `equals()`, `hashCode()`, `toString()`, `componentN()`, and `copy()` for classes that only hold data.
-
----
-
-**Q10:** What is the difference between `object` and `companion object`?
-A: `object` creates a standalone singleton; `companion object` is a singleton defined inside another class, allowing access to its members through the class name.
-
----
-
-**Q11:** What does an extension function allow you to do?
-A: Add new functions or properties to an existing class without modifying its source code or inheriting from it.
-
----
-
-**Q12:** What does the `let()` scope function provide?
-A: A way to reference an object using `it` inside a lambda, instead of repeating the object's full name.
-
----
-
-**Q13:** What does `apply()` return?
-A: A reference to the same object it was called on, after executing a configuration block.
-
----
-
-**Q14:** What interface must a `var` property delegate implement?
-A: `ReadWriteProperty`.
-
----
-
-## الجزء الخامس: كتابة الكود الكامل (مرجع شامل)
-
-> مرجع كامل يجمع جميع الأجزاء المتفرقة للنظام (Smart Home) كما ورد عبر المحاضرة بأكملها في كود واحد متكامل.
-
-```kotlin
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
-
-// ---------- Base class with primary + secondary constructor ----------
 open class SmartDevice(val name: String, val category: String) {
     var deviceStatus = "online"
         protected set
-
     open val deviceType = "unknown"
 
     constructor(name: String, category: String, statusCode: Int) : this(name, category) {
@@ -1698,28 +2669,11 @@ open class SmartDevice(val name: String, val category: String) {
     }
 }
 
-// ---------- Property delegate for range-limited values ----------
-class RangeRegulator(
-    initialValue: Int,
-    private val minValue: Int,
-    private val maxValue: Int
-) : ReadWriteProperty<Any?, Int> {
-    var fieldData = initialValue
-
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        return fieldData
-    }
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
-        if (value in minValue..maxValue) {
-            fieldData = value
-        }
-    }
-}
-
-// ---------- Subclasses (IS-A relationship) ----------
 class SmartTvDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
+
     override val deviceType = "Smart TV"
+
     private var speakerVolume by RangeRegulator(initialValue = 2, minValue = 0, maxValue = 100)
     private var channelNumber by RangeRegulator(initialValue = 1, minValue = 0, maxValue = 200)
 
@@ -1731,11 +2685,12 @@ class SmartTvDevice(deviceName: String, deviceCategory: String) :
         channelNumber++
         println("Channel number increased to $channelNumber.")
     }
+
     override fun turnOn() {
         super.turnOn()
         println(
             "$name is turned on. Speaker volume is set to $speakerVolume and channel number is " +
-            "set to $channelNumber."
+                "set to $channelNumber."
         )
     }
     override fun turnOff() {
@@ -1746,13 +2701,16 @@ class SmartTvDevice(deviceName: String, deviceCategory: String) :
 
 class SmartLightDevice(deviceName: String, deviceCategory: String) :
     SmartDevice(name = deviceName, category = deviceCategory) {
+
     override val deviceType = "Smart Light"
+
     private var brightnessLevel by RangeRegulator(initialValue = 0, minValue = 0, maxValue = 100)
 
     fun increaseBrightness() {
         brightnessLevel++
         println("Brightness increased to $brightnessLevel.")
     }
+
     override fun turnOn() {
         super.turnOn()
         brightnessLevel = 2
@@ -1765,7 +2723,6 @@ class SmartLightDevice(deviceName: String, deviceCategory: String) :
     }
 }
 
-// ---------- Composition (HAS-A relationship) ----------
 class SmartHome(
     val smartTvDevice: SmartTvDevice,
     val smartLightDevice: SmartLightDevice
@@ -1773,21 +2730,51 @@ class SmartHome(
     var deviceTurnOnCount = 0
         private set
 
-    fun turnOnTv() { deviceTurnOnCount++; smartTvDevice.turnOn() }
-    fun turnOffTv() { deviceTurnOnCount--; smartTvDevice.turnOff() }
-    fun increaseTvVolume() { smartTvDevice.increaseSpeakerVolume() }
-    fun changeTvChannelToNext() { smartTvDevice.nextChannel() }
-    fun turnOnLight() { deviceTurnOnCount++; smartLightDevice.turnOn() }
-    fun turnOffLight() { deviceTurnOnCount--; smartLightDevice.turnOff() }
-    fun increaseLightBrightness() { smartLightDevice.increaseBrightness() }
+    fun turnOnTv() {
+        deviceTurnOnCount++
+        smartTvDevice.turnOn()
+    }
+    fun turnOffTv() {
+        deviceTurnOnCount--
+        smartTvDevice.turnOff()
+    }
+    fun increaseTvVolume() {
+        smartTvDevice.increaseSpeakerVolume()
+    }
+    fun changeTvChannelToNext() {
+        smartTvDevice.nextChannel()
+    }
+    fun turnOnLight() {
+        deviceTurnOnCount++
+        smartLightDevice.turnOn()
+    }
+    fun turnOffLight() {
+        deviceTurnOnCount--
+        smartLightDevice.turnOff()
+    }
+    fun increaseLightBrightness() {
+        smartLightDevice.increaseBrightness()
+    }
     fun turnOffAllDevices() {
         turnOffTv()
         turnOffLight()
     }
 }
 
-// ---------- Generics, enum, data class ----------
-enum class Difficulty { EASY, MEDIUM, HARD }
+fun main() {
+    var smartDevice: SmartDevice = SmartTvDevice("Android TV", "Entertainment")
+    smartDevice.turnOn()
+    smartDevice = SmartLightDevice("Google Light", "Utility")
+    smartDevice.turnOn()
+}
+```
+
+### مرجع 2: نظام أسئلة الاختبار (Question, Difficulty, Quiz, ProgressPrintable, Scope Functions)
+
+```kotlin
+enum class Difficulty {
+    EASY, MEDIUM, HARD
+}
 
 data class Question<T>(
     val questionText: String,
@@ -1795,7 +2782,6 @@ data class Question<T>(
     val difficulty: Difficulty
 )
 
-// ---------- Interface + companion object + extension functions ----------
 interface ProgressPrintable {
     val progressText: String
     fun printProgressBar()
@@ -1822,141 +2808,140 @@ class Quiz : ProgressPrintable {
     }
 
     fun printQuiz() {
-        question1.let { println(it.questionText); println(it.answer); println(it.difficulty) }
+        question1.let {
+            println(it.questionText)
+            println(it.answer)
+            println(it.difficulty)
+        }
         println()
-        question2.let { println(it.questionText); println(it.answer); println(it.difficulty) }
+        question2.let {
+            println(it.questionText)
+            println(it.answer)
+            println(it.difficulty)
+        }
         println()
-        question3.let { println(it.questionText); println(it.answer); println(it.difficulty) }
+        question3.let {
+            println(it.questionText)
+            println(it.answer)
+            println(it.difficulty)
+        }
         println()
     }
 }
 
-// ---------- Entry point ----------
 fun main() {
-    var smartDevice: SmartDevice = SmartTvDevice("Android TV", "Entertainment")
-    smartDevice.turnOn()
-    smartDevice = SmartLightDevice("Google Light", "Utility")
-    smartDevice.turnOn()
-
     val quiz = Quiz().apply {
         printQuiz()
-        printProgressBar()
     }
+    quiz.printProgressBar()
 }
 ```
 
-**المكتبات المطلوبة (Imports):**
-> `import kotlin.properties.ReadWriteProperty`
-> `import kotlin.reflect.KProperty`
-
-**الناتج المتوقع (لقطة الشاشة):**
-> Android TV is turned on. Speaker volume is set to 2 and channel number is set to 1.
-> Google Light turned on. The brightness level is 2.
-> (تليها تفاصيل الأسئلة الثلاثة، ثم ▓▓▓▒▒▒▒▒▒▒ و"3 of 10 answered")
-
 ---
 
-## الجزء الخامس: أسئلة نظرية متوقعة بالامتحان
+## أسئلة نظرية متوقعة بالامتحان
 
-### Question 1: Explain the three main components of a Kotlin class.
-**نموذج الإجابة:** الصنف في كوتلن يتكون من: (1) **الخصائص (Properties)** — متغيرات تمثل بيانات الكائن؛ (2) **الدوال (Methods)** — تمثل السلوكيات والأفعال؛ (3) **الباني (Constructor)** — دالة خاصة تهيئ الكائن عند إنشائه. مثال: `class SmartDevice(val name: String) { fun turnOn() {...} }`.
+> **9 أسئلة.**
 
----
+### Question 1: What is the difference between a primary constructor and a secondary constructor?
+**نموذج الإجابة:** المُنشِئ الرئيسي (`primary constructor`) جزء من ترويسة الصنف، لا يملك جسماً، ويوجد واحد فقط لكل صنف؛ يُستخدم لتهيئة الخصائص الأساسية مباشرة (خاصة عبر `val`/`var` في قائمة وسائطه). المُنشِئ الثانوي (`secondary constructor`) يُكتب داخل جسم الصنف بالكلمة المفتاحية `constructor`، يملك جسماً يحتوي منطقاً إضافياً، ويمكن تعدده، لكن يجب أن يُهيّئ المُنشِئ الرئيسي أولاً عبر `: this(...)` إن وُجد. مثال: `SmartDevice` يستخدم مُنشِئاً ثانوياً لتحويل رمز حالة رقمي (`statusCode: Int`) إلى نص حالة مقروء. يُستخدم المُنشِئ الثانوي عندما تحتاج طريقة بديلة لإنشاء الكائن من بيانات مختلفة الشكل عن المُنشِئ الرئيسي.
 
-### Question 2: Why does Kotlin require the `open` keyword for inheritance?
-**نموذج الإجابة:** لأن كوتلن يجعل كل الأصناف `final` (غير قابلة للوراثة) افتراضياً، لتشجيع تصميم واعٍ ومدروس للعلاقات بين الأصناف، ومنع الأخطاء الناتجة عن وراثة غير مقصودة قد تكسر افتراضات الصنف الأصلي. يُستخدم متى ما أردنا السماح لصنف آخر بالوراثة منه، عبر كتابة `open class`.
+### Question 2: Explain the difference between IS-A and HAS-A relationships with an example.
+**نموذج الإجابة:** علاقة `IS-A` تنتج عن الوراثة، وتعني أن الصنف الفرعي هو فعلياً "نوع من" الصنف الأعلى — مثل `SmartTvDevice IS-A SmartDevice`. علاقة `HAS-A` تنتج عن التركيب (`composition`)، وتعني أن الصنف يمتلك كائناً من صنف آخر كخاصية دون أن يكون هو نفسه من ذلك النوع — مثل `SmartHome HAS-A SmartTvDevice`. تُستخدم `IS-A` عند وجود تخصص حقيقي، و`HAS-A` عند الحاجة لتجميع كائنات مختلفة الأنواع داخل كائن أكبر.
 
----
+### Question 3: What is `polymorphism`, and how do `open`/`override` enable it in Kotlin?
+**نموذج الإجابة:** تعدد الأشكال (`polymorphism`) هو قدرة نفس الاستدعاء (مثل `object.turnOn()`) على تنفيذ سلوك مختلف فعلياً حسب النوع الحقيقي للكائن وقت التشغيل، حتى لو كان نوع المتغير المُعلَن هو الصنف الأعلى. يُفعَّل هذا عبر تعليم الدالة بـ`open` في الصنف الأعلى، ثم كتابة `override` لها في كل صنف فرعي بتنفيذ مختلف؛ عند الاستدعاء، يختار `Kotlin` تلقائياً تنفيذ النسخة المطابقة للنوع الفعلي للكائن.
 
-### Question 3: Describe the difference between IS-A and HAS-A relationships with examples.
-**نموذج الإجابة:** علاقة **IS-A** (الوراثة) تعني أن الصنف الفرعي "هو نوع من" الصنف الأب، مثل `SmartTvDevice : SmartDevice`. علاقة **HAS-A** (التركيب) تعني أن الكائن "يملك" كائناً آخر كخاصية دون أن يكون من نفس نوعه، مثل `SmartHome` التي تملك `SmartTvDevice` و`SmartLightDevice` كخصائص. تُستخدم HAS-A عندما لا تنطبق علاقة "نوع من" منطقياً.
+### Question 4: What problem do property delegates solve, and how are they implemented?
+**نموذج الإجابة:** مفوِّضات الخصائص تحل مشكلة تكرار منطق `get()`/`set()` (مثل التحقق من نطاق قيمة) عبر عدة خصائص. يُنفَّذ الحل ببناء صنف مستقل ينفّذ واجهة `ReadWriteProperty<Any?, T>` (لخصائص `var`) أو `ReadOnlyProperty<Any?, T>` (لخصائص `val`)، مع تعريف `getValue()`/`setValue()` داخله مرة واحدة فقط، ثم ربط أي خاصية بهذا الصنف عبر الكلمة المفتاحية `by`.
 
----
+### Question 5: Compare `enum class` and `data class` in terms of purpose.
+**نموذج الإجابة:** `enum class` تُستخدم لتعريف نوع بمجموعة قيم ثابتة ومحدودة مسبقاً (مثل `EASY`, `MEDIUM`, `HARD`)، فتمنع القيم غير الصالحة وتُكتشف الأخطاء وقت الترجمة. `data class` تُستخدم للأصناف التي وظيفتها الوحيدة حمل بيانات دون سلوك حقيقي، وتولّد تلقائياً دوال `equals()`, `hashCode()`, `toString()`, `copy()`, و`componentN()` استناداً لخصائص المُنشِئ الرئيسي. الاثنان يخدمان أغراضاً مختلفة تماماً لكنهما غالباً يُستخدمان معاً (مثل خاصية من نوع `enum class` داخل `data class`).
 
-### Question 4: What is a backing field and when is it used?
-**نموذج الإجابة:** الـ`backing field` (يُشار له بـ`field`) هو متغير داخلي مخفي يولّده كوتلن تلقائياً لتخزين القيمة الفعلية لخاصية `var`. يُستخدم فقط داخل دالتي `get()` و`set()` الخاصتين بنفس الخاصية، ويُستخدم عادة لإضافة منطق تحقق (مثل حصر نطاق قيم مسموح) قبل تحديث القيمة الفعلية.
+### Question 6: What is the difference between `object` and `companion object`?
+**نموذج الإجابة:** `object` يُعرِّف كائناً مفرداً (`singleton`) مستقلاً بذاته، له نسخة واحدة فقط في كامل البرنامج، ويُستدعى مباشرة باسمه. `companion object` هو أيضاً كائن مفرد، لكنه مُعرَّف **داخل** صنف آخر ومنسوب له منطقياً؛ يُستدعى من خارج الصنف عبر اسم الصنف الحاوي نفسه (مثل `Quiz.answered`) وليس اسم الكائن المرافق.
 
----
+### Question 7: How do extension functions differ from regular member functions, and what problem do they solve?
+**نموذج الإجابة:** الدالة العضو (`member function`) تُكتب داخل جسم الصنف نفسه، بينما دالة التوسيع (`extension function`) تُكتب خارج تعريف الصنف تماماً، بإضافة اسم النوع ونقطة قبل اسم الدالة (مثل `fun Quiz.StudentProgress.printProgressBar()`)، لكنها تُستدعى بنفس صيغة النقطة كأنها عضو أصلي. تحل هذه الآلية مشكلة إضافة سلوك جديد لصنف لا تملك حق تعديل كوده المصدري، أو للحفاظ على الصنف الأصلي نظيفاً ومركّزاً.
 
-### Question 5: Compare primary and secondary constructors.
-**نموذج الإجابة:** الباني الرئيسي (Primary) جزء من ترويسة الصنف، صنف واحد فقط لكل class، وليس له جسم (body) — يُستخدم لتهيئة الخصائص مباشرة. الباني الثانوي (Secondary) يُعرَّف داخل جسم الصنف، يمكن أن يكون هناك عدة بواني ثانوية، وله جسم يحتوي منطق تهيئة إضافي، لكنه يجب أن يُفوِّض التهيئة للباني الرئيسي عبر `this(...)`.
+### Question 8: What is the role of an `interface` in Kotlin, and how does it differ from inheriting from a superclass?
+**نموذج الإجابة:** الواجهة (`interface`) عقد يحدد توقيعات دوال وخصائص للقراءة فقط يجب على أي صنف "يوسّعها" (`extends`) الالتزام بها، دون تقديم أي تنفيذ فعلي جاهز. تختلف عن وراثة صنف أعلى (`superclass`) في أن الوراثة تنقل تنفيذاً فعلياً جاهزاً يمكن إعادة استخدامه مباشرة أو تجاوزه، بينما الواجهة تفرض فقط "ماذا" يجب تنفيذه تاركة "كيف" بالكامل لكل صنف مُنفِّذ. كما يمكن لصنف واحد تنفيذ عدة واجهات، بينما لا يمكنه وراثة أكثر من صنف أعلى واحد.
 
----
-
-### Question 6: What problem do Generics solve?
-**نموذج الإجابة:** الـGenerics تحل مشكلة تكرار كتابة نفس بنية الصنف لكل نوع بيانات مختلف. بدل كتابة `QuestionString` و`QuestionInt` بشكل منفصل، تُكتب `Question<T>` مرة واحدة، ويُحدَّد النوع الفعلي (`String`, `Int`, ...) وقت إنشاء الكائن، مما يوفر مرونة مع الحفاظ على أمان الأنواع (Type Safety) وقت الترجمة.
-
----
-
-### Question 7: Explain the purpose and benefits of using `data class`.
-**نموذج الإجابة:** `data class` تُستخدم للأصناف التي تحتوي بيانات فقط بدون سلوك حقيقي. تفيدنا لأنها تولّد تلقائياً دوال أساسية مهمة: `equals()` لمقارنة الكائنات بمحتواها، `hashCode()`, `toString()` لعرض محتوى الكائن بشكل مقروء، `componentN()` للتفكيك (destructuring)، و`copy()` لإنشاء نسخة معدَّلة من كائن موجود بسهولة.
-
----
-
-### Question 8: What is the role of an interface, and how does it differ from simply writing extension functions?
-**نموذج الإجابة:** الـ`interface` يمثل عقداً يحدد الدوال/الخصائص الواجب تطبيقها في أي صنف يعتمده، مما يضمن الاتساق بين عدة أصناف تطبّقه ويجبر الكومبايلر على تحديث كل الأصناف عند تعديل العقد. بينما الـExtension functions تضيف سلوكاً لصنف واحد دون فرض أي التزام أو عقد على أصناف أخرى، فهي أقل صرامة وأكثر مرونة لكن لا تضمن الاتساق كما تفعل الـinterface.
+### Question 9: Explain the difference between `let()` and `apply()` scope functions with an example use case for each.
+**نموذج الإجابة:** كلا الدالتين توسيعيتان تتيحان الوصول لكائن دون تكرار اسمه، لكنهما تختلفان في القيمة المُعادة: `let()` تشير للكائن عبر `it` وتُعيد نتيجة آخر تعبير داخل كتلتها (مناسبة لتنفيذ عملية والحصول على نتيجة، مثل طباعة خصائص كائن واحد). `apply()` تُعيد دائماً الكائن الأصلي نفسه (مناسبة لتهيئة كائن مباشرة بعد إنشائه وتسلسل العمليات عليه، مثل `Quiz().apply { printQuiz() }`).
 
 ---
 
 ## الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅
 
-- [ ] أستطيع شرح الفرق بين الـclass والـobject (Instance).
-- [ ] أستطيع كتابة primary constructor وsecondary constructor بشكل صحيح.
-- [ ] أفهم لماذا كل الأصناف في كوتلن `final` افتراضياً وكيف أستخدم `open`.
-- [ ] أستطيع تجاوز دالة/خاصية باستخدام `override` واستدعاء `super` عند الحاجة.
-- [ ] أميّز بين علاقة IS-A (الوراثة) وHAS-A (التركيب) بأمثلة واقعية.
-- [ ] أعرف الفرق بين `private`, `protected`, `internal`, `public` ومتى أستخدم كل واحد.
-- [ ] أفهم مفهوم backing field (`field`) واستخدامه في `get()`/`set()`.
-- [ ] أستطيع بناء وتطبيق Property Delegate باستخدام `ReadWriteProperty`.
-- [ ] أفهم الـGenerics `<T>` وكيف تستخدم مع أكثر من نوع بيانات.
-- [ ] أعرف متى أستخدم `enum class` بدل `String` حر.
-- [ ] أعرف الدوال المولَّدة تلقائياً في `data class`.
-- [ ] أفهم الفرق بين `object` المستقل و`companion object`.
-- [ ] أستطيع كتابة extension function/property لصنف موجود.
-- [ ] أفهم الفرق بين `interface` وExtension من ناحية الالتزام والاتساق.
-- [ ] أعرف استخدام دوال النطاق `let()` و`apply()` والفرق بينهما.
+- [ ] أستطيع شرح الفرق بين الصنف (`class`) والكائن (`object`) بمثال
+- [ ] أستطيع كتابة صنف بمُنشِئ رئيسي بوسائط، وأعرف متى أحتاج مُنشِئاً ثانوياً
+- [ ] أفهم دور `field` داخل `set()` ولماذا لا أستخدم اسم الخاصية نفسها
+- [ ] أستطيع شرح لماذا كل الأصناف `final` افتراضياً في `Kotlin` ودور `open`
+- [ ] أستطيع بناء تسلسل وراثة بسيط وتجاوز دالة وخاصية بنجاح
+- [ ] أفرّق بعناية بين علاقة `IS-A` (وراثة) وعلاقة `HAS-A` (تركيب) بمثال من كل نوع
+- [ ] أعرف متى أستخدم `super.function()` ولماذا يختلف عن استدعاء عادي عبر الكائن
+- [ ] أحفظ الفرق بين معدِّلات الرؤية الأربعة (`public`/`private`/`protected`/`internal`) وأطبقها على خاصية ودالة ومُنشِئ وصنف
+- [ ] أستطيع شرح آلية مفوِّضات الخصائص (`by`) والواجهتين `ReadWriteProperty`/`ReadOnlyProperty`
+- [ ] أفهم فائدة الأنواع العامة `<T>` ومتى أستخدمها بدل تكرار الصنف
+- [ ] أعرف الفرق بين `enum class` و`data class` ومتى أستخدم كل واحدة
+- [ ] أفرّق بين `object` و`companion object` وطريقة الوصول لكل منهما
+- [ ] أستطيع كتابة دالة/خاصية توسيع بسيطة وأشرح فائدتها
+- [ ] أفهم الفرق بين الوراثة والواجهة (`interface`) كأداتين لمشاركة السلوك
+- [ ] أفرّق بين `let()` و`apply()` من حيث القيمة المُعادة وحالة الاستخدام المناسبة لكل منهما
+- [ ] راجعت كل الأمثلة البرمجية في مرجع الكود الكامل وتتبعت تنفيذها ذهنياً
 
 ---
 
-## الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)
+## ورقة المراجعة السريعة (Cheat Sheet)
 
 ### 🔑 خريطة العلاقات بين المحاضرات
 
 | المحاضرة | ترتبط مع | كيف؟ |
 | --- | --- | --- |
-| Kotlin Basics | Kotlin OOP (هذه المحاضرة) | الـval/var وType Inference أساس تعريف الخصائص هنا |
-| Kotlin OOP (هذه المحاضرة) | Kotlin Advanced (هذه المحاضرة) | الأصناف الأساسية تُستخدم كقاعدة لتطبيق Generics/Enum/Data class عليها |
-| Kotlin Advanced (هذه المحاضرة) | Compose UI | مفاهيم State/Data class تُستخدم لاحقاً في نمذجة حالة الواجهة (UI State) |
+| `Kotlin Basics` (السابقة) | هذه المحاضرة (`Kotlin OOP`) | الخصائص والدوال هنا مبنية مباشرة فوق `val`/`var`/`fun` الأساسية |
+| هذه المحاضرة (`Kotlin OOP + Advanced`) | `App Fundamentals` (القادمة) | أصناف `Activity`/`Service` في أندرويد تُبنى بنفس مبادئ الوراثة والتجاوز المشروحة هنا |
 
 ### 🔑 أهم النقاط الذهبية
 
 | الموضوع | النقاط |
 | --- | --- |
-| الوراثة | كل صنف `final` افتراضياً؛ استخدم `open` للسماح بالوراثة والتجاوز |
-| الرؤية | private < protected < internal < public (من الأكثر تقييداً للأقل) |
-| Generics/Enum/Data | استخدمها لتقليل تكرار الكود وزيادة أمان الأنواع |
-| Object/Companion | لإدارة حالة مشتركة (Singleton) أو تنظيم أعضاء مرتبطين بصنف |
-| Extensions/Interfaces | الأولى مرنة وسريعة، الثانية تفرض عقداً واتساقاً |
+| الأصناف والكائنات | الصنف قالب، الكائن نسخة فعلية؛ كل شيء `public`/`final` افتراضياً |
+| المُنشِئات | رئيسي واحد بلا جسم، ثانوي متعدد بجسم ويجب تهيئة الرئيسي أولاً |
+| الوراثة | `open` إلزامية للصنف والدالة/الخاصية قبل أي `override`؛ `super` لإعادة استخدام منطق الأب |
+| الرؤية | `private` < `protected` < `internal` < `public` من الأضيق للأوسع |
+| التفويض | `by` + تنفيذ `ReadWriteProperty`/`ReadOnlyProperty` لمنع تكرار منطق `get()`/`set()` |
+| المتقدم | `<T>` للأنواع العامة، `enum class` للقيم المحدودة، `data class` للبيانات الصرفة، `object`/`companion object` للحالات الفريدة |
+| التوسيع والنطاق | امتدادات لإضافة سلوك من الخارج؛ `let()`/`apply()` لتقليل تكرار اسم الكائن |
 
 ### 🔑 مرجع سريع
 
 | الرمز/المصطلح | المعنى | يُستخدم في |
 | --- | --- | --- |
-| `open` | يسمح بالوراثة/التجاوز | الصنف الأب والدوال/الخصائص القابلة للتجاوز |
-| `override` | يعيد تعريف عنصر موروث | الصنف الفرعي |
-| `super` | يشير لسلوك الأب | داخل الدالة المتجاوَزة |
-| `field` | التخزين الداخلي للخاصية | داخل `get()`/`set()` |
-| `<T>` | نوع عام غير محدد | صنف Generics |
-| `by` | تفويض get/set لكائن خارجي | Property delegate |
+| `open` | يسمح بالوراثة/التجاوز | قبل `class`/`fun`/`val` |
+| `override` | يستبدل تنفيذاً موروثاً | أمام `fun`/`val` في الصنف الفرعي |
+| `super` | يستدعي نسخة الأب صراحة | داخل دالة مُجاوَزة |
+| `field` | الحقل الخلفي الفعلي للخاصية | داخل `get()`/`set()` مخصصة |
+| `by` | يفوِّض `get()`/`set()` لكائن آخر | تعريف خاصية مفوَّضة |
+| `<T>` | نوع نائب عام | تعريف صنف/دالة عامة |
+| `it` | إشارة ضمنية للكائن | داخل `let()` |
 
 ### 🔑 قواعد ذهبية لا تُنسى
 
 | # | القاعدة |
 | --- | --- |
-| 1 | لا وراثة بدون `open` على الصنف الأب |
-| 2 | لا `override` بدون `open` على العنصر الأصلي |
-| 3 | `data class` فقط للأصناف التي تحمل بيانات دون سلوك حقيقي |
-| 4 | استخدم `enum class` كلما كانت القيم محدودة ومعروفة مسبقاً |
-| 5 | `companion object` للأعضاء المرتبطين منطقياً بصنف معين |
+| 1 | لا وراثة ولا تجاوز بدون `open` صراحة على الصنف والعنصر المُراد تجاوزه |
+| 2 | استخدم `field` وليس اسم الخاصية نفسها داخل `set()` المخصصة لتفادي حلقة لا نهائية |
+| 3 | كل مُنشِئ ثانوي يجب أن يُهيّئ المُنشِئ الرئيسي عبر `this(...)` إن وُجد |
+| 4 | `IS-A` = وراثة (`:` + صنف)، `HAS-A` = تركيب (خاصية من نوع صنف آخر) — لا تخلط بينهما |
+| 5 | الوصول لكائن مرافق (`companion object`) يتم عبر اسم الصنف الحاوي، لا اسم الكائن المرافق |
+| 6 | `apply()` تُعيد الكائن نفسه دوماً؛ `let()` تُعيد نتيجة آخر تعبير وتستخدم `it` |
 
-<!-- VALIDATION: تم توليد هذا الدليل الدراسي اعتماداً على محتوى ملف android-kotlin.md (محاضرة Kotlin Fundamentals for Android -2-) وتعليمات custome_prompt.md. لم يُرفق SCHEMA.md v1.0 المرجعي، فتم اعتماد قوالب التنسيق الموصوفة داخل custome_prompt.md نفسه. جميع الأمثلة البرمجية مأخوذة أو مبنية مباشرة على محتوى المحاضرة الأصلية دون إضافة تقنيات خارج نطاقها (Swift/Flutter/React Native) وفق الممنوعات المذكورة. -->
+---
+
+<!-- VALIDATION
+schema: 1.0
+parts: detail,summary,mcq,debug,exercise,trace,design,qa,reference,theory,cheat
+mcq_count: 16
+code_blocks: 59
+-->

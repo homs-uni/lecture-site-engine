@@ -105,7 +105,9 @@
         </div>
       </section>
       <section id="subjectProgressTracker" class="mb-lg hidden" aria-label="تقدم الدراسة"></section>
+      <section id="updatedPdfBanner" class="mb-lg hidden" aria-label="تحديث المحاضرات"></section>
       <section id="reviewFeatured" class="mb-xl hidden" aria-label="مراجعة شاملة"></section>
+      <section id="examEntry" class="mb-xl hidden" aria-label="الاختبار الذاتي"></section>
       <div id="searchContainer" class="relative mb-xl" role="search" aria-label="بحث في المحاضرات">
         <div class="relative flex items-center bg-surface-container-high rounded-xl border border-outline-variant focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
           <span class="material-symbols-outlined text-on-surface-variant mx-md pointer-events-none select-none" aria-hidden="true">search</span>
@@ -153,6 +155,10 @@
     <main class="flex-1 w-full lecture-main">
       <div id="content"></div>
     </main>
+  </div>
+
+  <div id="examView" class="hidden min-h-[calc(100vh-64px)]">
+    <div class="max-w-container-max mx-auto px-lg md:px-xl py-xl" id="examRoot"></div>
   </div>
 
   <div id="mobileTocBackdrop" class="mobile-toc-backdrop hidden" aria-hidden="true"></div>

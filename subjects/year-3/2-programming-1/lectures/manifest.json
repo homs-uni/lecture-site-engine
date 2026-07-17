@@ -1,0 +1,79 @@
+{
+  "settings": {
+    "subjectName": "2-programming-1",
+    "subjectNameEn": "2-programming-1",
+    "year": "2025-2026",
+    "academicYear": 3,
+    "theme": "programming-blue-lavender",
+    "hubTag": "مادة حملة",
+    "enabledLectures": true,
+    "department": "تصميم"
+  },
+  "title": "2-programming-1 — 2-programming-1",
+  "subtitle": "دليل دراسي تفاعلي",
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2.md",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٣"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٥"
+    },
+    {
+      "path": "par6.md",
+      "num": 6,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٦"
+    },
+    {
+      "path": "par7.md",
+      "num": 7,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٧"
+    }
+  ],
+  "lectureIcons": [
+    "📌",
+    "📖",
+    "💻",
+    "🎯",
+    "📝"
+  ],
+  "lectureMatIcons": [
+    "school",
+    "menu_book",
+    "code",
+    "quiz",
+    "description"
+  ]
+}

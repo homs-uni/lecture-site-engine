@@ -1,0 +1,57 @@
+name: Auto-update PR branches behind main
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  workflows: write
+
+jobs:
+  update-behind-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge main into any PR branch that's behind
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            let prs;
+            if (context.eventName === 'pull_request') {
+              prs = [context.payload.pull_request];
+            } else {
+              const res = await github.rest.pulls.list({ owner, repo, state: 'open', base: 'main', per_page: 100 });
+              prs = res.data;
+            }
+
+            for (const pr of prs) {
+              if (pr.base.ref !== 'main' || pr.draft) continue;
+
+              const { data: compare } = await github.rest.repos.compareCommits({
+                owner,
+                repo,
+                base: pr.head.sha,
+                head: 'main',
+              });
+
+              if (compare.ahead_by === 0) {
+                console.log(`PR #${pr.number} is already up to date with main.`);
+                continue;
+              }
+
+              console.log(`PR #${pr.number} is ${compare.ahead_by} commit(s) behind main — updating.`);
+              try {
+                await github.rest.pulls.updateBranch({ owner, repo, pull_number: pr.number });
+              } catch (err) {
+                // Branch protection (required + strict status checks) already blocks merging
+                // this PR while it's behind — no need to nag the contributor here.
+                console.error(`Failed to update PR #${pr.number}: ${err.message}`);
+              }
+            }

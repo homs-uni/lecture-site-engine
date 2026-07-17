@@ -6,7 +6,9 @@
     "academicYear": 4,
     "theme": "kotlin-pink-blue",
     "enabledLectures": true,
-    "department": "نظري"
+    "department": "نظري",
+    "updatedPdfUrl": "https://drive.google.com/file/d/1YBFGh4PB33zKhoD8mRiNjN0oOV3BKEOw/view?usp=drive_link",
+    "updatedPdfNote": "تم تحديث أسلوب شرح المحاضرات (ترجمة حرفية + شرح أعمق). المحتوى الأكاديمي نفسه — وإذا كنت معتمد على النسخة القديمة، يمكنك تحميل PDF الشرح القديم من هنا."
   },
   "title": "2 - اللغة الانجليزية التخصصية — Android Development Fundamentals (Full Theory)",
   "subtitle": "منصة أندرويد كوتلن Compose",

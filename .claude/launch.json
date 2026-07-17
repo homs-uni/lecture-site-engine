@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dist-server",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "dist", "-p", "8123", "-c-1"],
+      "port": 8123
+    }
+  ]
+}
