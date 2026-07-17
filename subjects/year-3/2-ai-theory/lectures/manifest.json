@@ -5,7 +5,7 @@
     "year": "2025-2026",
     "academicYear": 3,
     "theme": "software-purple",
-    "enabledLectures":true,
+    "enabledLectures": true,
     "department": "القسم النظري"
   },
   "title": "الذكاء الاصطناعي — Artificial Intelligence",
@@ -80,6 +80,20 @@
       "icon": "📖",
       "matIcon": "menu_book",
       "badge": "المحاضرة ١٠"
+    },
+    {
+      "path": "par11.md",
+      "num": 11,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ١١"
+    },
+    {
+      "path": "par12.md",
+      "num": 12,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ١٢"
     }
   ],
   "lectureIcons": [
