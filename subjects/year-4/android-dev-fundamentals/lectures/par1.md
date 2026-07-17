@@ -129,7 +129,7 @@
 > "The foundation of the Android platform is the Linux kernel. For example, the Android Runtime (ART) relies on the Linux kernel for underlying functionalities such as threading and low-level memory management. Using a Linux kernel lets Android take advantage of key security features and lets device manufacturers develop hardware drivers for a well-known kernel."
 
 #### الترجمة الحرفية:
-> أساس منصّة أندرويد هو نواة Linux. على سبيل المثال، يعتمد Android Runtime (ART) على نواة Linux لوظائف أساسية مثل الخيوط البرمجية (threading) وإدارة الذاكرة منخفضة المستوى. استخدام نواة Linux يتيح لأندرويد الاستفادة من ميزات أمان أساسية، ويتيح لمصنّعي الأجهزة تطوير برامج تشغيل (drivers) للأجهزة لنواة معروفة جيداً.
+> اساس منصّة أندرويد هو نواة Linux. على سبيل المثال، يعتمد Android Runtime (ART) على نواة Linux لوظائف أساسية مثل الخيوط البرمجية (threading) وإدارة الذاكرة منخفضة المستوى. استخدام نواة Linux يتيح لأندرويد الاستفادة من ميزات أمان أساسية، ويتيح لمصنّعي الأجهزة تطوير برامج تشغيل (drivers) للأجهزة لنواة معروفة جيداً.
 
 #### الشرح المبسّط:
 هذا القسم يشرح أدنى طبقة في المكدّس: نواة Linux، وهي "الجسر" المباشر بين البرمجيات والعتاد الفعلي (Hardware) للهاتف. أهميتها تظهر في أن الطبقات الأعلى — مثل `ART` — لا "تتحدث" مباشرة مع الشاشة أو المعالج، بل تطلب من نواة Linux تنفيذ العمليات منخفضة المستوى مثل إدارة الذاكرة أو تشغيل عدة مهام (Threads) في نفس الوقت. سبب اختيار Google لـ Linux تحديداً (بدل بناء نواة جديدة من الصفر) هو أن Linux نظام ناضج، مُختبَر أمنياً منذ عقود، ومعروف لمعظم شركات صناعة العتاد، فيسهل عليهم كتابة "برامج تشغيل" (Drivers) متوافقة معه. **تشبيه يومي:** نواة Linux هنا تشبه أساسات مبنى وشبكة الكهرباء والمياه فيه — لا يراها الساكن (المستخدم) مباشرة، لكن كل شيء آخر في المبنى (الطوابق العليا) يعتمد عليها للعمل بشكل صحيح وآمن.
