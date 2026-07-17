@@ -540,8 +540,7 @@ $$
 4  |   for each| (x, y)      | لكل مثال في البيانات:
 5  |     compute| prediction | p = Σⱼ θⱼ × xⱼ
 6  |     compute| error      | err = p - y
-7  |     update | θ          | θ₀ = θ₀ - α × err
-                               θⱼ = θⱼ - α × err × xⱼ  (j ≥ 1)
+7  |     update | θ          | θ₀ = θ₀ - α × err ؛ وللـ j ≥ 1: θⱼ = θⱼ - α × err × xⱼ
 8  | check     | convergence | ‖θ_new - θ_old‖₂ < ε → توقف
 9  | return    | θ*          | المعاملات النهائية
 ```
