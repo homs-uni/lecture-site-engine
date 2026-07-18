@@ -60,7 +60,7 @@ export function createRenderer(options = {}) {
     renderTrace,
     renderDesign,
     renderLecture: (lecture, accent, icon, refs) => renderLecture(lecture, accent, icon, refs, deps),
-    renderCodeGuide: (guide) => renderCodeGuide(guide, deps),
+    renderCodeGuide: (guide, badgeLabel) => renderCodeGuide(guide, deps, badgeLabel),
     renderReview: (review, icon) => renderReview(review, icon, deps),
     renderAiDisclaimer: () => renderAiDisclaimer(config),
     renderDisclaimers: () => renderDisclaimers(config),

@@ -2,9 +2,11 @@
  * Line-level SCHEMA.md checks (pre/post parse).
  * @param {string} text
  * @param {string} [fileLabel]
+ * @param {{ lectureHeading?: RegExp }} [options] — subject guide-config may use
+ *   `# الوحدة` / `# Unit` instead of the default `# المحاضرة` / `# المختبر`.
  * @returns {{ severity: 'error'|'warn', line: number, message: string }[]}
  */
-export function runSchemaChecks(text, fileLabel = 'file') {
+export function runSchemaChecks(text, fileLabel = 'file', options = {}) {
   const lines = text.split('\n');
   /** @type {{ severity: 'error'|'warn', line: number, message: string }[]} */
   const issues = [];
@@ -12,6 +14,13 @@ export function runSchemaChecks(text, fileLabel = 'file') {
   const push = (severity, line, message) => {
     issues.push({ severity, line, message: `[${fileLabel}] ${message}` });
   };
+
+  // Accept subject-specific headings (e.g. `# الوحدة`) plus the SCHEMA defaults.
+  // Don't use `\b` here — JS word boundaries don't treat Arabic letters as
+  // word chars, so `# الوحدة 6` would fail a `\b` check after الوحدة.
+  const lectureHeadingRe = options.lectureHeading instanceof RegExp
+    ? options.lectureHeading
+    : /^# (?:المحاضرة|المختبر|الوحدة|Unit)/;
 
   let hasLectureHeading = false;
   let inAlgorithmFence = false;
@@ -22,7 +31,9 @@ export function runSchemaChecks(text, fileLabel = 'file') {
     const n = i + 1;
     const t = line.trim();
 
-    if (/^# (?:المحاضرة|المختبر) /.test(t)) hasLectureHeading = true;
+    if (lectureHeadingRe.test(t) || /^# (?:المحاضرة|المختبر|الوحدة|Unit)/.test(t)) {
+      hasLectureHeading = true;
+    }
 
     if (t.startsWith('```algorithm')) {
       inAlgorithmFence = true;
@@ -50,7 +61,7 @@ export function runSchemaChecks(text, fileLabel = 'file') {
   }
 
   if (!hasLectureHeading && text.trim()) {
-    push('error', 1, 'missing lecture heading (# المحاضرة … or # المختبر …)');
+    push('error', 1, 'missing lecture heading (# المحاضرة … / # المختبر … / # الوحدة …)');
   }
 
   const h3Sections = [...text.matchAll(/^### (\d+(?:\.\d+)*\.?)\s+.+$/gm)];

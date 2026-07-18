@@ -46,6 +46,7 @@ const {
   renderLecture,
   renderReview,
   renderMCQ,
+  renderCodeGuide,
   buildTocData,
   initInteractivity,
   setRefContext,
@@ -62,6 +63,8 @@ let appState = {
   items: [],
   reviewManifest: null,
   reviewItems: [],
+  examManifest: null,
+  examItems: [],
   progressTracker: null,
   quizStats: null,
   examMode: null,
@@ -72,6 +75,7 @@ let appState = {
 let siteTitle = "";
 let currentLectureIndex = -1;
 let currentReviewIndex = -1;
+let currentExamIndex = -1;
 let routeLock = false;
 let scrollAnimObserver = null;
 let sidebarObserver = null;
@@ -130,6 +134,31 @@ function getReviewIndexFromHash(hash) {
   let idx = appState.reviewItems.findIndex(it => it.review.id === hash);
   if (idx >= 0) return idx;
   return appState.reviewItems.findIndex(it => hash.startsWith(`${it.review.id}-`));
+}
+
+async function loadExamManifest() {
+  const res = await fetch(versionedUrl('DAWRAT/manifest.json'), { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function loadExamJson(path) {
+  const res = await fetch(versionedUrl(`DAWRAT/${path}`), { cache: 'no-store' });
+  if (!res.ok) throw new Error(`تعذّر تحميل ${path}`);
+  return res.json();
+}
+
+function examFromJson(data, fileId) {
+  const exam = data.exam || data;
+  if (fileId && exam && !exam.id) exam.id = fileId;
+  return exam;
+}
+
+function getExamIndexFromHash(hash) {
+  if (!hash || hash === 'home') return -1;
+  let idx = appState.examItems.findIndex(it => it.exam.id === hash);
+  if (idx >= 0) return idx;
+  return appState.examItems.findIndex(it => hash.startsWith(`${it.exam.id}-`));
 }
 
 function reviewStats(review) {
@@ -215,6 +244,60 @@ function renderReviewFeatured() {
   });
 }
 
+function examStats(exam) {
+  const mcqPart = exam.parts?.find(p => p.type === 'mcq');
+  const count = mcqPart?.questions?.reduce((n, q) => n + (q.type === 'group' ? q.questions.length : 1), 0) || 0;
+  return { count };
+}
+
+/** Unlike renderReviewFeatured (always just item[0]), a subject can have
+ * more than one دورات file — render one card per item, in a grid that reads
+ * fine whether there's one card or several. */
+function renderExamArchiveSection() {
+  const section = document.getElementById('examArchive');
+  if (!section) return;
+
+  if (!appState.examItems.length) {
+    section.classList.add('hidden');
+    section.innerHTML = '';
+    return;
+  }
+
+  section.classList.remove('hidden');
+  const cardsHtml = appState.examItems.map((item, i) => {
+    const stats = examStats(item.exam);
+    return `<button type="button" class="lecture-picker-card group text-right w-full bg-gradient-to-l from-tertiary-container/40 to-secondary-container/30 border-2 border-tertiary/30 rounded-2xl p-lg custom-shadow box-hover" data-exam-index="${i}" aria-label="فتح ${escAttr(item.exam.title)}">
+      <div class="flex items-center gap-md">
+        <div class="picker-icon-wrap w-14 h-14 rounded-xl bg-tertiary flex items-center justify-center text-on-tertiary shrink-0">
+          ${ms(item.matIcon, true, 'text-2xl')}
+        </div>
+        <div class="flex-1 text-right">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">${esc(item.exam.title)}</h3>
+          <span class="inline-flex items-center gap-xs px-sm py-xs bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface-variant">
+            ${ms('quiz', false, 'text-sm text-tertiary')} ${stats.count} سؤال
+          </span>
+        </div>
+        ${ms('arrow_back', false, 'text-on-surface-variant shrink-0')}
+      </div>
+    </button>`;
+  }).join('');
+
+  section.innerHTML = `
+    <div class="flex items-center gap-md mb-lg">
+      ${ms('history_edu', false, 'text-tertiary')}
+      <h2 class="font-headline-md text-headline-md text-on-surface">دورات سنوات سابقة</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">${cardsHtml}</div>`;
+
+  section.querySelectorAll('[data-exam-index]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.examIndex);
+      const id = appState.examItems[idx]?.exam.id;
+      if (id) location.hash = id;
+    });
+  });
+}
+
 function setJumpQuizVisible(show) {
   document.getElementById('jumpQuizBtn')?.closest('.p-lg')?.classList.toggle('hidden', !show);
   document.getElementById('mobileJumpQuizBtn')?.closest('.mobile-toc-drawer__foot')?.classList.toggle('hidden', !show);
@@ -271,6 +354,40 @@ function loadReviewView(index, anchorHash) {
   else if (needsRender) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function loadExamView(index, anchorHash) {
+  const item = appState.examItems[index];
+  if (!item) return;
+
+  currentLectureIndex = -1;
+  showView('lecture');
+  setJumpQuizVisible(false);
+
+  const needsRender = currentExamIndex !== index || !document.getElementById(item.exam.id);
+
+  if (needsRender) {
+    currentExamIndex = index;
+    mountReviewHtml(item, renderCodeGuide(item.exam, '📝 دورات سنوات سابقة'));
+
+    document.getElementById('sidebarCourseTitle').textContent = shortLectureTitle(item.exam.title);
+    document.getElementById('sidebarCourseSub').textContent = item.exam.tag || '';
+    document.getElementById('sidebarMatIcon').textContent = item.matIcon || 'history_edu';
+    document.getElementById('mobileTocCourseTitle').textContent = shortLectureTitle(item.exam.title);
+    document.getElementById('mobileTocCourseSub').textContent = item.exam.tag || '';
+    document.getElementById('mobileTocMatIcon').textContent = item.matIcon || 'history_edu';
+  } else {
+    buildSidebar(item.toc);
+    showView('lecture');
+  }
+
+  const hash = anchorHash && anchorHash !== item.exam.id ? anchorHash : item.exam.id;
+  routeLock = true;
+  if (location.hash !== `#${hash}`) location.hash = hash;
+  routeLock = false;
+
+  if (anchorHash && anchorHash !== item.exam.id) scrollToAnchor(anchorHash);
+  else if (needsRender) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function loadReviews() {
   const reviewManifest = await loadReviewManifest();
   if (!reviewManifest?.files?.length) return;
@@ -287,6 +404,26 @@ async function loadReviews() {
       icon: file.icon || '📚',
       matIcon: file.matIcon || 'menu_book',
       toc: buildTocData([review])[0],
+    });
+  }
+}
+
+async function loadExams() {
+  const examManifest = await loadExamManifest();
+  if (!examManifest?.files?.length) return;
+
+  appState.examManifest = examManifest;
+  for (const file of examManifest.files) {
+    const path = typeof file === 'string' ? file : file.path;
+    if (!path) continue;
+    const data = await loadExamJson(path);
+    const exam = examFromJson(data, file.id);
+    if (!exam?.parts?.length) continue;
+    appState.examItems.push({
+      exam,
+      icon: file.icon || '📝',
+      matIcon: file.matIcon || 'history_edu',
+      toc: buildTocData([exam])[0],
     });
   }
 }
@@ -1198,12 +1335,19 @@ function resolveRoute() {
     return;
   }
 
+  const examIdx = getExamIndexFromHash(hash);
+  if (examIdx >= 0) {
+    loadExamView(examIdx, hash);
+    return;
+  }
+
   const idx = getLectureIndexFromHash(hash, appState.items);
   if (idx >= 0) {
     loadLectureView(idx, hash).catch(err => console.error(err));
   } else {
     currentLectureIndex = -1;
     currentReviewIndex = -1;
+    currentExamIndex = -1;
     // Mastery chips and the exam entry card depend on quiz stats that may
     // have changed since the grid was last rendered.
     renderHomeGrid();
@@ -1457,6 +1601,13 @@ async function init() {
     }
     renderReviewFeatured();
     appState.examMode.renderHomeEntry();
+
+    try {
+      await loadExams();
+    } catch (examErr) {
+      console.warn('دورات archive not loaded:', examErr);
+    }
+    renderExamArchiveSection();
 
     resolveRoute();
   } catch (err) {

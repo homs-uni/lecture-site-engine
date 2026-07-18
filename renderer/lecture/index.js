@@ -3,6 +3,7 @@ import { ms, PART_MAT_ICONS } from '../core/icons.js';
 import { isChecklistPart } from '../core/part-filters.js';
 import { renderBlocks } from '../blocks/index.js';
 import { renderPart } from '../parts/index.js';
+import { mcqSectionAnchor } from '../core/slug.js';
 
 export function renderAiDisclaimer(config) {
   const site = config.defaultTitle || 'Study Guide';
@@ -84,10 +85,10 @@ export function renderReview(review, icon, deps) {
   return html + '</div></section>';
 }
 
-export function renderCodeGuide(guide, deps) {
+export function renderCodeGuide(guide, deps, badgeLabel = '💻 أكواد المحاضرة') {
   let html = `<section class="lecture mb-xl" id="${guide.id}">
     <section class="mb-xl text-center">
-      <span class="inline-block px-md py-xs bg-tertiary-container text-on-tertiary-container rounded-full font-label-md text-label-md mb-md">💻 أكواد المحاضرة</span>
+      <span class="inline-block px-md py-xs bg-tertiary-container text-on-tertiary-container rounded-full font-label-md text-label-md mb-md">${esc(badgeLabel)}</span>
       <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-md">${esc(guide.title)}</h2>
       <p class="font-body-md text-on-surface-variant mb-md">${esc(guide.tag)}</p>`;
 
@@ -102,6 +103,7 @@ export function renderCodeGuide(guide, deps) {
   guide.parts.forEach((part, pi) => {
     const partId = `${guide.id}-p${pi + 1}`;
     const pIcon = PART_MAT_ICONS[part.type] || 'article';
+    const isMcq = part.type === 'mcq';
 
     html += `<div class="section-block mb-xl scroll-mt-16 box-animate" id="${partId}" data-part-type="${part.type}">
       <div class="flex items-center gap-md mb-lg">
@@ -112,9 +114,10 @@ export function renderCodeGuide(guide, deps) {
       </div>`;
 
     const cardCls = 'border border-outline-variant dark:border-[#1e40af] rounded-xl p-lg custom-shadow box-hover bg-surface-container-lowest dark:bg-transparent';
-    html += `<div class="${cardCls}">`;
+    if (!isMcq) html += `<div class="${cardCls}">`;
     html += renderPart(part, partRenderCtx(partId, part, deps));
-    html += '</div></div>';
+    if (!isMcq) html += '</div>';
+    html += '</div>';
   });
 
   return html + '</div></section>';
@@ -213,6 +216,22 @@ function buildPartSubsections(part) {
   }
   if (part.questions?.length) {
     if (part.type === 'mcq') {
+      // Past-exam banks group questions under "## المحاضرة N: …" dividers
+      // (parser attaches `section` on each question). Prefer those as TOC
+      // entries so the sidebar navigates by lecture, not by question number.
+      const seen = new Set();
+      const byLecture = [];
+      for (const q of part.questions) {
+        if (!q.section || seen.has(q.section)) continue;
+        seen.add(q.section);
+        byLecture.push({
+          level: 3,
+          text: q.section,
+          id: mcqSectionAnchor(q.section),
+        });
+      }
+      if (byLecture.length) return byLecture;
+
       return part.questions.map(q => ({
         level: 3,
         text: `س${q.num} (${q.difficulty})`,

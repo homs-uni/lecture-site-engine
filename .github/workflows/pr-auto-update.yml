@@ -7,6 +7,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to update and check (blank = update all behind-PRs)'
+        required: false
 
 permissions:
   contents: write
@@ -28,15 +32,21 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const STATUS_CONTEXT = 'pr-sync/up-to-date-with-main';
+            const prNumberInput = context.payload.inputs?.pr_number;
 
             let prs;
-            if (context.eventName === 'pull_request') {
+            if (prNumberInput) {
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: Number(prNumberInput) });
+              prs = [pr];
+            } else if (context.eventName === 'pull_request') {
               prs = [context.payload.pull_request];
             } else {
               // main just moved — every open PR may now be behind, re-check all of them.
               const res = await github.rest.pulls.list({ owner, repo, state: 'open', base: 'main', per_page: 100 });
               prs = res.data;
             }
+
+            let conflicted = [];
 
             for (const pr of prs) {
               if (pr.base.ref !== 'main' || pr.draft) continue;
@@ -52,27 +62,44 @@ jobs:
                   description: 'متزامن مع main ✅',
                 });
                 console.log(`PR #${pr.number}: up to date.`);
-                continue;
+              } else {
+                console.log(`PR #${pr.number} is ${compare.ahead_by} commit(s) behind main — attempting auto-update.`);
+                try {
+                  await github.rest.pulls.updateBranch({ owner, repo, pull_number: pr.number });
+                  // updateBranch pushes a merge commit, which fires a fresh "synchronize"
+                  // event on the new head SHA — that re-run reports success there.
+                  console.log(`PR #${pr.number}: auto-updated from main.`);
+                } catch (err) {
+                  // 422 from this endpoint means GitHub could not fast-forward/merge
+                  // automatically — i.e. a real conflict that needs a human to resolve,
+                  // as opposed to a permission issue (403) blocking the auto-update.
+                  const isConflict = err.status === 422;
+                  await github.rest.repos.createCommitStatus({
+                    owner, repo, sha: pr.head.sha, state: 'failure',
+                    context: STATUS_CONTEXT,
+                    description: isConflict
+                      ? `⚠️ تعارضات (conflicts) مع main — لازم تُحل يدوياً قبل الدمج`
+                      : `❌ متأخر ${compare.ahead_by} commit عن main — اضغط "Update branch"`,
+                  });
+                  console.error(`PR #${pr.number}: could not auto-update (${err.status}: ${err.message}).`);
+                }
               }
 
-              console.log(`PR #${pr.number} is ${compare.ahead_by} commit(s) behind main — attempting auto-update.`);
-              try {
-                await github.rest.pulls.updateBranch({ owner, repo, pull_number: pr.number });
-                // updateBranch pushes a merge commit, which fires a fresh "synchronize"
-                // event on the new head SHA — that re-run reports success there.
-                console.log(`PR #${pr.number}: auto-updated from main.`);
-              } catch (err) {
-                // 422 from this endpoint means GitHub could not fast-forward/merge
-                // automatically — i.e. a real conflict that needs a human to resolve,
-                // as opposed to a permission issue (403) blocking the auto-update.
-                const isConflict = err.status === 422;
-                await github.rest.repos.createCommitStatus({
-                  owner, repo, sha: pr.head.sha, state: 'failure',
-                  context: STATUS_CONTEXT,
-                  description: isConflict
-                    ? `⚠️ تعارضات (conflicts) مع main — لازم تُحل يدوياً قبل الدمج`
-                    : `❌ متأخر ${compare.ahead_by} commit عن main — اضغط "Update branch"`,
-                });
-                console.error(`PR #${pr.number}: could not auto-update (${err.status}: ${err.message}).`);
+              // Only relevant when a single PR was targeted (button press before merge):
+              // confirm GitHub sees no conflicts once the update above has landed.
+              if (prNumberInput) {
+                let mergeable = null;
+                for (let i = 0; i < 5 && mergeable === null; i++) {
+                  if (i > 0) await new Promise(r => setTimeout(r, 3000));
+                  const { data: fresh } = await github.rest.pulls.get({ owner, repo, pull_number: pr.number });
+                  mergeable = fresh.mergeable;
+                }
+                if (mergeable === false) {
+                  conflicted.push(pr.number);
+                }
               }
+            }
+
+            if (conflicted.length > 0) {
+              core.setFailed(`PR(s) have merge conflicts with main and cannot be merged: ${conflicted.join(', ')}`);
             }

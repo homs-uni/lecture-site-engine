@@ -5,11 +5,90 @@
     "year": "2025-2026",
     "academicYear": 1,
     "theme": "amber-default",
+    "enabledLectures": true,
     "department": "القسم"
   },
   "title": "programming-2 — programming-2",
   "subtitle": "دليل دراسي تفاعلي",
-  "files": [],
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٣"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٥"
+    },
+    {
+      "path": "par6.md",
+      "num": 6,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٦"
+    },
+    {
+      "path": "par7.md",
+      "num": 7,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٧"
+    },
+    {
+      "path": "par8.md",
+      "num": 8,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٨"
+    },
+    {
+      "path": "par9.md",
+      "num": 9,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٩"
+    },
+    {
+      "path": "par10.md",
+      "num": 10,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ١٠"
+    },
+    {
+      "path": "par11.md",
+      "num": 11,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ١١"
+    },
+    {
+      "path": "par12.md",
+      "num": 12,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ١٢"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",

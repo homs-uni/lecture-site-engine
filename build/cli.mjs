@@ -68,13 +68,15 @@ async function validateSubject(subjectDir, parser) {
     } catch (err) {
       issues.push({ severity: 'error', line: 1, message: `parse failed: ${err.message}` });
     }
-    if (issues.length) {
-      const errors = issues.filter(i => i.severity === 'error');
+    // Warnings are counted but not printed — too noisy during builds.
+    const errors = issues.filter(i => i.severity === 'error');
+    if (errors.length) {
       errorCount += errors.length;
       console.error(`✗ ${rel}: ${errors.length} error(s), ${issues.length - errors.length} warning(s)`);
-      for (const i of issues) console.error(`  L${i.line} ${i.severity}: ${i.message}`);
+      for (const i of errors) console.error(`  L${i.line} ${i.severity}: ${i.message}`);
     } else {
-      console.log(`✓ ${rel}`);
+      const warnNote = issues.length ? ` (${issues.length} warning(s) hidden)` : '';
+      console.log(`✓ ${rel}${warnNote}`);
     }
   }
   if (errorCount) throw new Error(`Validation failed with ${errorCount} error(s)`);
@@ -121,6 +123,63 @@ async function buildReviewJson(subjectDir, reviewsOut, parser) {
       );
       updatedFiles.push({ ...entry, path: jsonName, source: srcPath, parsedAt });
       console.log(`  parsed → reviews/${jsonName}`);
+    } else {
+      updatedFiles.push(entry);
+    }
+  }
+
+  manifest.files = updatedFiles;
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+}
+
+/**
+ * "دورات" (past-exam MCQ archive) — one manifest + one or more .md files per
+ * subject, each shaped like a normal lecture's MCQ part (starts with
+ * "## أسئلة اختيار من متعدد (MCQ)"). Mirrors buildReviewJson's structure, but
+ * uses parser.parsePart (not parseReviewGuide) so the mcq-typed part comes
+ * back as {title, type:'mcq', questions:[...]} — the shape renderCodeGuide /
+ * renderMCQ expect, not the generic {blocks:[...]} shape reviews use.
+ */
+async function buildExamsJson(subjectDir, examsOut, parser) {
+  const manifestPath = path.join(examsOut, 'manifest.json');
+  if (!existsSync(manifestPath)) return;
+
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  if (!manifest.files?.length) return;
+
+  const updatedFiles = [];
+  for (const file of manifest.files) {
+    const entry = typeof file === 'string' ? { path: file } : { ...file };
+    const srcPath = entry.path;
+    if (!srcPath) continue;
+
+    if (/\.md$/i.test(srcPath)) {
+      const mdPath = path.join(subjectDir, 'DAWRAT', srcPath);
+      if (!existsSync(mdPath)) {
+        console.warn(`  exam source missing: DAWRAT/${srcPath}`);
+        continue;
+      }
+      const md = await readFile(mdPath, 'utf8');
+      const mcqPart = parser.parsePart(`## أسئلة اختيار من متعدد (MCQ)\n${md}`);
+      const exam = {
+        id: entry.id || srcPath.replace(/\.md$/i, ''),
+        title: entry.label || manifest.title || 'دورات سنوات سابقة',
+        tag: manifest.subtitle || '',
+        parts: [mcqPart],
+      };
+      const jsonName = srcPath.replace(/\.md$/i, '.json');
+      const parsedAt = new Date().toISOString();
+      await writeFile(
+        path.join(examsOut, jsonName),
+        JSON.stringify({
+          schemaVersion: '1.0',
+          source: srcPath,
+          parsedAt,
+          exam,
+        }, null, 2),
+      );
+      updatedFiles.push({ ...entry, path: jsonName, source: srcPath, parsedAt });
+      console.log(`  parsed → DAWRAT/${jsonName}`);
     } else {
       updatedFiles.push(entry);
     }
@@ -192,6 +251,13 @@ async function main() {
     const reviewsOut = path.join(outDir, 'reviews');
     await cp(reviewsSrc, reviewsOut, { recursive: true });
     await buildReviewJson(subjectDir, reviewsOut, parser);
+  }
+
+  const examsSrc = path.join(subjectDir, 'DAWRAT');
+  if (existsSync(examsSrc)) {
+    const examsOut = path.join(outDir, 'DAWRAT');
+    await cp(examsSrc, examsOut, { recursive: true });
+    await buildExamsJson(subjectDir, examsOut, parser);
   }
 
   // Parse lectures → JSON

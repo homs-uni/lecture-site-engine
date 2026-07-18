@@ -106,9 +106,12 @@ async function main() {
       const warns = issues.filter(i => i.severity === 'warn');
       totalErrors += errors.length;
       totalWarns += warns.length;
-      if (issues.length) {
+      // Warnings are counted in the summary but not printed line-by-line.
+      if (errors.length) {
         console.log(`\n✗ ${filePath} — ${errors.length} error(s), ${warns.length} warning(s)`);
-        console.log(formatIssues(issues));
+        console.log(formatIssues(errors));
+      } else if (warns.length) {
+        console.log(`✓ ${filePath} (${warns.length} warning(s) hidden)`);
       } else {
         console.log(`✓ ${filePath}`);
       }
@@ -126,10 +129,13 @@ async function main() {
   let totalErrors = 0;
   for (const f of files) {
     const { filePath, issues } = await validateFile(f, parser);
-    if (issues.length) {
+    const errors = issues.filter(i => i.severity === 'error');
+    if (errors.length) {
       console.log(`\n✗ ${filePath}`);
-      console.log(formatIssues(issues));
+      console.log(formatIssues(errors));
       if (hasErrors(issues)) totalErrors += 1;
+    } else if (issues.length) {
+      console.log(`✓ ${filePath} (${issues.length} warning(s) hidden)`);
     } else {
       console.log(`✓ ${filePath}`);
     }
