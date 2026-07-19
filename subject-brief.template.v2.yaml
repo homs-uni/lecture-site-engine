@@ -1,0 +1,513 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Subject Brief Template — Lecture Site Engine v2.0
+# ═══════════════════════════════════════════════════════════════════════════════
+# تعليمات للذكاء الاصطناعي (DeepSeek / Claude) — اقرأ قبل التعبئة
+#
+# مهمتك: املأ هذا القالب وارجع ملف YAML واحد فقط باسم subject-brief.yaml
+# لا تشرح، لا تضف markdown، لا تولّد محتوى محاضرات — فقط إعدادات المادة.
+#
+# المدخلات التي سيرسلها المستخدم:
+#   1) هذا القالب (subject-brief.template.v2.yaml)
+#   2) النظري الكامل للمادة (كل المحاضرات: PDF أو نص)
+#
+# ماذا تفعل:
+#   - اقرأ كل المحاضرات وافهم: هل فيها أكواد؟ مخططات؟ أوامر CLI؟ جداول؟ معادلات؟
+#   - فعّل (enabled: true) الأجزاء (parts) والبلوكات (blocks) الموجودة فعلاً في المادة
+#   - عيّن domain_type لكل موضوع: equation-first | code-first | diagram-first | prose-first
+#   - اضبط visualization_types المناسبة (cycles, sequences, comparisons, etc.)
+#   - عطّل (enabled: false) فقط ما لا يظهر أبداً ولا ينطبق على المادة
+#
+# v2.0 الجديد:
+#   - content_ordering: يحدد ترتيب العناصر حسب نوع المادة
+#   - visualization_templates: الرسومات المدعومة (cycle, sequence, etc.)
+#   - coverage_tracking: enabled → يتطلب metadata @coverage في المخرجات
+#   - collapsible_original_text: true → يجعل "النص الأصلي" قابل للطي بدل الظهور دائماً
+# ═══════════════════════════════════════════════════════════════════════════════
+
+schema_version: "2.0"
+
+# ─── Subject identity ─────────────────────────────────────────────────────────
+subject:
+  id: my-subject
+  name_ar: "اسم المادة بالعربي"
+  name_en: "Subject Name in English"
+  tagline: "كلمة + كلمة + كلمة + كلمة"
+  section_label: "القسم العملي"
+
+# ─── Locale & terminology ─────────────────────────────────────────────────────
+locale:
+  language: ar
+  direction: rtl
+  terms_in_backticks: true
+  inline_code_comments: english
+  extra_explanation_tag: "(شرح زيادة للفهم)"
+  not_in_lecture_tag: "(غير مشروحة في المحاضرة)"
+
+# ─── Domain & Content Organization (NEW IN v2.0) ──────────────────────────────
+domain: programming  # programming | analysis | theory | mixed
+
+domain_profile:
+  content_types:
+    - theory
+    - code
+    - diagrams
+    - commands
+    - tables
+    - pseudocode
+    - equations
+  forbid_adding: []
+  prerequisites: []
+
+# ─── Content Ordering Rules (NEW IN v2.0) ─────────────────────────────────────
+# يحدد ترتيب العناصر في كل قسم حسب نوع المحتوى
+content_ordering:
+  # Define which content type applies to this subject
+  # This controls rendering layout in the template engine
+
+  section_type_rules:
+    # إذا كانت المحاضرة عن رياضيات/معادلات → equation-first
+    equation_subjects: []          # e.g. [discrete-math, statistics, statics]
+    # إذا كانت عن خوارزميات/برمجة → code-first
+    code_subjects: []              # e.g. [java-basics, python-algorithms]
+    # إذا كانت عن أنظمة/عمارات → diagram-first
+    diagram_subjects: []           # e.g. [os-theory, distributed-systems]
+    # الافتراضي: prose-first (theory)
+
+  # Global default for this subject (equation-first | code-first | diagram-first | prose-first)
+  default_type: "prose-first"
+
+# ─── Visualization Templates Available (NEW IN v2.0) ─────────────────────────
+visualization_templates:
+  enabled_types:
+    - inline-text            # نص فقط
+    - inline-algorithm       # 1-3 خطوات صغيرة بجانب النص
+    - full-width-algorithm   # 4+ خطوات، عرض كامل
+    - comparison-table       # جدول مقارنة (2-3 أعمدة)
+    - cycle                  # رسم دائري (عمليات متكررة)
+    - sequence               # رسم تسلسلي (خط زمني أو رسائل)
+    - tree                   # هرمية (hierarchy)
+    - flowchart              # مخطط انسيابي
+
+  # Diagram types supported by parser (from SCHEMA.md)
+  diagram_types: [flowchart, bpmn, decision-tree, dfd, usecase, class, activity]
+
+# ─── Coverage Tracking (NEW IN v2.0) ──────────────────────────────────────────
+# تتبع مدى تغطية الشرح للمحتوى الأصلي من المحاضرة
+coverage_tracking:
+  enabled: true          # true → يطلب من AI تحديد @coverage لكل قسم
+  require_metadata: true # true → يفرض metadata @coverage, @missing-pieces, @additions في كل قسم
+
+  # ما هو المستوى المقبول لعدم التغطية؟
+  acceptable_coverage_threshold: 90  # % — تحت هذا يُحتّم فلاج ⚠️ في <details>
+
+# ─── Original Text Display (NEW IN v2.0) ─────────────────────────────────────
+# كيفية عرض "النص الأصلي يقول"
+original_text_display:
+  enabled: true
+  format: "collapsible"              # collapsible | inline | hidden
+  # collapsible → <details> block، يُختفى بشكل افتراضي
+  # inline → ظهور دائم (الأسلوب القديم)
+  # hidden → يُحفظ للمرجع فقط (لا يُعرض)
+
+  show_coverage_badge: true          # true → اعرض "coverage: 95%" في <details> summary
+
+  location: "after-explanation"      # after-explanation | before-explanation | sidebar
+
+# ─── Lecture heading ──────────────────────────────────────────────────────────
+lecture:
+  unit_label: "المحاضرة"
+  split_regex: "^# المحاضرة "
+  title_pattern: "# {unit_label} {num} — {title_en} ({title_ar})"
+  intro_blockquote: true
+
+  # NEW IN v2.0: مزج الموضوعات المتعددة؟
+  combine_related_topics: false     # true → ادمج 1.1 + 1.2 إذا كانتا متصلتين
+                                     # false → اتبع ترتيب المحاضرة بالضبط
+
+# ─── Parts (same as v1.0, but respect combine_related_topics) ─────────────────
+parts:
+  integration_map:
+    enabled: false
+    heading: "📌 خريطة التكامل (أين تقع هذه المحاضرة في الدورة؟)"
+
+  detail:
+    enabled: true
+    heading: "الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)"
+    numbered_sections: true
+    require_per_section: []  # NOW EMPTY (v2.0) — النص الأصلي موجود في <details>
+
+  summary:
+    enabled: true
+    heading: "الجزء الثاني: ملخص منظم"
+    subsections:
+      - definitions_table
+      - components_table
+      - comparisons_table
+      - glossary
+      - golden_points
+      - common_mistakes_table
+      - patterns
+      - main_ideas
+
+  mcq:
+    enabled: true
+    heading: "الجزء الثالث: أسئلة اختيار من متعدد (MCQ)"
+    count: 16
+    min_count: 14
+    difficulty: [medium, hard]
+    forbid_easy_literal: false
+    distribution:
+      comparisons: 25
+      code_scenario: 35
+      application: 30
+      algorithm_trace: 10
+
+  debug:
+    enabled: false
+    heading: "الجزء الرابع: أسئلة تصحيح الكود"
+    count: 5
+    cover: [logic, misconception, return_check, dead_code]
+
+  exercise:
+    enabled: true
+    heading: "الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)"
+    count_min: 4
+    count_max: 7
+    authored_by_guide: true
+    types:
+      - fill_gaps
+      - code_fix
+      - scenario
+
+  analysis_exercise:
+    enabled: true
+    heading: "الجزء الرابع: تمارين تحليل وتطبيق (إضافية — من إعداد الدليل)"
+    count_min: 3
+    count_max: 6
+    types:
+      - case_study
+      - diagram_completion
+      - table_fill
+      - written_analysis
+
+  trace_exercise:
+    enabled: true
+    heading: "الجزء الرابع: تمارين تتبع التنفيذ"
+    count_min: 3
+    note: "كل تمرين: مدخل + جدول/شجرة ناقصة للطالب + نموذج الحل الكامل"
+
+  design_question:
+    enabled: false
+    heading: "الجزء الرابع: أسئلة تصميم"
+    count_min: 1
+    types:
+      - er_diagram
+      - uml_design
+      - architecture
+      - schema_design
+
+  theory:
+    enabled: true
+    heading: "الجزء الخامس: أسئلة نظرية متوقعة بالامتحان"
+    count_min: 8
+
+  cheat_sheet:
+    enabled: true
+    heading: "الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)"
+    subsections:
+      - integration_map_table
+      - golden_rules_table
+      - quick_reference_tables
+
+  qa_cards:
+    enabled: true
+    heading: "الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)"
+    count_min: 12
+
+  reference_code:
+    enabled: false
+    heading: "الجزء الخامس: كتابة الكود الكامل (مرجع شامل)"
+    assemble_from_fragments: true
+    same_program_only: true
+    languages: []
+    note: ""
+
+  checklist:
+    enabled: true
+    heading: "الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅"
+
+# ─── Blocks (updated for v2.0) ────────────────────────────────────────────────
+blocks:
+
+  # DEPRECATED in v2.0 (moved to collapsible <details>)
+  original_quote:
+    enabled: false    # كان true في v1.0، الآن false (collapsible بدلاً من inline)
+
+  # NEW in v2.0: render_metadata (invisible comments)
+  render_metadata:
+    enabled: true
+    # <!-- @render: {type: "...", visualization: "...", connectivity: {...}} -->
+    # <!-- @coverage: "95%" -->
+    # <!-- @missing-pieces: [...] -->
+    # <!-- @additions: [...] -->
+
+  simplified_explanation:
+    enabled: true
+
+  code:
+    enabled: false
+    languages: []
+    require_line_explain: true
+
+  line_explain:
+    enabled: false
+    format: numbered_list
+
+  imports:
+    enabled: false
+
+  expected_output:
+    enabled: false
+
+  troubleshooting:
+    enabled: false
+
+  diagrams:
+    enabled: false
+    types: [flowchart, bpmn, decision-tree, dfd]
+    require_node_table: true
+    require_edge_table: true
+
+  uml:
+    enabled: false
+    types: [usecase, class, activity, flowchart]
+
+  screen_description:
+    enabled: false
+
+  algorithm:
+    enabled: false
+
+  structured_english:
+    enabled: false
+
+  compare:
+    enabled: true
+
+  callouts:
+    enabled: true
+
+  think_prompt:
+    enabled: true
+    min_per_lecture: 3
+
+  tables:
+    enabled: true
+
+  fill_gaps:
+    enabled: true
+
+  code_fix:
+    enabled: true
+
+  images_note:
+    enabled: false
+
+  qa_inline:
+    enabled: false
+
+  analogy:
+    enabled: true
+
+  trade_off:
+    enabled: true
+
+  before_after:
+    enabled: true
+
+  trace:
+    enabled: true
+
+  equations:
+    enabled: false
+    display_mode: block
+    require_explanation: true
+    common_symbols: []
+
+# ─── Section Structure Template (NEW IN v2.0) ─────────────────────────────────
+section_template:
+  # النموذج الذي يجب أن يتبعه كل ### قسم في detail
+  structure:
+    - element: "heading"
+      label: "### 1.1 Topic Name"
+      required: true
+
+    - element: "render_metadata"
+      format: "<!-- @render: {type: \"...\", visualization: \"...\", coverage: \"...\", connectivity: {...}} -->"
+      required: true
+
+    - element: "context"
+      label: "📍 أين نحن الآن؟"
+      format: "#### [one sentence]"
+      required: false
+
+    - element: "connectivity"
+      label: "⬅️ الربط مع السابق"
+      format: "#### [one sentence — prerequisite or connection to previous topic]"
+      required: true
+      note: "يحل محل 'النص الأصلي يقول' في النموذج"
+
+    - element: "core_idea"
+      label: "💡 الفكرة الأساسية"
+      format: "#### **[One sentence core idea — bold, high contrast]**"
+      required: true
+
+    - element: "definition_or_formula"
+      label: "[📐 التعريف / الصيغة] أو [💻 الكود] أو [📊 المخطط]"
+      format: "#### [Depends on content_type]"
+      required: false
+      conditional: "if type: equation-first then required"
+
+    - element: "explanation"
+      label: "📖 الشرح"
+      format: "#### [2-4 short paragraphs, NOT one dense block]"
+      required: true
+
+    - element: "summary"
+      label: "🎯 الملخص السريع"
+      format: "#### [Bullets — 3-5 key points]"
+      required: false
+
+    - element: "application"
+      label: "📚 التطبيق / استخدام"
+      format: "#### [Where is this used next? How does it connect forward?]"
+      required: false
+
+    - element: "original_text_collapsible"
+      label: "📄 النص الأصلي من المحاضرة"
+      format: |
+        <details>
+        <summary>عرض النص الأصلي (coverage: XX%)</summary>
+        > [EXACT QUOTE]
+        </details>
+      required: true
+      note: "Collapsible by default — not visible unless clicked"
+
+    - element: "common_mistakes"
+      label: "⚠️ أخطاء شائعة"
+      format: "#### [List with ❌ and ✓]"
+      required: false
+
+# ─── Pedagogy flags ──────────────────────────────────────────────────────────
+pedagogy:
+  cover_every_line: true
+  complete_gaps: true
+  beginner_friendly: true
+  explain_why: true
+  daily_analogy_plus_example: true
+  follow_lecture_order: true
+  adapt_to_lecture_type: false  # منذ v2.0، هذا مرتبط بـ content_ordering
+
+  lecture_types: []
+
+# ─── Assessment ───────────────────────────────────────────────────────────────
+assessment:
+  mcq_option_letters: arabic
+
+# ─── Automation Question Types ────────────────────────────────────────────────
+automation_question_types:
+  flash_qa:
+    enabled: true
+    label_ar: "مراجعة سريعة (سؤال / جواب)"
+    difficulty: easy
+    count_min: 12
+    parts: [qa_cards, qa_inline, theory]
+    blocks: [qa_inline, callouts]
+    format: |
+      **Q{N}:** سؤال مراجعة مباشر
+      **A:** إجابة مختصرة قابلة للمقارنة الآلية
+
+  scenario_cluster:
+    enabled: true
+    label_ar: "تحدي مركّب (سيناريو + أسئلة متعددة)"
+    difficulty: hard
+    count_min: 3
+    questions_per_scenario: 4
+    parts: [mcq, debug, theory]
+    blocks: [code, trace, diagrams, tables, compare, equations]
+    scenario_sources:
+      - code_trace
+      - numerical_case
+      - algorithm_state
+      - logic_entailment
+      - system_design
+
+  hands_on:
+    enabled: true
+    label_ar: "تطبيق عملي (أكمل / صحّح / نفّذ)"
+    difficulty: medium
+    count_min: 5
+    parts: [exercise, analysis_exercise, debug]
+    blocks: [fill_gaps, code_fix, algorithm, expected_output, tables]
+    types:
+      - fill_gaps
+      - code_fix
+      - table_fill
+      - numerical_solve
+      - diagram_completion
+
+  step_trace:
+    enabled: true
+    label_ar: "تتبع خطوة بخطوة (جدول ناقص)"
+    difficulty: medium
+    count_min: 3
+    parts: [trace_exercise, mcq]
+    blocks: [trace, algorithm, tables, diagrams]
+    trace_targets:
+      - algorithm_iterations
+      - variable_state
+      - search_tree_expansion
+      - memory_page_replacement
+
+  compare_analyze:
+    enabled: true
+    label_ar: "مقارنة وتحليل (أيهما أفضل؟ لماذا؟)"
+    difficulty: medium
+    count_min: 4
+    parts: [mcq, theory, analysis_exercise]
+    blocks: [compare, trade_off, tables, analogy]
+
+  find_the_bug:
+    enabled: true
+    label_ar: "اكتشف الخطأ (كود / منطق / حساب)"
+    difficulty: hard
+    count_min: 4
+    parts: [debug, exercise]
+    blocks: [code_fix, compare, troubleshooting]
+    bug_types: [logic, misconception, off_by_one, wrong_formula, race_condition, infinite_loop]
+
+  structured_theory:
+    enabled: true
+    label_ar: "نظري منظم (تعريف + مكونات + مثال)"
+    difficulty: medium
+    count_min: 8
+    parts: [theory, mcq]
+    blocks: [compare, tables, callouts]
+
+# ─── Output ───────────────────────────────────────────────────────────────────
+output:
+  validation_footer: true
+  schema_reference: "SCHEMA.md v2.0"
+  closing_line: "ابدأ الآن. سأرسل المحاضرة في الرسالة التالية."
+
+  checklist_items:
+    - "غطّيت كل معلومة وردت في المحاضرة"
+    - "كل قسم يبدأ بـ '⬅️ الربط مع السابق' + '💡 الفكرة الأساسية' + الشرح"
+    - "الأقسام مرقّمة هرمياً (1، 1.1، 2 …)"
+    - "استخدمت جداول لكل مقارنة وقائمة تعريفات"
+    - "كل مصطلح إنجليزي بين backticks"
+    - "النص الأصلي موجود في <details> collapsible مع @coverage metadata"
+    - "≥16 سؤال MCQ مع تعليل كامل"
+    - "≥8 أسئلة نظرية مع نموذج إجابة"
+    - "جداول تتبع: كل تمرين له جدول ناقص + نموذج حل"
+    - "تمارين تطبيقية مع نموذج حل"

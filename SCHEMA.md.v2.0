@@ -1,0 +1,541 @@
+# Lecture Site Schema v2.0
+
+Fixed contract between AI extraction prompts and site parsers. **One canonical form per block — no alternates.**
+
+**Changes from v1.0:**
+- Rendering metadata (invisible HTML comments) for template engine guidance
+- Coverage tracking metadata (@coverage, @missing-pieces, @additions)
+- Collapsible original text block (optional, replaces inline "النص الأصلي يقول")
+- Progressive disclosure section structure (with clearer visual hierarchy)
+- Support for visualization hints (type, layout, connectivity)
+
+---
+
+## 0. Inline formatting rules
+
+- **Always leave one blank line before a bulleted or numbered list.**
+- Use `**bold**` for key technical terms on first mention.
+- Use `==term==` (double equals) for maximum emphasis (sparingly).
+
+---
+
+## 1. Heading hierarchy
+
+| Level | Syntax | Purpose |
+| --- | --- | --- |
+| Lecture | `# {unit_label} {num} — {title_en} ({title_ar})` | One lecture per file |
+| Part | `## {part_heading}` | Major section (detail, MCQ, exercises…) |
+| Section | `### {N}. {title}` | Numbered topic (TOC anchor) |
+| Block | `#### {marker}` | Sub-block inside a section |
+
+**Intro blockquote** (optional, before first `##`):
+```markdown
+> **المادة:** {subject} | **الموضوع:** {topic}
+```
+
+---
+
+## 2. Part titles (parser detection)
+
+Same as v1.0 — keywords in title determine part type.
+
+---
+
+## 3. NEW IN v2.0: Rendering Metadata (Invisible Comments)
+
+Every section (`###`) should open with metadata comment(s) that guide the rendering engine:
+
+```markdown
+### 1.1. Topic Name
+<!-- @render: {type: "prose-first", visualization: "none", layout: "inline", coverage: "95%"} -->
+<!-- @source: lecture_section_1.1 -->
+<!-- @missing-pieces: ["edge case X"] -->
+<!-- @additions: ["analogy (not in lecture)"] -->
+```
+
+**Metadata fields:**
+
+| Field | Values | Purpose |
+| --- | --- | --- |
+| `type` | `prose-first` \| `equation-first` \| `code-first` \| `diagram-first` \| `hybrid` | Determines content ordering (what goes first?) |
+| `visualization` | `none` \| `inline-diagram` \| `algorithm-steps` \| `cycle` \| `sequence` \| `tree` \| `comparison-table` | What visual aid is needed? |
+| `layout` | `full-width` \| `inline` \| `progressive-disclosure` | How should this render? |
+| `coverage` | `"95%"` | What % of original lecture is explained? |
+| `connectivity` | `{prerequisite: "topic-X", connects-to: ["Y", "Z"]}` | Topic relationships |
+| `source` | `lecture_section_X.Y` | Where in original lecture this came from |
+| `missing-pieces` | `["concept A", "edge case B"]` | What wasn't explained (and why) |
+| `additions` | `["analogy (from guide)"]` | What was added beyond the lecture |
+
+**Coverage threshold:** If `coverage < 90%`, must include `⚠️` badge in collapsible original text.
+
+---
+
+## 4. Section Structure Template (v2.0)
+
+Each `### {num}. Topic` section should follow this order:
+
+```markdown
+### 1.1. Topic Name
+<!-- @render: {type: "...", visualization: "...", coverage: "..."} -->
+<!-- @connectivity: {prerequisite: "..."} -->
+
+#### 📍 أين نحن الآن؟
+[One sentence — what is this topic about?]
+
+#### ⬅️ الربط مع السابق
+[One sentence — what previous topic should you remember? How does this connect?]
+[**This replaces "النص الأصلي يقول" as the opening element**]
+
+#### 💡 الفكرة الأساسية
+**[One sentence core idea — BOLD, HIGH CONTRAST]**
+
+---
+
+#### [Content section — varies by content_type]
+[If type: "equation-first" → formula/definition here]
+[If type: "code-first" → code/pseudocode here]
+[If type: "diagram-first" → diagram here]
+[If type: "prose-first" → prose explanation here]
+
+#### 📖 الشرح
+[2-4 short paragraphs, broken for readability]
+
+#### 🎯 الملخص السريع
+- Key point 1
+- Key point 2
+- Key point 3
+
+#### 📚 التطبيق
+[Where is this used next? Connection to future topics?]
+
+#### ⚠️ أخطاء شائعة
+- ❌ Common misconception
+- ✅ Correct understanding
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 95%)</summary>
+
+**النص الأصلي يقول:**
+> [EXACT QUOTE — verbatim from lecture]
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: [concepts covered]
+- ⚠️ غير مشروح بالكامل: [why?]
+- ℹ️ إضافة من الدليل: [what was added]
+
+</details>
+```
+
+**Key changes:**
+1. ✅ Metadata at top (invisible comments)
+2. ✅ "⬅️ الربط" replaces "النص الأصلي يقول" at opening
+3. ✅ "💡 الفكرة الأساسية" — one sentence, bold, high-visibility
+4. ✅ Content type determines order of subsequent elements
+5. ✅ "📄 النص الأصلي" moved to **collapsible <details> block** at end
+6. ✅ Coverage tracking in collapsible header
+
+---
+
+## 5. Block markers (Detail sections)
+
+### Callouts
+
+```markdown
+#### مهم للامتحان ⚠️:
+> [reinforcement]
+
+#### نقطة مهمة ⚠️:
+> [key insight]
+
+#### ملاحظة:
+> [side note]
+
+#### الدرس المستفاد:
+> [takeaway]
+```
+
+### Compare (wrong vs right)
+
+```markdown
+**الفهم الخاطئ الشائع ❌:** [misconception]
+**الفهم الصحيح ✅:** [correct understanding]
+```
+
+### Code block
+
+```markdown
+#### 💻 الكود: [title]
+
+#### ما هذا الكود؟
+> [1–3 sentences]
+
+```kotlin
+// English comment per line
+fun main() { println("Hi") }
+```
+
+#### شرح كل سطر:
+1. `fun` → [explanation]
+2. `main` → [explanation]
+
+**المكتبات المطلوبة:**
+> `import ...`
+
+**الناتج المتوقع:**
+> [expected output]
+```
+
+### Algorithm (ordered steps)
+
+```markdown
+#### ⚙️ الخطوات / الخوارزمية: [title]
+
+#### ما هدف هذه العملية؟
+> [1–2 sentences]
+
+```algorithm
+1 | Step title | Tool/Method | What happens
+2 | Step title | Tool/Method | What happens
+```
+
+#### نقاط التنفيذ:
+- [constraints, edge cases]
+```
+
+### Diagram
+
+```markdown
+#### 📊 المخطط: [title]
+
+#### ما هذا المخطط؟
+> [1–3 sentences]
+
+#### وصف العُقد:
+| # | العُقدة | النوع | الشرح |
+| --- | --- | --- | --- |
+
+#### وصف الروابط:
+| من | إلى | التسمية | نوع السهم | الشرح |
+| --- | --- | --- | --- | --- |
+
+```diagram
+type: flowchart
+nodes:
+  - id: A
+    label: Start
+relationships:
+  - from: A
+    to: B
+    label: yes
+```
+```
+
+**Diagram types:** `flowchart` | `bpmn` | `decision-tree` | `dfd` | `usecase` | `class` | `activity` | `cycle` | `sequence` | `tree`
+
+### Trace (inline walk-through)
+
+```markdown
+#### 🔍 تتبع التنفيذ: [title]
+
+#### المدخل:
+> [Initial state / input]
+
+#### خطوات التنفيذ:
+| الخطوة | العملية | الحالة |
+| 1 | [operation] | [state after] |
+| 2 | [operation] | [state after] |
+
+#### النتيجة النهائية:
+> [Output]
+```
+
+### Analogy (daily-life comparison)
+
+```markdown
+#### 💡 التشبيه:
+> [Concept] أشبه بـ [everyday example]
+> **وجه الشبه:** [Mapping: X = Y]
+```
+
+### Trade-off (both options valid)
+
+```markdown
+#### ⚖️ المقايضة:
+
+| المعيار | الخيار أ | الخيار ب |
+| --- | --- | --- |
+| **السرعة** | سريع جداً | أبطأ |
+| **سهولة الاستخدام** | معقد | سهل |
+| **متى تختاره؟** | عندما تحتاج السرعة | عندما تحتاج البساطة |
+```
+
+### Before-After (state transformation)
+
+```markdown
+#### 🔄 قبل / بعد:
+
+**قبل:**
+```kotlin
+val x = 5
+var y = x
+```
+
+**بعد:**
+```kotlin
+val x = 5
+val y = x  // changed var to val
+```
+
+**ماذا تغيّر؟**
+> Immutability enforced; compiler prevents reassignment.
+```
+
+### Equations
+
+```markdown
+#### 📐 المعادلة: [title]
+
+$$
+\text{formula} = \text{expression}
+$$
+
+#### الشرح:
+- **الرمز A:** معنى A
+- **الرمز B:** معنى B
+```
+
+For inline short formulas: `$x = 5$`
+
+### Fill gaps (incomplete code/steps)
+
+```markdown
+#### ملء الفراغات:
+
+```kotlin
+fun calculate(x: Int) {
+    val result = _______  // (1)
+    println(_______)      // (2)
+}
+```
+
+**نموذج الحل:**
+```kotlin
+fun calculate(x: Int) {
+    val result = x * 2
+    println(result)
+}
+```
+```
+
+### Code fix (wrong → correct)
+
+```markdown
+#### تصحيح الكود:
+
+**الكود الخاطئ:**
+```kotlin
+fun add(a: Int, b: String) {  // type mismatch
+    return a + b
+}
+```
+
+**التصحيح:**
+```kotlin
+fun add(a: Int, b: Int): Int {
+    return a + b
+}
+```
+
+**الشرح:**
+- Parameter `b` must be `Int` (not `String`)
+- Return type declared as `Int`
+```
+
+---
+
+## 6. MCQ Format
+
+```markdown
+### السؤال 1 (متوسط)
+
+[Question text with code/diagram if needed]
+
+أ) [Option A]
+ب) [Option B]
+ج) [Option C]
+د) [Option D]
+
+**الإجابة الصحيحة:** [Letter]
+
+**التعليل:**
+- ✅ **الخيار [Letter]:** [Why it's correct]
+- ❌ **الخيار [Letter]:** [Why wrong]
+- ❌ **الخيار [Letter]:** [Why wrong]
+- ❌ **الخيار [Letter]:** [Why wrong]
+```
+
+---
+
+## 7. Trace Exercise (practice problem)
+
+```markdown
+### تمرين تتبع 1
+
+#### المدخل:
+> [Initial state / input]
+
+#### أكمل الجدول:
+| الخطوة | العملية | الحالة |
+| 1 | [?] | [?] |
+| 2 | [?] | [?] |
+| 3 | [?] | [?] |
+
+#### نموذج الحل:
+| الخطوة | العملية | الحالة |
+| 1 | [filled] | [filled] |
+| 2 | [filled] | [filled] |
+| 3 | [filled] | [filled] |
+
+#### النتيجة النهائية:
+> [Output]
+```
+
+---
+
+## 8. Summary Part Structure
+
+Standard subsections:
+
+```markdown
+## الجزء الثاني: ملخص منظم
+
+### تعريفات
+| المصطلح | التعريف |
+| --- | --- |
+
+### مكونات
+| المكون | الشرح |
+| --- | --- |
+
+### مقارنات
+| المعيار | الخيار أ | الخيار ب |
+| --- | --- | --- |
+
+### مصطلحات (Glossary)
+| الإنجليزية | العربية | الشرح |
+| --- | --- | --- |
+
+### نقاط ذهبية
+- [Key insight 1]
+- [Key insight 2]
+
+### أخطاء شائعة
+- ❌ Misconception 1
+- ✅ Correct concept 1
+
+### خطوات وإجراءات المحاضرة
+
+#### الإجراء 1: [name]
+```algorithm
+1 | Step | Tool | Result
+2 | Step | Tool | Result
+```
+
+#### الإجراء 2: [name]
+```algorithm
+1 | Step | Tool | Result
+```
+
+### أنماط الأكواد
+[Code patterns used in lecture, with examples]
+
+### أنماط التعامل
+[Patterns, best practices, workflows]
+
+### الأفكار الشاملة
+[Overarching concepts not captured above]
+```
+
+---
+
+## 9. Checklist Part
+
+```markdown
+## الجزء السادس: قائمة فحص ذاتي
+
+- [ ] أفهم مفهوم X
+- [ ] يمكنني تطبيق Y
+- [ ] أعرف الفرق بين A و B
+- [ ] استطيع حل مسألة من نوع Z
+```
+
+---
+
+## 10. Cheat Sheet Part
+
+```markdown
+## ورقة المراجعة السريعة
+
+### جدول سريع: X
+
+| المعيار | الخيار أ | الخيار ب |
+| --- | --- | --- |
+
+### قواعد ذهبية
+- Rule 1
+- Rule 2
+
+### مرجع سريع
+[Concise reference for studying]
+```
+
+---
+
+## 11. Q&A Cards Part
+
+```markdown
+## بطاقات سؤال وجواب
+
+### البطاقة 1
+**Q1:** سؤال؟
+**A:** إجابة مختصرة.
+
+### البطاقة 2
+**Q2:** سؤال؟
+**A:** إجابة مختصرة.
+```
+
+---
+
+## 12. Validation Footer (Optional)
+
+If `output.validation_footer: true`:
+
+```markdown
+<!-- VALIDATION
+schema: 2.0
+parts: [detail, mcq, exercise, trace_exercise, theory, qa_cards, cheat_sheet]
+mcq_count: 16
+code_blocks: 5
+coverage_metadata: true
+original_text_collapsible: true
+-->
+```
+
+---
+
+## v2.0 Summary
+
+| Feature | v1.0 | v2.0 |
+| --- | --- | --- |
+| Section structure | Inline original text + explanation | Progressive disclosure with metadata |
+| Original text display | Always visible box | Collapsible <details> (end of section) |
+| Coverage tracking | None | @coverage, @missing-pieces, @additions metadata |
+| Rendering hints | None | <!-- @render: {...} --> comments |
+| Connectivity | Implicit | Explicit metadata: prerequisite, connects-to |
+| Content ordering | Fixed (prose always first) | Flexible: equation-first, code-first, diagram-first |
+
+---
+
+**Parser contract: One canonical form per block — no alternates.**
