@@ -1,6 +1,7 @@
 import { BlockRegistry } from './registry.js';
 import { createDefaultBlockHandlers } from './handlers.js';
 import { ParseContext } from '../core/context.js';
+import { stripSchemaMetadataFromText } from '../core/utils.js';
 
 /**
  * Build a block registry. Pass extra handlers to extend; they run before defaults
@@ -41,7 +42,24 @@ export function parseBlocks(text, config = {}, registry = createBlockRegistry())
     i = result.nextIndex;
   }
 
-  return blocks;
+  expandCollapsibleBlocks(blocks, config, registry);
+  return stripMetadataParagraphs(blocks);
+}
+
+function stripMetadataParagraphs(blocks) {
+  return blocks.flatMap(b => {
+    if (b.type !== 'paragraph') return [b];
+    const stripped = stripSchemaMetadataFromText(b.text);
+    return stripped ? [{ ...b, text: stripped }] : [];
+  });
+}
+
+function expandCollapsibleBlocks(blocks, config, registry) {
+  for (const b of blocks) {
+    if (b.type !== 'original-text-collapsible' || !b.innerText) continue;
+    b.blocks = parseBlocks(b.innerText, config, registry);
+    delete b.innerText;
+  }
 }
 
 /**

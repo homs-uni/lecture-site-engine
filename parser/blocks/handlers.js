@@ -1,5 +1,6 @@
 import {
   collectBlockquote,
+  collectDetailsBlock,
   collectDollarMath,
   collectFence,
   collectList,
@@ -10,7 +11,7 @@ import {
   parseTable,
 } from '../core/collectors.js';
 import { slugify } from '../core/slug.js';
-import { normalizeCodeLang, codeLangLabel, parseAlgorithmLines } from '../core/utils.js';
+import { normalizeCodeLang, codeLangLabel, parseAlgorithmLines, isSchemaMetadataCommentStart, collectSchemaMetadataComment } from '../core/utils.js';
 import { parseDiagramYaml } from '../diagram/parse-yaml.js';
 
 /** @typedef {import('../core/context.js').ParseContext} Ctx */
@@ -37,6 +38,16 @@ function parseLineExplainItem(text) {
 /** @returns {import('./registry.js').BlockRegistry['handlers']} */
 export function createDefaultBlockHandlers() {
   return [
+    {
+      id: 'schema-metadata-comment',
+      priority: 101,
+      test: (ctx) => isSchemaMetadataCommentStart(ctx.line),
+      parse: (ctx) => {
+        const collected = collectSchemaMetadataComment(ctx.lines, ctx.i);
+        return { nextIndex: collected.nextIndex };
+      },
+    },
+
     // ── Fences (highest priority) ──────────────────────────────────────────
     {
       id: 'fence',
@@ -73,6 +84,52 @@ export function createDefaultBlockHandlers() {
     },
 
     // ── H4 structured blocks ───────────────────────────────────────────────
+    {
+      id: 'h4-original-text-collapsible',
+      priority: 91,
+      test: (ctx) => {
+        if (!/^#### /.test(ctx.line)) return false;
+        const heading = ctx.line.replace(/^#### /, '').trim();
+        if (!/النص الأصلي/.test(heading)) return false;
+        let j = ctx.i + 1;
+        while (j < ctx.lines.length && !ctx.lines[j].trim()) j++;
+        return j < ctx.lines.length && /^<details>/.test(ctx.lines[j].trim());
+      },
+      parse: (ctx) => {
+        const heading = ctx.line.replace(/^#### /, '').trim();
+        let i = ctx.i + 1;
+        while (i < ctx.lines.length && !ctx.lines[i].trim()) i++;
+        const details = collectDetailsBlock(ctx.lines, i);
+        return {
+          block: {
+            type: 'original-text-collapsible',
+            title: heading,
+            summary: details.summary,
+            innerText: details.innerText,
+          },
+          nextIndex: details.nextIndex,
+        };
+      },
+    },
+
+    {
+      id: 'details-block',
+      priority: 88,
+      test: (ctx) => /^<details>/.test(ctx.trimmed),
+      parse: (ctx) => {
+        const details = collectDetailsBlock(ctx.lines, ctx.i);
+        return {
+          block: {
+            type: 'original-text-collapsible',
+            title: 'النص الأصلي من المحاضرة',
+            summary: details.summary,
+            innerText: details.innerText,
+          },
+          nextIndex: details.nextIndex,
+        };
+      },
+    },
+
     {
       id: 'h4-callout',
       priority: 90,
@@ -141,6 +198,23 @@ export function createDefaultBlockHandlers() {
           block: { type: 'equation', title, latex, displayMode, explanation },
           nextIndex: i,
         };
+      },
+    },
+
+    {
+      id: 'h4-schema-core-idea',
+      priority: 90,
+      test: (ctx) => /^#### 💡 الفكرة (?:الأساسية|الرئيسية)/.test(ctx.line),
+      parse: (ctx) => {
+        const title = ctx.line.replace(/^#### /, '').trim();
+        let i = ctx.i + 1;
+        while (i < ctx.lines.length && !ctx.lines[i].trim()) i++;
+        if (i < ctx.lines.length && /^> /.test(ctx.lines[i])) {
+          const bq = collectBlockquote(ctx.lines, i);
+          return { block: { type: 'core-idea', title, content: bq.text }, nextIndex: bq.nextIndex };
+        }
+        const para = collectParagraph(ctx.lines, i);
+        return { block: { type: 'core-idea', title, content: para.text }, nextIndex: para.nextIndex };
       },
     },
 

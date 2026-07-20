@@ -45,3 +45,27 @@ export function extractTag(title) {
   const paren = title.match(/\(([^)]+)\)/);
   return paren ? paren[1] : title.slice(0, 30);
 }
+
+/** SCHEMA v2.0 invisible metadata comments — stripped before render. */
+export const SCHEMA_METADATA_COMMENT_RE = /<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions)|VALIDATION)[\s\S]*?-->/gi;
+
+export function isSchemaMetadataCommentStart(line) {
+  return /^<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions)|VALIDATION)/i.test(String(line).trim());
+}
+
+/** @param {string[]} lines @param {number} start */
+export function collectSchemaMetadataComment(lines, start) {
+  let i = start;
+  while (i < lines.length) {
+    if (/-->/.test(lines[i])) {
+      i++;
+      break;
+    }
+    i++;
+  }
+  return { nextIndex: i };
+}
+
+export function stripSchemaMetadataFromText(text) {
+  return String(text).replace(SCHEMA_METADATA_COMMENT_RE, '').replace(/\s+/g, ' ').trim();
+}

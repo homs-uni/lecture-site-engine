@@ -6,6 +6,7 @@ import {
   renderDiagramTitle,
   renderScreenTitle,
   isCodeSectionBlock,
+  renderOriginalTextCollapsible,
 } from './handlers.js';
 
 /**
@@ -27,7 +28,7 @@ export function renderBlocks(blocks, ctx) {
   const registry = ctx.registry || createBlockRegistry();
   let html = '';
   let inCodeSection = false;
-  const innerCard = ctx.partType !== 'mcq' && ctx.partType !== 'cheat';
+  const innerCard = !ctx.nested && ctx.partType !== 'mcq' && ctx.partType !== 'cheat';
   const codeCounterRef = ctx.codeCounterRef || { n: 0 };
 
   if (innerCard) html += '<div class="prose-content">';
@@ -57,6 +58,15 @@ export function renderBlocks(blocks, ctx) {
     if (inCodeSection && !isCodeSectionBlock(b.type)) {
       html += '</div>';
       inCodeSection = false;
+    }
+
+    if (b.type === 'original-text-collapsible') {
+      html += renderOriginalTextCollapsible(b, {
+        ...ctx,
+        codeCounterRef,
+        renderBlocks: (innerBlocks, innerCtx) => renderBlocks(innerBlocks, innerCtx),
+      });
+      continue;
     }
 
     if (b.type === 'h4') {

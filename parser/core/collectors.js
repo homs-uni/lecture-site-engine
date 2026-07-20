@@ -110,6 +110,45 @@ export function parseTable(lines, start) {
   return { header, rows, nextIndex: i };
 }
 
+/** @param {string[]} lines @param {number} start */
+export function collectDetailsBlock(lines, start) {
+  let i = start;
+  const openLine = lines[i].trim();
+  let summary = '';
+  const summaryInOpen = openLine.match(/<summary>([\s\S]*?)<\/summary>/i);
+  if (summaryInOpen) {
+    summary = summaryInOpen[1].trim();
+  }
+  i++;
+
+  if (!summary) {
+    while (i < lines.length && !lines[i].trim()) i++;
+    const sumLine = lines[i]?.trim() || '';
+    const sumMatch = sumLine.match(/^<summary>([\s\S]*?)<\/summary>$/i);
+    if (sumMatch) {
+      summary = sumMatch[1].trim();
+      i++;
+    }
+  }
+
+  const innerParts = [];
+  while (i < lines.length) {
+    const t = lines[i].trim();
+    if (/^<\/details>\s*$/.test(t)) {
+      i++;
+      break;
+    }
+    innerParts.push(lines[i]);
+    i++;
+  }
+
+  return {
+    summary,
+    innerText: innerParts.join('\n').trim(),
+    nextIndex: i,
+  };
+}
+
 export function collectFence(lines, start) {
   const lang = lines[start].trim().slice(3).trim() || 'text';
   let i = start + 1;
