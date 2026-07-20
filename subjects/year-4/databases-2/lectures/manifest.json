@@ -39,6 +39,27 @@
       "icon": "🎯",
       "matIcon": "quiz",
       "badge": "المحاضرة ٣ — جزء ١"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٥"
+    },
+    {
+      "path": "par6.md",
+      "num": 6,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٦"
     }
   ],
   "lectureIcons": [
