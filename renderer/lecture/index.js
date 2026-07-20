@@ -163,7 +163,7 @@ export function renderLecture(lecture, accent, icon, refs, deps) {
   if (summaryPart) {
     const summaryId = `${lecture.id}-p${summaryPartIdx + 1}`;
     html += `<div class="flex justify-center mb-md">
-      <a href="#${esc(summaryId)}" class="inline-flex items-center gap-sm px-lg py-md bg-secondary text-on-secondary rounded-full font-label-md font-bold hover:opacity-90 transition-opacity">
+      <a href="#${esc(summaryId)}" data-jump-summary class="inline-flex items-center gap-sm px-lg py-md bg-secondary text-on-secondary rounded-full font-label-md font-bold hover:opacity-90 transition-opacity">
         ${ms('speed', false, 'text-lg')} بديل سريع في حال ما كنت ملحق
       </a>
     </div>`;

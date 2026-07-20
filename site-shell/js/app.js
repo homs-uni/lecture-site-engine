@@ -1,6 +1,7 @@
 import { createRenderer } from '../engine/renderer/index.js';
 import { initDiagrams, refreshDiagrams } from '../engine/renderer/diagram/diagram.js';
 import { initEquations } from './equations.js';
+import { initMermaid, refreshMermaid } from './mermaid-render.js';
 import { applySiteSettings } from '../themes/apply-theme.js';
 import { GUIDE_CONFIG } from './guide-config.js';
 import {
@@ -329,6 +330,7 @@ function mountReviewHtml(item, html) {
   initInteractivity(document.getElementById('content'));
   initDiagrams(document.getElementById('content'));
   initEquations(document.getElementById('content'));
+  initMermaid(document.getElementById('content'));
   if (window.hljs) document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
   buildSidebar(item.toc);
   updateSidebarProgressTarget();
@@ -778,6 +780,7 @@ function initTheme() {
     applyDarkMode(isDark);
     localStorage.setItem(STORAGE_THEME, isDark ? 'dark' : 'light');
     refreshDiagrams();
+    refreshMermaid(document.getElementById('content') || document);
   });
 }
 
@@ -1022,17 +1025,19 @@ function revealSectionTree(section) {
 function scrollToAnchor(anchorHash, attempt = 0) {
   if (!anchorHash) return;
   const id = anchorIdFromHash(anchorHash);
-    const el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (!el) {
     if (attempt < 8) {
       requestAnimationFrame(() => scrollToAnchor(anchorHash, attempt + 1));
     }
     return;
   }
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    revealAnimated(el);
-    el.classList.add('anchor-flash');
-    setTimeout(() => el.classList.remove('anchor-flash'), 2200);
+  // Prefer instant when far away — smooth scroll is flaky after remounts / long pages.
+  const far = Math.abs(el.getBoundingClientRect().top) > window.innerHeight * 1.5;
+  el.scrollIntoView({ behavior: far ? 'auto' : 'smooth', block: 'start' });
+  revealAnimated(el);
+  el.classList.add('anchor-flash');
+  setTimeout(() => el.classList.remove('anchor-flash'), 2200);
 }
 
 function revealLectureDetailSections(root = document.getElementById('content')) {
@@ -1047,7 +1052,15 @@ function scrollAfterLectureLoad(hashPart, item) {
     revealLectureDetailSections();
     refreshLectureVisibility();
   };
-  requestAnimationFrame(() => requestAnimationFrame(scroll));
+  // Remounted lectures need a couple frames + a short delay so layout height settles.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scroll();
+      if (hashPointsToSection(hashPart, item)) {
+        setTimeout(() => scrollToAnchor(hashPart), 80);
+      }
+    });
+  });
 }
 
 function refreshLectureVisibility(root = document.getElementById('content')) {
@@ -1280,6 +1293,7 @@ function mountLectureHtml(item, html) {
   initInteractivity(document.getElementById('content'));
   initDiagrams(document.getElementById('content'));
   initEquations(document.getElementById('content'));
+  initMermaid(document.getElementById('content'));
   if (window.hljs) document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
   buildSidebar(item.toc);
   updateSidebarProgressTarget();
@@ -1309,7 +1323,10 @@ async function loadLectureView(idx, hashPart) {
   if (!stub) return;
 
   currentReviewIndex = -1;
-  showLectureLoading();
+
+  // Same lecture + already mounted → just scroll (don't wipe DOM / lose scroll target).
+  const alreadyMounted = currentLectureIndex === idx && !!document.getElementById(stub.lec.id || stub.fileMeta?.summary?.id);
+  if (!alreadyMounted) showLectureLoading();
 
   let item;
   try {
@@ -1369,15 +1386,40 @@ async function loadLectureView(idx, hashPart) {
 }
 
 function jumpToSummary() {
-  const item = appState.items[currentLectureIndex];
+  let item = appState.items[currentLectureIndex];
+  if (!item) {
+    const hash = anchorIdFromHash(location.hash);
+    const idx = getLectureIndexFromHash(hash, appState.items);
+    if (idx >= 0) {
+      currentLectureIndex = idx;
+      item = appState.items[idx];
+    }
+  }
   if (!item) return;
-  const part = item.toc?.parts?.find(p =>
-    p.type === 'summary' && !/checklist|قائمة فحص|قائمة المراجعة/i.test(p.title),
-  ) || item.toc?.parts?.find(p => p.type === 'summary' && /ملخص/i.test(p.title));
-  if (!part) return;
-  const hash = `#${part.id}`;
-  if (location.hash === hash) scrollToAnchor(part.id);
-  else location.hash = part.id;
+
+  const isQuickSummary = (title) => /سريع|قبل البدء|checklist|قائمة فحص|قائمة المراجعة/i.test(title || '');
+  const isComprehensive = (title) => /شامل|Alternative Complete|قراءة بديلة/i.test(title || '');
+
+  const tocParts = item.toc?.parts || [];
+  const part = tocParts.find(p => p.type === 'summary' && isComprehensive(p.title))
+    || tocParts.find(p => p.type === 'summary' && /ملخص/i.test(p.title || '') && !isQuickSummary(p.title))
+    || tocParts.find(p => p.type === 'summary' && !isQuickSummary(p.title));
+
+  let targetId = part?.id || null;
+  if (!targetId) {
+    const nodes = [...document.querySelectorAll('#content .section-block[data-part-type="summary"]')];
+    const byTitle = (pred) => nodes.find(el => pred(el.querySelector('h3')?.textContent || ''));
+    targetId = byTitle(isComprehensive)?.id
+      || byTitle(t => /ملخص/i.test(t) && !isQuickSummary(t))?.id
+      || byTitle(t => !isQuickSummary(t))?.id
+      || nodes.at(-1)?.id
+      || null;
+  }
+  if (!targetId) return;
+
+  const hash = `#${targetId}`;
+  if (location.hash === hash) scrollToAnchor(targetId);
+  else location.hash = targetId;
   closeMobileToc();
 }
 

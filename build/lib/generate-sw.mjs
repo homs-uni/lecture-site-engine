@@ -53,6 +53,7 @@ export async function generateServiceWorker(outDir, { buildId, cachePrefix }) {
     './js/progress_tracker.js',
     './js/quiz-stats.js',
     './js/search.js',
+    './js/mermaid-render.js',
     './css/styles.css',
     './css/tailwind-config.js',
     './themes/apply-theme.js',
@@ -155,7 +156,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isLectureJson(url)) {
-    event.respondWith(staleWhileRevalidate(request, LECTURES_CACHE));
+    event.respondWith(networkFirst(request, LECTURES_CACHE));
     return;
   }
 

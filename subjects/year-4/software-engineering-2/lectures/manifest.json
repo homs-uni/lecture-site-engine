@@ -1,15 +1,38 @@
 {
   "settings": {
-    "subjectName": "software-engineering",
-    "subjectNameEn": "software-engineering",
+    "subjectName": "هندسة البرمجيات",
+    "subjectNameEn": "Software Engineering 2",
     "year": "2025-2026",
     "academicYear": 4,
     "theme": "software-purple",
-    "department": "القسم"
+    "enabledLectures": true,
+    "department": "تصميم"
   },
-  "title": "software-engineering — software-engineering",
+  "title": "هندسة البرمجيات — Software Engineering 2",
   "subtitle": "دليل دراسي تفاعلي",
-  "files": [],
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par14.md",
+      "num": 14,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١٤"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",

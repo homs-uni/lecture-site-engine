@@ -216,6 +216,19 @@ edges:
 
 `type`: `flowchart` | `bpmn` | `decision-tree` | `dfd` | `usecase` | `class` | `activity`
 
+### Mermaid (client-rendered)
+
+Also supported — rendered in the browser via Mermaid.js:
+
+```markdown
+```mermaid
+graph LR
+    A --> B
+```
+```
+
+Prefer ` ```diagram ` for interactive SCHEMA diagrams; use ` ```mermaid ` when the lecture already has Mermaid source (UML sketches, subgraphs, etc.).
+
 ### Screen description (GIS / UI — no image render)
 
 ```markdown

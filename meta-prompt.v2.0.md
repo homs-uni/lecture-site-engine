@@ -32,7 +32,106 @@ You do **not** extract lecture content. You do **not** output JSON. You do **not
 
 ---
 
-## Output skeleton
+## Flexibility Rules — AI SHOULD Adapt by Subject
+
+The `custom_prompt.md` is a **guide template**, not a rigid cage. The AI should:
+
+- ✅ **Choose the right content types** for the subject domain
+  - Compiler theory? Use DERIVATION heavily
+  - Programming? Use CODE + COMMAND
+  - Engineering? Use PRINCIPLE + PRACTICE
+  - Math? Use DERIVATION + THEORY
+
+- ✅ **Reorganize sections** if better flow for the subject
+- ✅ **Add domain-specific guidance** (e.g., "For proofs in mathematics...")
+- ✅ **Adapt example structure** based on content complexity
+- ✅ **Change element order** if subject structure demands it
+
+**But:** Keep the **universal principles** intact:
+- ✅ Lean detail sections (prevent cognitive overload)
+- ✅ Complete alternative summary (same content, different style)
+- ✅ Two reading paths (formal + narrative)
+- ✅ Strategic examples (after 2-3 related topics)
+- ✅ Topic connectivity (show the thread)
+- ✅ Visualization via Mermaid
+
+---
+
+## 🎯 Universal Principles (Apply to ANY Subject)
+
+**These are not rules, but LEARNED BEST PRACTICES:**
+
+### 1. Use Appropriate Representation Tools
+- Use visualization tools when they clarify concepts (diagrams, flowcharts, tables, code blocks)
+- Don't force visualization where linear text is clearer
+- Choose the medium that fits the subject's nature
+
+### 2. Content Types (Expand Beyond Three)
+Different subjects have different knowledge types. Not all subjects need all types:
+
+**Core Types:**
+- **FACT:** Clear, one-answer definitions (مثل: "Syntax is the set of rules...")
+- **THEORY:** Explanations of why/how (مثل: "Why FM is better than AM...")
+- **DERIVATION:** Mathematical/logical transformations (مثل: Remove left recursion from grammar)
+- **ALGORITHM:** Step-by-step procedures (مثل: "Quicksort steps")
+- **CODE:** Implementation examples (مثل: Python class definition)
+- **COMMAND:** Tool usage, syntax, CLI (مثل: "$ git commit -m")
+
+**Extended Types:**
+- **PRACTICE:** Best practices with clear benefits (مثل: DRY principle)
+- **PRINCIPLE:** Multiple valid approaches based on context (مثل: choosing SDLC model)
+
+**Examples by Subject:**
+- **Digital Communications:** FACT (definitions) + THEORY (signal processing) + DERIVATION (equations)
+- **Compiler Principles:** FACT (definitions) + ALGORITHM (parsing) + DERIVATION (grammar transforms)
+- **Advanced Programming:** FACT (syntax) + CODE (examples) + COMMAND (CLI)
+- **Software Engineering 2:** FACT (definitions) + PRACTICE (best practices) + PRINCIPLE (design decisions)
+- **Database:** FACT + ALGORITHM + PRINCIPLE (when to use which index)
+- **Math/Physics:** FACT + THEORY + DERIVATION + EQUATION
+
+### 3. Prevent Cognitive Overload (The "Dizzy Student" Problem)
+**Keep detail sections LEAN:**
+- One main idea + explanation = enough
+- Put supporting details, anti-patterns, edge cases → Summary section
+- Both sections teach same content, different presentation styles
+
+**Result:** Students have two readable paths to the same knowledge
+
+### 4. Two Alternative Reading Paths (Not Hierarchical)
+- **Detail Path:** Structured, formal, organized with clear hierarchy
+- **Summary Path:** Narrative, casual, flowing as continuous prose
+
+**Key insight:** NOT "detail is core, summary is optional"
+**Actually:** "Both are complete, choose your reading style"
+
+This works for ANY subject across all domains
+
+### 5. Flexible Structure (AI Can Adapt)
+**The custom_prompt.md is a GUIDE, not a cage.**
+
+AI can:
+- ✅ Reorganize summary subheadings if it makes sense for the subject
+- ✅ Add intermediate sections (e.g., "Why this failed historically?" for history)
+- ✅ Change the order of elements if flow demands it
+- ✅ Add context-specific sections (e.g., "Real data" for statistics)
+
+**Rule:** Stay true to core principles, but adapt structure to subject nature
+
+### 6. Strategic Content Clustering
+- **Clustered examples:** After 2-3 related topics, add ONE example showing them together
+- Prevents: Too many examples (overwhelming), Too few (abstract)
+- Works for: Any subject with interconnected concepts
+
+### 7. Topic Connectivity (Show the Thread)
+Every section should show:
+- What came before (prerequisite)
+- What comes next (application)
+- Why we're learning this in this order
+
+This meta-understanding helps students see the subject as **system, not list**
+
+
+
 
 Fill every `[...]` from SUBJECT_BRIEF. Process enabled items only.
 
@@ -229,14 +328,20 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 ### الجزء الثاني: ملخص سريع (بديل سريع في حال ما كنت ملحق)
 
 **الغرض الحقيقي:** 
-هذا الملخص لطالب **قرأ الشرح التفصيلي ما فهمها**، أو **تعبان ومو قادر يركز**، أو **ما عنده وقت**. يقرأ هذا الملخص بس وحتفهم كل شيء — ما يحتاج يرجع للتفاصيل الإضافية.
+هذا الملخص **مسار قراءة بديل متساوٍ تماماً** للتفاصيل — ليس "نسخة مختصرة" بل **قراءة شاملة بأسلوب مختلف**.
+- طالب **قرأ الشرح التفصيلي ما فهمها**: يقرأ هذا الملخص يفهمها من زاوية جديدة
+- طالب **ما عنده وقت** أو **تعبان**: يقرأ هذا الملخص وحده وينتهي — ما يحتاج يرجع للتفاصيل
+- طالب **بيدخل الامتحان**: يقدر يذاكر هذا الملخص وحده ويكون جاهز
 
-**طول الملخص:**
-- **طويل جداً** (30-45 دقيقة قراءة) — هذا ملخص شامل، مو مختصر
-- كل المفاهيم الرئيسية موجودة (الـ 5-8 concepts)
-- كل الأمثلة والتطبيقات موجودة
-- كل الفروقات والاستثناءات موجودة
-- القارئ يقرأ هذا بس وينتهي — ما يحتاج يرجع للمحاضرة أو التفاصيل
+**طول الملخص و معايير الكمية:**
+- **45-70 دقيقة قراءة** — هذا ملخص **غني وعميق**، مو مختصر
+- **ALL مفاهيم المحاضرة موجودة** (الـ 5-8 core concepts + معلومات داعمة)
+- **كل الأمثلة والتطبيقات والسيناريوهات موجودة**
+- **كل الفروقات والاستثناءات والحالات الخاصة موجودة**
+- **الفقرات متصلة بشكل طبيعي** — يحس القارئ إنه يقرا قصة مترابطة متماسكة
+- **شرح عميق لكل فكرة** — ليس تذكير سطحي، بل فهم شامل
+- **الموضوعات تتصل ببعضها** — يشوف القارئ كيف تبني الأفكار على بعضها
+- **exam-ready standalone** — يقرأ هذا بس وينتهي — ما يحتاج يرجع للمحاضرة أو التفاصيل
 
 **إيش تكتب:**
 
@@ -252,13 +357,15 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 - المحاضرات السابقة اللي هذا يعتمد عليها
 - ما تفترض الطالب عنده معرفة ما عنده
 
-**4. اشرح الأفكار الرئيسية (الجزء الأساسي)**
-- **ما تقسمها بقوة** إلى sections كتير
-- **اجمع الأفكار المترابطة** في فقرة واحدة بدل تفرقها
-- **اشرح بطريقة طبيعية تدفق** — مثل شخص يشرح لصديقه
-- **استخدم أمثلة حقيقية** من الحياة العادية
-- **اشرح الـ "لماذا"** مو بس الـ "ماذا"
-- **مثال من المحاضرة أو من الحياة** لكل فكرة رئيسية
+**4. اشرح الأفكار الرئيسية (الجزء الأساسي) — بأسلوب سردي متصل**
+- **ما تقسمها بقوة** إلى sections كتير — اجمع الأفكار المترابطة في flow واحد
+- **اشرح بطريقة طبيعية تدفق** — مثل شخص يشرح لصديقه، وليس مثل نقاط في قائمة
+- **الفقرات متصلة ببعضها** — كل فقرة تبني على السابقة وتوديك للاحقة
+- **شرح عميق لكل فكرة** — ليس تعريف واحد، بل فهم شامل مع context و background
+- **استخدم أمثلة حقيقية وسيناريوهات** — من الحياة العادية أو من game development
+- **اشرح الـ "لماذا" والـ "متى"** مو بس الـ "ماذا"
+- **مثال محدد أو سيناريو** لكل فكرة رئيسية — يجعل المفهوم concrete و memorable
+- **الخيط المشترك** — اظهر كيف تتصل الأفكار ببعضها وتشكل نظام متكامل
 
 **5. الأخطاء الشائعة (اللي كل الناس تقع فيها)**
 
@@ -282,21 +389,25 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 
 ---
 
-**الأسلوب (مهم جداً):**
+**الأسلوب (مهم جداً) — Narrative & Connected:**
+- ✅ **Narrative prose first** — فقرات متصلة بطريقة سردية، ليس bullet points
 - ✅ كاجوال وودي ("هنا الحاجة"، "فكّر إنك..."، "بس الحاجة اللي...")
 - ✅ بسيط وسهل ("ليش؟ لأن...")
-- ✅ قصير الفقرات (2-3 أسطر ما أكتر)
+- ✅ قصير الفقرات (2-3 أسطر عادة) بس تحس الفقرات متصلة ببعضها
 - ✅ اسم الحاجات باسمها ("هذا غلط" مو "هناك فهم شائع يشير إلى...")
+- ✅ **استخدم transition phrases** ("والحاجة الثانية اللي...", "من هذا نطلع إلى...", "هذا يخليك تفكر في...")
 - ❌ بدون academic language أو formal tone
 - ❌ ما تقول "في الواقع" أو "الجدير بالذكر" — قول "والحاجة الغريبة"
+- ❌ **تجنب bullet points في المفاهيم الأساسية** — استخدم bullets فقط لقوائم محددة (متطلبات، خطوات، الخ)
 
 ---
 
 **لا تضع:**
-- جداول مقارنات (تلك في Cheat Sheet)
-- تعاريف طويلة
-- أمثلة معقدة من الكتاب — استخدم أمثلة حقيقية بسيطة
-- section headers كتير (اجمع الأفكار المترابطة)
+- جداول مقارنات (تلك في Cheat Sheet) — استخدم narrative descriptions بدل جداول
+- تعاريف طويلة أو formal definitions
+- أمثلة معقدة من الكتاب — استخدم أمثلة حقيقية بسيطة وسيناريوهات من الحياة اليومية
+- **section headers كتير** — الملخص يجب أن يكون **flow واحد متصل** مع headers قليلة جداً، أو بدون headers إلا للأقسام الكبيرة جداً
+- **bullet points للمفاهيم الأساسية** — استخدم prose فقط (bullets OK للقوائم الفنية أو المتطلبات)
 
 ---
 

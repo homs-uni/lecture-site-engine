@@ -41,6 +41,13 @@
       "badge": "المحاضرة ٣ — جزء ١"
     },
     {
+      "path": "par3-sec2.md",
+      "num": 3,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٣ — جزء ٢"
+    },
+    {
       "path": "par4.md",
       "num": 4,
       "icon": "📝",
@@ -60,6 +67,20 @@
       "icon": "📖",
       "matIcon": "menu_book",
       "badge": "المحاضرة ٦"
+    },
+    {
+      "path": "par8.md",
+      "num": 8,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٨"
+    },
+    {
+      "path": "par9.md",
+      "num": 9,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٩"
     }
   ],
   "lectureIcons": [

@@ -222,10 +222,10 @@ function renderStubHtml(subject) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(subject.title)} — قريباً</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
-    body { font-family: 'IBM Plex Sans Arabic', sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f8fafc; color: #0f172a; text-align: center; }
+    body { font-family: 'Noto Naskh Arabic', 'Source Serif 4', serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f8fafc; color: #0f172a; text-align: center; }
     .box { max-width: 420px; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2rem 1.5rem; }
     h1 { font-size: 1.35rem; margin: 0 0 0.75rem; color: #111827; }
     p { color: #555; margin: 0 0 1.25rem; line-height: 1.7; }
@@ -397,7 +397,7 @@ function renderHtml(subjects) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>دلائل الدراسة — Faculty Study Guides</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
@@ -521,7 +521,7 @@ function renderHtml(subjects) {
       border-color: #4f92ff;
     }
     body {
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      font-family: 'Noto Naskh Arabic', 'Source Serif 4', serif;
       margin: 0;
       padding: 0 0 3rem;
       background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 55%, #f8fafc 100%);

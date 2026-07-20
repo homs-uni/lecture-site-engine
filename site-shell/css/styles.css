@@ -24,10 +24,10 @@ button:focus-visible {
 }
 
 body {
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
-  letter-spacing: 0.3px;
+  font-family: 'Noto Naskh Arabic', 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.9;
+  letter-spacing: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
   background-color: var(--color-background);
   background-image:
@@ -743,7 +743,7 @@ body {
   border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-outline-variant));
   box-shadow: 0 10px 28px -8px var(--shadow-primary-md);
   pointer-events: none;
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-family: 'Noto Naskh Arabic', 'Source Serif 4', sans-serif;
   font-size: 0.875rem;
   line-height: 1.45;
   text-align: right;
@@ -781,7 +781,7 @@ body {
   display: block;
   margin: 0;
   padding: 0;
-  font-family: 'JetBrains Mono', 'IBM Plex Sans Arabic', ui-monospace, monospace;
+  font-family: 'JetBrains Mono', 'Noto Naskh Arabic', 'Source Serif 4', ui-monospace, monospace;
   font-size: 14px;
   line-height: 1.6;
   white-space: pre;
@@ -794,7 +794,7 @@ body {
 
 .code-terminal pre,
 .code-terminal .hljs {
-  font-family: 'JetBrains Mono', 'IBM Plex Sans Arabic', ui-monospace, monospace;
+  font-family: 'JetBrains Mono', 'Noto Naskh Arabic', 'Source Serif 4', ui-monospace, monospace;
   background-color: var(--code-bg) !important;
   color: var(--code-text);
   direction: ltr;
@@ -837,22 +837,51 @@ body {
 
 .prose-content h1 { font-size: 2rem !important; margin-bottom: 1.5rem; margin-top: 2rem; }
 .prose-content h2 { font-size: 1.6rem !important; margin-bottom: 1.25rem; margin-top: 1.75rem; }
-.prose-content h3 { font-size: 1.3rem !important; margin-bottom: 1rem; margin-top: 1.5rem; }
-.prose-content h4 { font-size: 1.1rem !important; margin-bottom: 0.75rem; margin-top: 1.25rem; }
-.prose-content h5 { font-size: 1rem !important; margin-bottom: 0.75rem; }
-.prose-content h6 { font-size: 0.95rem !important; margin-bottom: 0.75rem; }
+.prose-content h3 { font-size: 1.3rem !important; margin-bottom: 0.35rem; margin-top: 1.35rem; }
+.prose-content h4 { font-size: 1.1rem !important; margin-bottom: 0.25rem !important; margin-top: 1.5rem; }
+.prose-content h5 { font-size: 1rem !important; margin-bottom: 0.2rem !important; margin-top: 1.5rem; }
+.prose-content h6 { font-size: 0.95rem !important; margin-bottom: 0.15rem !important; margin-top: 1.5rem; }
 
 .prose-content ul, .prose-content ol {
-  margin: 1.5rem 1.5rem 1.5rem 0;
+  margin: 0 1.25rem 0.85rem 0;
   font-size: 16px !important;
-  line-height: 1.85 !important;
-  padding-right: 1.5rem;
+  line-height: 1.75 !important;
+  padding-right: 1.25rem;
+  padding-top: 0;
 }
 
 .prose-content li {
   font-size: 16px !important;
-  margin-bottom: 0.6rem;
-  line-height: 1.85 !important;
+  margin-bottom: 0.25rem;
+  line-height: 1.75 !important;
+}
+
+/*
+  Mini subheads (الشرح / الملخص السريع / …):
+  — larger gap ABOVE (separate from previous block)
+  — almost no gap BELOW (list belongs to this heading)
+*/
+.prose-content .mini-heading {
+  margin-top: 1.5rem !important;
+  margin-bottom: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.prose-content .mini-heading:first-child {
+  margin-top: 0.65rem !important;
+}
+
+.prose-content .mini-heading + :is(ul, ol, p),
+.prose-content :is(h4, h5, h6) + :is(ul, ol),
+.prose-content div:has(> :is(h4, h5, h6)) + :is(ul, ol, p) {
+  margin-top: 0.15rem !important;
+  padding-top: 0 !important;
+}
+
+.prose-content div:has(> :is(h4, h5, h6)):not(.mini-heading) {
+  margin-top: 1.35rem !important;
+  margin-bottom: 0 !important;
 }
 
 .prose-content ul ul, .prose-content ol ul {
@@ -1873,6 +1902,80 @@ details[open] summary .acc-chevron { transform: rotate(180deg); }
   margin: 0 auto;
 }
 
+/* ── Mermaid diagrams ── */
+.mermaid-container {
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 1rem;
+  background: var(--color-surface-container-lowest);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.dark .mermaid-container {
+  background: var(--dm-elevated);
+  border-color: var(--dm-border);
+}
+
+.mermaid-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-low);
+}
+
+.dark .mermaid-header {
+  background: var(--dm-elevated-2);
+  border-color: var(--dm-border);
+}
+
+.mermaid-header__icon {
+  color: var(--color-secondary);
+  font-size: 1.5rem;
+}
+
+.dark .mermaid-header__icon {
+  color: var(--color-primary);
+}
+
+.mermaid-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.mermaid-header__type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+  opacity: 0.8;
+}
+
+.mermaid-header__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.mermaid-container > .mermaid {
+  margin: 0;
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-x: auto;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  font-size: inherit;
+}
+
+.mermaid-container > .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .screen-desc-header {
   border-right: 4px solid var(--color-secondary);
 }
@@ -2303,7 +2406,7 @@ body.laser-pointer-enabled button {
   border-radius: 0.75rem;
   background: var(--color-surface);
   color: var(--color-on-surface);
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-family: 'Noto Naskh Arabic', 'Source Serif 4', sans-serif;
   font-size: 0.9375rem;
   line-height: 1.6;
   resize: vertical;
@@ -2477,7 +2580,7 @@ body.laser-pointer-enabled button {
   flex: 1;
   min-width: 0;
   padding: 0.35rem 0.75rem;
-  font-family: 'JetBrains Mono', 'IBM Plex Sans Arabic', ui-monospace, monospace;
+  font-family: 'JetBrains Mono', 'Noto Naskh Arabic', 'Source Serif 4', ui-monospace, monospace;
   font-size: 0.8125rem;
   line-height: 1.55;
   color: #e8f5f2;
@@ -4344,7 +4447,19 @@ body.laser-pointer-enabled button {
 
   #content .prose-content ul,
   #content .prose-content ol {
-    margin: 0.35rem 1rem 0.75rem 0;
+    margin-top: 0;
+    margin-bottom: 0.55rem;
+    margin-inline-start: 0;
+    margin-inline-end: 1rem;
+  }
+
+  #content .prose-content .mini-heading {
+    margin-top: 1.35rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  #content .prose-content .mini-heading + :is(ul, ol, p) {
+    margin-top: 0.1rem !important;
   }
 
   #content .section-block.mb-xl {

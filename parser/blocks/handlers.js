@@ -62,6 +62,9 @@ export function createDefaultBlockHandlers() {
             return { block: { type: 'code', lang: 'diagram', code }, nextIndex };
           }
         }
+        if (lang === 'mermaid') {
+          return { block: { type: 'mermaid', code: String(code || '').trim() }, nextIndex };
+        }
         if (lang === 'algorithm') {
           return { block: { type: 'algorithm', steps: parseAlgorithmLines(code) }, nextIndex };
         }
