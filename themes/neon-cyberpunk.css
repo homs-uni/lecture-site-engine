@@ -1,0 +1,104 @@
+/**
+ * ═══════════════════════════════════════════════════════
+ *  ⚡ NEON CYBERPUNK — إلكتروني صادم
+ * ═══════════════════════════════════════════════════════
+ *
+ *  Shocking neon aesthetic: Electric magenta + Cyan laser + Deep black
+ *  Built to SHOCK and ELECTRIFY. No mercy. Pure neon chaos.
+ */
+
+:root {
+  /* Primary — ELECTRIC HOT MAGENTA (SHOCKING) */
+  --palette-primary: #ff006e;
+  --palette-primary-bright: #ff1493;
+  --palette-primary-container: #ff0080;
+  --palette-primary-fixed: #ffe0f0;
+  --palette-on-primary: #ffffff;
+  --palette-on-primary-container: #fff5fa;
+  --palette-on-primary-fixed: #660033;
+  --palette-on-primary-fixed-variant: #b30052;
+  --palette-primary-fixed-dim: #ff99cc;
+  --palette-primary-dark-fixed-bg: #330018;
+  --palette-primary-dark-fixed-text: #ff66b2;
+
+  /* Secondary — ELECTRIC CYAN / LASER BLUE (PIERCING) */
+  --palette-secondary: #00d9ff;
+  --palette-secondary-container: #00e5ff;
+  --palette-secondary-fixed: #cffaff;
+  --palette-secondary-fixed-dim: #80f4ff;
+  --palette-secondary-accent: #66f0ff;
+  --palette-on-secondary: #000000;
+  --palette-on-secondary-container: #f0ffff;
+  --palette-on-secondary-fixed: #003d4d;
+  --palette-on-secondary-fixed-variant: #006b7d;
+  --palette-secondary-dark-bg: #004d5c;
+  --palette-secondary-dark-bg-hover: #006b7d;
+  --palette-secondary-dark-text: #66f0ff;
+  --palette-secondary-dark-surface: #003d4d;
+
+  /* Tertiary — ACID LIME GREEN (RADIOACTIVE) */
+  --palette-tertiary: #39ff14;
+  --palette-tertiary-container: #66ff33;
+  --palette-tertiary-fixed: #e5ffcc;
+  --palette-tertiary-fixed-dim: #99ff66;
+  --palette-on-tertiary: #000000;
+  --palette-on-tertiary-container: #f5ffeb;
+  --palette-on-tertiary-fixed: #1a3d00;
+  --palette-on-tertiary-fixed-variant: #407a0c;
+  --palette-tertiary-dark-bg: #1a3d00;
+
+  /* Surfaces — PITCH BLACK WITH NEON GLOW */
+  --palette-background: #0a0e27;
+  --palette-surface: #0f1429;
+  --palette-surface-bright: #1a1f3a;
+  --palette-surface-variant: #1a2544;
+  --palette-surface-container-lowest: #050810;
+  --palette-surface-container-low: #0d121f;
+  --palette-surface-container: #121829;
+  --palette-surface-container-high: #171e35;
+  --palette-surface-container-highest: #1c243e;
+  --palette-surface-tint: #ff006e;
+  --palette-outline-variant: #4a5580;
+
+  --palette-spinner-active: #ff006e;
+  --palette-spinner-active-dark: #ff1493;
+  --palette-shadow-border-dark: #ff006e;
+
+  /* Atmosphere — GLOWING NEON AURAS */
+  --brand-glow-blue: color-mix(in srgb, var(--palette-secondary) 25%, transparent);
+  --brand-glow-violet: color-mix(in srgb, var(--palette-primary) 20%, transparent);
+  --brand-glow-coral: color-mix(in srgb, var(--palette-tertiary) 18%, transparent);
+
+  /* Lecture card accents — ALL NEON */
+  --t-lecture-accent-1: var(--palette-primary-bright);
+  --t-lecture-accent-2: var(--palette-secondary);
+  --t-lecture-accent-3: var(--palette-tertiary);
+  --t-lecture-accent-4: var(--palette-primary);
+  --t-lecture-accent-5: var(--palette-secondary-container);
+  --t-lecture-accent-6: var(--palette-tertiary-container);
+  --t-lecture-accent-7: var(--palette-primary-bright);
+  --t-lecture-accent-8: var(--palette-secondary);
+}
+
+.dark {
+  --palette-dm-bg: #050810;
+  --palette-dm-surface: #0a0e27;
+  --palette-dm-elevated: #0f1429;
+  --palette-dm-elevated-2: #171e35;
+  --palette-dm-border: #ff006e;
+  --palette-dm-text: #f0f4ff;
+  --palette-dm-text-muted: #7a8ab8;
+
+  --brand-glow-blue: color-mix(in srgb, var(--palette-secondary) 28%, transparent);
+  --brand-glow-violet: color-mix(in srgb, var(--palette-primary-bright) 22%, transparent);
+  --brand-glow-coral: color-mix(in srgb, var(--palette-tertiary) 20%, transparent);
+
+  --t-lecture-accent-1: var(--palette-primary-bright);
+  --t-lecture-accent-2: var(--palette-secondary);
+  --t-lecture-accent-3: var(--palette-tertiary);
+  --t-lecture-accent-4: var(--palette-primary);
+  --t-lecture-accent-5: var(--palette-secondary-container);
+  --t-lecture-accent-6: var(--palette-tertiary-container);
+  --t-lecture-accent-7: var(--palette-primary-bright);
+  --t-lecture-accent-8: var(--palette-secondary);
+}
