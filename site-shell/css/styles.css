@@ -4286,8 +4286,17 @@ body.laser-pointer-enabled button {
 .think-prompt__icon { color: var(--color-secondary); }
 .think-prompt__label { font-weight: 700; font-size: 0.875rem; }
 .think-prompt__body {
-  margin: 0; padding: 0.5rem 1rem 1rem; border: none; background: transparent;
-  font-size: 0.9375rem; line-height: 1.65; color: var(--color-on-surface-variant);
+  display: block;
+  margin: 0 !important;
+  padding: 0.5rem 1rem 1rem !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-on-surface-variant);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .think-prompt {

@@ -1512,13 +1512,24 @@ function isMainTopicHeading(el) {
     && el.querySelector(':scope > h4.font-headline-md');
 }
 
+/** Section start: ### topic, or databases-style #### 📍 / أين نحن */
+function isSectionStartHeading(el) {
+  if (isMainTopicHeading(el)) return true;
+  if (!el?.classList?.contains('mini-heading')) return false;
+  return /📍|أين نحن/.test(el.textContent || '');
+}
+
+/** Nearest section start for this block — stop at previous original-text / HR. */
 function findTopicHeading(el) {
+  let start = null;
   let node = el.previousElementSibling;
   while (node) {
-    if (isMainTopicHeading(node)) return node;
+    if (node.classList?.contains('original-text-collapsible')) break;
+    if (node.tagName === 'HR') break;
+    if (isSectionStartHeading(node)) start = node;
     node = node.previousElementSibling;
   }
-  return null;
+  return start;
 }
 
 function ensureOrigMarker(el) {

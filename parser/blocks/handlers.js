@@ -444,6 +444,7 @@ export function createDefaultBlockHandlers() {
         if (!/^#### /.test(ctx.line)) return false;
         const h = ctx.line.replace(/^#### /, '').trim();
         return /^[💻🛠️🤔📊🖼️]/.test(h)
+          || /تفعيل الفهم/.test(h)
           || h === 'ما هذا الكود؟' || h === 'ما هذا الكود/الأمر؟' || h === 'ما هذا الملف؟'
           || h === 'ما هذا المخطط؟'
           || isLineExplainTitle(h);
@@ -463,9 +464,16 @@ export function createDefaultBlockHandlers() {
             nextIndex: ctx.i + 1,
           };
         }
-        if (heading.startsWith('🤔')) {
-          const bq = collectBlockquote(ctx.lines, ctx.i + 1);
-          return { block: { type: 'think-prompt', title: heading, content: bq.text }, nextIndex: bq.nextIndex };
+        if (heading.startsWith('🤔') || /تفعيل الفهم/.test(heading)) {
+          let i = ctx.i + 1;
+          while (i < ctx.lines.length && !ctx.lines[i].trim()) i++;
+          const bq = collectBlockquote(ctx.lines, i);
+          if (bq.text) {
+            return { block: { type: 'think-prompt', title: heading, content: bq.text }, nextIndex: bq.nextIndex };
+          }
+          // Modern lectures put the prompt as plain paragraphs (not `>` quotes).
+          const body = collectUntilHeading(ctx.lines, i);
+          return { block: { type: 'think-prompt', title: heading, content: body.text }, nextIndex: body.nextIndex };
         }
         if (heading.startsWith('📊')) {
           return { block: { type: 'diagram-title', text: heading }, nextIndex: ctx.i + 1 };

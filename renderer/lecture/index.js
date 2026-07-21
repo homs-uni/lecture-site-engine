@@ -167,11 +167,13 @@ export function renderLecture(lecture, accent, icon, refs, deps) {
         ${ms('speed', false, 'text-lg')} بديل سريع في حال ما كنت ملحق
       </a>
     </div>`;
-    html += `<label class="expand-original-hint-toggle mb-md" title="يعرض النص الأصلي في بداية كل فقرة بدون صندوق قابل للطي">
-      <input type="checkbox" data-expand-original-checkbox aria-label="فعلني في حال تريد النص الأصلي يقول في بداية الفقرة بدون slidedown">
-      <span>فعلني في حال تريد "النص الأصلي يقول" في بداية الفقرة بدون slidedown</span>
-    </label>`;
   }
+
+  // Same place on every lecture (SE, DB, …) — under the header / summary button
+  html += `<label class="expand-original-hint-toggle mb-md" title="يعرض النص الأصلي في بداية كل فقرة بدون صندوق قابل للطي">
+    <input type="checkbox" data-expand-original-checkbox aria-label="فعلني في حال تريد النص الأصلي يقول في بداية الفقرة بدون slidedown">
+    <span>فعلني في حال تريد "النص الأصلي يقول" في بداية الفقرة بدون slidedown</span>
+  </label>`;
 
   html += `</section>`;
 

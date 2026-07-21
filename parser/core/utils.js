@@ -47,10 +47,10 @@ export function extractTag(title) {
 }
 
 /** SCHEMA v2.0 invisible metadata comments — stripped before render. */
-export const SCHEMA_METADATA_COMMENT_RE = /<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions)|VALIDATION)[\s\S]*?-->/gi;
+export const SCHEMA_METADATA_COMMENT_RE = /<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions|type)|VALIDATION)[\s\S]*?-->/gi;
 
 export function isSchemaMetadataCommentStart(line) {
-  return /^<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions)|VALIDATION)/i.test(String(line).trim());
+  return /^<!--\s*(?:@(?:render|connectivity|source|missing-pieces|additions|type)|VALIDATION)/i.test(String(line).trim());
 }
 
 /** @param {string[]} lines @param {number} start */
