@@ -1,1503 +1,1649 @@
-# المحاضرة 4 — Design and Implementation (التصميم والتطبيق)
-> **المادة:** هندسة البرمجيات (المستوى الثالث) | **الموضوع:** تصميم وتطبيق الأنظمة البرمجية
+# المحاضرة 4 — Design and Implementation (التصميم والتنفيذ)
+> **المادة:** هندسة البرمجيات (المستوى الثالث) | **الموضوع:** التصميم الكائني التوجه (`Object-Oriented Design`) والتنفيذ (`Implementation`) — دراسة حالة: محطة الطقس (`Weather Station`)
 
 ---
 
-## الجزء الأول: الشرح التفصيلي
+## ملخص سريع قبل البدء
 
-### 1. مقدمة عن التصميم والتطبيق
+**عن ماذا هذه المحاضرة؟** بتشرح كيف تحوّل متطلبات نظام لتصميم كائني التوجه (`OOD`) عملي بخمس خطوات، وبعدين كيف تنقل هاد التصميم لكود شغال فعلياً (`implementation`) — مع مثال يمشي طول المحاضرة: نظام محطة طقس (`weather station`).
+
+**ليش يهمك؟** لأنه أي مشروع حقيقي بتشتغل عليه (مشروع تخرج، staj، أو حتى مشروعك الشخصي) بيحتاج نفس الخطوات: تعرف مين الكائنات، كيف بتحكي مع بعض، ووين حدود نظامك مقابل الأنظمة الخارجية — قبل ما تبلش تكتب كود.
+
+**المتطلبات السابقة:**
+- `Programming 1` — أساسيات البرمجة
+- `Software Engineering 1` — خصوصاً مرحلة الـ `Requirements`
+- مفاهيم أساسية عن الـ `Object-Oriented` (كائنات، أصناف/`classes`)
+
+**الخيط الناظم:** Requirements (متطلبات) → **Design** (تصميم — هون احنا) → Implementation (تنفيذ — هون كمان) → Testing → Deployment. يعني هاي المحاضرة بتاخدك من "شو المطلوب" لـ "شو الكائنات وشو الكود".
+
+---
+
+## الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
+
+### 1. التصميم مقابل التنفيذ (Design vs Implementation)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "requirements_engineering"} -->
 
 #### 📍 أين نحن الآن؟
-بعد تحديد متطلبات النظام، ننتقل لمرحلة تحويل هذه المتطلبات إلى نظام برمجي قابل للتنفيذ.
+هاد أول قسم بالمحاضرة، وبيحدد التعريف الأساسي للمرحلة اللي بندرسها.
 
 #### ⬅️ الربط مع السابق
-المتطلبات (Requirements) تخبرنا **ماذا** نبني؛ التصميم والتطبيق يخبرنا **كيف** نبنيه.
+هاي المرحلة بتيجي مباشرة بعد `Requirements Engineering` (تحليل وتوثيق متطلبات النظام) اللي درستوها بـ `Software Engineering 1`.
 
 #### 💡 الفكرة الأساسية
-**مرحلة التصميم والتطبيق هي المرحلة التي نطور فيها النظام البرمجي الذي يعمل بالفعل (Executable Software System).**
+**"التصميم والتنفيذ" (`Design and Implementation`) هي المرحلة اللي فيها بيتطوّر نظام برمجي قابل للتنفيذ فعلياً (`executable software system`) — والتصميم نشاط إبداعي (تحديد كائنات وعلاقات)، بينما التنفيذ هو تحويل هاد التصميم لبرنامج شغال.**
 
 ---
 
-#### 📖 الشرح
-
-**تطوير البرمجيات** ينقسم لعمليتين أساسيتين متسلسلتين:
-
-**1. Software Design (التصميم البرمجي)**
-- هي عملية **إبداعية** تحدد بنية النظام وعلاقات مكوناته
-- نحدد **أي components** (مكونات) تشكل النظام
-- نحدد **كيف** هذه المكونات ترتبط ببعضها
-- كل شيء يبني على أساس **متطلبات العميل**
-- الهدف: تصميم معمّاري واضح قبل كتابة أي كود
-
-**2. Software Implementation (التطبيق)**
-- هي عملية **تحويل** التصميم إلى برنامج فعلي
-- كتابة الكود بناءً على خطة التصميم
-- تجميع البرنامج وجعله قابل للتشغيل
-
-#### ⚠️ ملاحظة هامة: التصميم قد يكون:
-- **منفصل تماماً**: رسمي، موثّق بـ UML diagrams (في الأنظمة الكبيرة)
-- **في رأس المبرمج**: رسمة على whiteboard أو فكرة عامة (في المشاريع الصغيرة)
-- **لا يحتاج UML دائماً**: في Python أو لغات ديناميكية، قد لا تحتاج رسوميات معقدة
-
-#### 🎯 الملخص السريع
-- التصميم = تحديد البنية والعلاقات
-- التطبيق = كتابة الكود الفعلي
-- لا يوجد "صيغة سحرية" — يعتمد على حجم المشروع والفريق
-
-#### 📚 التطبيق
-في تطوير اللعبة أو تطبيق e-commerce:
-- **التصميم**: نحدد أن اللعبة فيها Graphics Engine، AI System، Physics Engine
-- **التطبيق**: نكتب الكود لكل engine وتربطهم معاً
-
-#### ⚠️ أخطاء شائعة
-
-#### الفهم الخاطئ ❌:
-"يمكن نبدأ نكتب كود مباشرة بدون تصميم"
-
-#### الفهم الصحيح ✅:
-حتى في المشاريع الصغيرة، تحتاج فكرة عامة عن البنية. التصميم ما معناه دائماً رسومات معقدة — قد تكون ببساطة خطة واضحة في رأسك.
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 100%)</summary>
-
-> Software design and implementation is the phase at which an executable software system is developed.
-> 
-> Software design is creative activity in which you identify software components and their relationships based on customer's requirements.
-> 
-> Software implementation is the process of realizing the design as a program.
-> 
-> Sometimes, there is a separate design stage — the design is modeled and documented. Other times, a design is in the programmer's head or sketched on a whiteboard or paper.
-> 
-> It isn't necessary to describe the design in detail using UML or other description languages, use it when OO, not Python!
-
-**ملاحظة على التغطية:**
-- ✓ تم شرح التعريفات بالكامل
-- ✓ تم شرح الفرق بين Design و Implementation
-- ✓ تم شرح متى نستخدم UML ومتى لا
-- ℹ️ إضافة من الدليل: توضيح أن التصميم قد يكون غير رسمي
-
-</details>
-
----
-
-### 2. Object-Oriented Design (التصميم الموجه للكائنات)
-
-#### 📍 أين نحن الآن؟
-الآن بنركز على **كيفية تصميم الأنظمة** باستخدام منهج Object-Oriented.
-
-#### ⬅️ الربط مع السابق
-التصميم الموجه للكائنات هو الطريقة الحديثة الأساسية لتصميم الأنظمة البرمجية.
-
-#### 💡 الفكرة الأساسية
-**التصميم الموجه للكائنات يتبع خمس خطوات منطقية تبدأ من فهم السياق والتفاعلات وتنتهي بتصميم النموذج الكامل.**
-
----
-
-#### 📊 المخطط: خطوات التصميم الموجه للكائنات
+#### 📊 المخطط: مكان التصميم والتنفيذ ضمن هندسة البرمجيات
 
 ```mermaid
-graph TB
-    A["STEP 1<br/>System Context Model<br/>فهم السياق والعلاقات الخارجية"]
-    B["STEP 2<br/>Interaction Model<br/>نموذج التفاعلات والـ Use Cases"]
-    C["STEP 3<br/>Architectural Design<br/>تقسيم للمكونات الكبيرة"]
-    D["STEP 4<br/>Object Class Identification<br/>تحديد الكائنات"]
-    E["STEP 5<br/>Design Models<br/>رسم UML (Static + Dynamic)"]
-    F["STEP 6<br/>Interface Specification<br/>تحديد الواجهات"]
-    
-    A --> B --> C --> D --> E --> F
-    
-    style A fill:#bbdefb,stroke:#1976d2,stroke-width:3px
-    style B fill:#bbdefb,stroke:#1976d2,stroke-width:3px
-    style C fill:#fff9c4,stroke:#f57f17,stroke-width:3px
-    style D fill:#e1bee7,stroke:#7b1fa2,stroke-width:3px
-    style E fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
-    style F fill:#ffccbc,stroke:#d84315,stroke-width:3px
+graph LR
+    Req["Requirements<br/>(متطلبات النظام)"]
+    Design["Design<br/>(تصميم — كائنات وعلاقات)"]
+    Impl["Implementation<br/>(تنفيذ — كود شغال)"]
+    Test["Testing<br/>(اختبار)"]
+
+    Req --> Design
+    Design --> Impl
+    Impl --> Test
 ```
 
-#### ⚠️ ملاحظة هامة: كل خطوة **يجب** تكون قبل التالية. لا يمكن تحديد الكائنات (4) قبل فهم البنية المعمّارية (3).
+**شرح العناصر:**
+- **Requirements:** وصف واضح لإيش النظام لازم يعمل (متل `SRS`)
+- **Design:** نشاط إبداعي — تحديد المكونات (`components`) والعلاقات بينها بناءً على المتطلبات
+- **Implementation:** تحقيق (`realizing`) التصميم كبرنامج فعلي
+- **Testing:** التأكد إنه المتطلبات فعلاً اتحققت
+
+**شرح الروابط:**
+- **السهم من Requirements إلى Design:** المتطلبات هي المدخل اللي بيبني عليه المصمم قراراته
+- **السهم من Design إلى Implementation:** التصميم هو الخارطة اللي المبرمج بيتبعها لكتابة الكود
+
+**التطبيق في هذا السياق:** هاد المخطط هو "الخيط الناظم" لكل المحاضرة — كل قسم جاي رح يكون إما جزء من `Design` (خطوات الـ `OOD` الخمس) أو جزء من `Implementation` (إعادة الاستخدام، إدارة التهيئة، التطوير على منصتين).
 
 ---
 
-#### 📖 الشرح التفصيلي
+#### 📖 التعريف الدقيق
 
-لتطوير نظام تصميم موجه للكائنات، نحتاج:
+بالمشاريع الصغيرة أو البسيطة، هندسة البرمجيات ككل ممكن تنحصر بس بمرحلة التصميم والتنفيذ — يعني باقي الأنشطة (التحليل، التحقق `verification`، التحقق من الصحة `validation`) بتندمج معاها بدل ما تكون مراحل منفصلة. بمشاريع أكبر، التصميم والتنفيذ بيكونوا بس **جزء واحد** من مجموعة عمليات هندسة البرمجيات.
 
-**1️⃣ فهم السياق والتفاعلات الخارجية (Context & Interactions)**
-- ما هو النظام بالضبط؟
-- من يستخدمه؟ (Actors/Stakeholders)
-- ما هي الأنظمة الخارجية التي يتفاعل معها؟
-- النتيجة: نرسم **System Context Diagram** و **Interaction Model**
-
-**مثال من المحاضرة**: في نظام محطات الطقس:
-- النظام: محطة الطقس
-- العناصر الخارجية: Control System، Weather Information System، Satellite
-- التفاعل: محطة الطقس ترسل البيانات، تستقبل أوامر
-
-**2️⃣ تصميم البنية المعمّارية (Architecture)**
-- نقسّم النظام لـ major components (مكونات كبيرة)
-- كل component يعامل كـ "صندوق أسود" مع مسؤولية محددة
-- نرسم **Subsystem Diagram**
-
-**مثال**: نظام محطة الطقس ينقسم لـ:
-- Data Collection Subsystem
-- Communication Subsystem
-- Power Manager Subsystem
-- Configuration Manager Subsystem
-
-**3️⃣ تحديد الكائنات الرئيسية (Object Identification)**
-- لا توجد "صيغة سحرية" — يعتمد على خبرة المصمم
-- نستخدم عدة طرق:
-  - **Grammatical Analysis**: Nouns = Objects، Verbs = Operations
-  - **Tangible Entities**: Things (Aircraft)، Roles (Manager)، Events (Request)، Locations، Organizational Units
-  - **Scenario-based Analysis**: نمر على كل scenario، نحدد الكائنات المشاركة
-  - **Behavioral Approach**: نحدد الكائنات بناءً على من يشارك في أي سلوك
-
-**4️⃣ تطوير نماذج التصميم (Design Models)**
-- نرسم **UML Diagrams** توضح الكائنات والعلاقات
-
-**5️⃣ تحديد الواجهات (Interface Specification)**
-- نحدد بوضوح: ما الخدمات التي يقدمها كل كائن؟
-- Signatures و Semantics للدوال
+مهم تفرّق بين المصطلحين: **`Design`** (التصميم) هو نشاط إبداعي (`creative activity`) بتحدد فيه مكونات البرنامج والعلاقات بينها بناءً على متطلبات الزبون — يعني بتفكر: "شو الأجزاء اللي رح أحتاجها؟ وكيف بتحكي مع بعض؟". أما **`Implementation`** (التنفيذ) فهو عملية "تحقيق" (`realizing`) هاد التصميم كبرنامج فعلي شغال — يعني تحويل الأفكار لكود.
 
 #### 🎯 الملخص السريع
-- 5 خطوات متسلسلة من Context إلى Interface
-- لا توجد طريقة واحدة صحيحة — تختلف حسب المشروع
-- التصميم عملية **تكرارية** — قد تحتاج تعديلات
+- `Design and Implementation` = المرحلة اللي بيتولّد فيها نظام قابل للتنفيذ
+- `Design` = نشاط إبداعي (كائنات + علاقات)، `Implementation` = تحويل التصميم لكود شغال
+- ممكن تكون مدمجة (مشاريع بسيطة) أو منفصلة (مشاريع كبيرة) عن باقي مراحل هندسة البرمجيات
 
 #### 📚 التطبيق
-- في لعبة: نفهم اللاعب والمحتوى (Context) → نصمم العناصر (Objects) → نحدد طريقة تفاعلها
-- في تطبيق e-commerce: نفهم المستخدمين والمتاجر → نصمم Shopping Cart، Payment، Inventory
-
-#### ⚠️ أخطاء شائعة
-
-#### الفهم الخاطئ ❌:
-"يجب أتبع الخطوات 5 بالضبط نفس ترتيبها حرفياً"
-
-#### الفهم الصحيح ✅:
-الخطوات موجهات عامة، قد تعود للخلف إذا اكتشفت معلومة جديدة.
+هاد التمييز أساس كل الخطوات الجاية — القسم 2 رح يوضح متى نوثق التصميم رسمياً، وبعدين رح نمشي بخمس خطوات لبناء تصميم كائني التوجه فعلي.
 
 #### 📄 النص الأصلي من المحاضرة
 <details>
 <summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-> To develop a system design, we need:
-> 1. Understand & define the context and the external interactions with the system
-> 2. Design the system architecture
-> 3. Identify the principal objects in the system
-> 4. Develop design models
-> 5. Specify interfaces
+> Software design and implementation is the phase at which an executable software system is developed. Software design and implementation is: Software engineering for simple systems and all other activities are merged with this process; Only one of set of processes (req, veri, vali, ..) involved in software engineering. Software design is creative activity in which you identify software components and their relationships based on customer's requirements. Software implementation is the process of realizing the design as a program.
 
 **ملاحظة على التغطية:**
-- ✓ شرح الخطوات الخمس
-- ✓ شرح Context و Interactions
-- ✓ شرح Identification methods
-- ℹ️ إضافة من الدليل: توضيح العملية التكرارية
+- ✓ تم شرح بالكامل: تعريف المرحلة، الفرق بين التصميم والتنفيذ، وحالتي الدمج والانفصال
 
 </details>
 
 ---
 
-### 2.1. System Context Model (نموذج سياق النظام)
+### 2. متى نوثّق التصميم رسمياً؟
+
+<!-- @type: principle -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "1"} -->
 
 #### 📍 أين نحن الآن؟
-أول خطوة عملية: رسم البيئة الخارجية للنظام.
-
-#### 💡 الفكرة الأساسية
-**نموذج السياق يوضح النظام بصرياً وسط الأنظمة الأخرى التي يتفاعل معها.**
-
----
-
-#### 📊 المخطط: System Context Model للمحطة الجوية (من المحاضرة)
-
-**النموذج الدقيق من الـ PDF:**
-
-```
-                         ┌─────────────────────────┐
-                         │  Weather Information    │
-                         │  System                 │
-                         │  (System الخارجي)       │
-                         └────────────┬────────────┘
-                                      │
-                                      │ 1
-                                      │
-        ┌─────────────────────────────┼────────────────────┐
-        │                             │                    │
-        │                             │                    │
-┌───────▼──────────┐        ┌─────────▼──────────┐    ┌───▼───────────┐
-│   Control        │        │  Weather Station   │    │  Satellite    │
-│   System         │        │  (النظام بتاعنا)   │    │  Link         │
-│                  │        │                    │    │               │
-│ (External)       │        │ (Our System)       │    │ (External)    │
-└────────┬─────────┘        └─────────┬──────────┘    └───┬───────────┘
-         │ 1                          │ 1.n                │
-         │                            │                    │
-         └────────────────┬───────────┘                    │
-                          │                                │
-                          └────────────────┬───────────────┘
-                                          │
-                                   (Communication via Satellite)
-```
-
-**التوضيح بالـ Associations:**
-- Weather Station (النظام بتاعنا) ←→ Weather Information System (1:1)
-- Weather Station ←→ Control System (1:1)  
-- Weather Station ←→ Satellite (1:n) — متصل مع satellites متعددة
-- System Boundaries واضحة: كل شيء خارج الـ Box برتقالي = External
-
-**الفائدة:** يوضح أن:
-- ✓ محطة الطقس **لا تتصل مباشرة** مع Weather Information System
-- ✓ **يجب** الاتصال عبر Satellite Link
-- ✓ Control System يقدر يعطيها أوامر مباشرة
-
-#### 📖 الشرح
-
-**System Context Model** = رسم **structural** بسيط يوضح:
-- **أين** النظام بتاعنا
-- **مين** الأنظمة الأخرى حوله
-- **كيف** يتصل بهم
-
-**التمثيل:** 
-- نستخدم **associations** (خطوط ربط) توضح العلاقات
-- أو **simple block diagram** (مربعات وخطوط بسيطة)
-
-**الفائدة:** نحدد **system boundaries** (حدود النظام):
-- ما الـ features الموجودة **داخل** نظامنا
-- ما الـ features الموجودة **خارجه** (في أنظمة أخرى)
-
-#### 🎯 الملخص السريع
-- رسم بسيط يوضح السياق
-- تحديد واضح لحدود النظام
-- يساعد في تجنب confusions عند بداية التصميم
-
-#### 📚 التطبيق
-في لعبة multiplayer:
-- النظام = Game Client
-- الأنظمة الخارجية = Game Server، Database، Payment System
-- السياق يوضح: هل Client يتصل مباشرة بـ Database؟ (عادة لا — يمر عبر Server)
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 95%)</summary>
-
-> System context model: a structural model that demonstrates the other systems in the environment of the system being developed.
-> 
-> Understanding the context è establish the system boundaries:
-> - So you identify which features are implemented in system, and which in other associated systems
-> 
-> Context model:
-> - is represented using associations
-> - associations simply show the relationships
-> - we could use simple block diagram
-
-**ملاحظة على التغطية:**
-- ✓ شرح التعريف والفائدة
-- ⚠️ لم يتم شرح "associations" بالتفصيل
-- ℹ️ إضافة: مثال من لعبة multiplayer
-
-</details>
-
----
-
-### 2.2. Interaction Model (نموذج التفاعلات)
-
-#### 📍 أين نحن الآن؟
-بعد فهم السياق، نوضح **كيف** النظام يتفاعل مع البيئة.
+بعد ما عرفنا إنه التصميم نشاط إبداعي، بنسأل سؤال عملي: هل لازم دايماً يكون موثق رسمياً بمخططات `UML`؟
 
 #### ⬅️ الربط مع السابق
-System Context يقول **من** الأنظمة الأخرى؛ Interaction Model يقول **كيف** التفاعل يحصل.
+هاد امتداد مباشر للقسم السابق — التصميم موجود دايماً كفكرة، بس السؤال هون هو "كيف بتوثقها؟".
 
 #### 💡 الفكرة الأساسية
-**نموذج التفاعلات يوضح كل الحالات الممكنة اللي يستخدم فيها النظام (Use Cases).**
+**ما في إجابة واحدة صحيحة — أحياناً التصميم بيضل بس فكرة براس المبرمج أو مرسوم على `whiteboard`، وأحياناً لازم يكون موثق رسمياً بـ `UML`. القرار بيعتمد على السياق: حجم الفريق، حجم المشروع، ولغة البرمجة المستخدمة.**
 
 ---
 
-#### 📊 المخطط: Interaction Model (Use Cases) — من الـ PDF
+#### 📊 المخطط: Decision Framework — هل أوثق التصميم رسمياً؟
 
-**جميع الـ Use Cases الفعلية:**
+```mermaid
+graph TD
+    Start["هل أوثق التصميم رسمياً؟"]
+    Q1{"لغة البرمجة<br/>Object-Oriented؟"}
+    Q1 -->|نعم، متل Java/C#| Q2{"فريق أكتر<br/>من شخص؟"}
+    Q1 -->|لأ، متل Python البسيط| Skip["ما في إلزام توثق<br/>بـ UML بالتفصيل"]
 
-```
-                              Weather Station System
-     ┌─────────────────────────────────────────────────────────────┐
-     │                                                              │
-     │  ┌─────────────────┐     ┌──────────────────┐              │
-     │  │  Report Weather │     │  Report Status   │              │
-     │  └────────┬────────┘     └────────┬─────────┘              │
-     │           │                       │                         │
-     │  ┌────────┴──────────────┬────────┴──────────┐              │
-     │  │                       │                   │              │
-     │  ▼                       ▼                   ▼              │
-     │  O                       O                   O              │
-     │  |\ Weather Info      |\ Control         |\ Restart    │
-     │  | \ System           | \ System         | \ Shutdown  │
-     │  |  \                 |  \               |  \          │
-     │  |   O                |   O              |   O         │
-     │  └─────────────────────┴─────────────────┴──────┘     │
-     │                                                              │
-     │  Additional Use Cases:                                      │
-     │  • Remote Control (shutdown, restart, reconfigure,         │
-     │    powersave)                                               │
-     │                                                              │
-     └─────────────────────────────────────────────────────────────┘
-     
-     KEY ACTORS:
-     • Weather Information System — يطلب البيانات
-     • Control System — يرسل أوامر و يطلب الحالة
+    Q2 -->|نعم| Formal["وثّق رسمياً بـ UML<br/>(الكل يفهم نفس الشي)"]
+    Q2 -->|لأ، مبرمج واحد| Informal["ممكن يضل بالراس<br/>أو Whiteboard"]
 ```
 
-**جدول Use Cases الدقيق من المحاضرة:**
+**شرح العناصر:**
+- **لغة البرمجة Object-Oriented؟:** أول سؤال — الدكتور صراحة بيقول استخدم `UML` لما تكون شغال بمنهج كائني التوجه
+- **فريق أكتر من شخص؟:** لو فريق، التوثيق الرسمي بيصير أهم عشان الكل يفهم نفس التصميم
+- **Formal / Informal:** المخرجين المحتملين حسب الإجابات
 
-| Use Case | Actor | Description | Trigger |
-|----------|-------|-------------|---------|
-| **Report Weather** | Weather Information System | Station يجمّع البيانات ويرسلها | WIS يطلب البيانات عبر Satellite |
-| **Report Status** | Control System | Station ترسل حالتها الحالية | Control System يطلب الحالة |
-| **Shutdown** | Control System | إيقاف المحطة | أمر من Control System |
-| **Restart** | Control System | تشغيل المحطة من جديد | أمر من Control System |
-| **Reconfigure** | Control System | تغيير settings المحطة | أمر من Control System |
-| **Power Save** | Control System | تقليل استهلاك الطاقة | أمر من Control System |
+**شرح الروابط:**
+- **السهم من Q1 لـ Skip:** لو اللغة مش كائنية التوجه (متل `Python` البسيط)، ما في داعي تفصيل بـ `UML`
+- **السهم من Q2 لـ Formal:** فريق أكبر من شخص بيحتاج لغة مشتركة موثقة
 
-#### ملاحظة: جميع الـ Use Cases عند المحطة (System) — الـ Actors خارجيين يطلبونها.
+**التطبيق في هذا السياق:** طبّق هاد الإطار على أي مشروع تشتغل فيه — مشروع تخرج فردي بلغة بسيطة؟ خليك مرن. مشروع فريق بـ `Java` أو `C++`؟ وثّق بـ `UML`.
 
-#### 📖 الشرح
+---
 
-**Interaction Model** = نموذج **dynamic** يوضح:
-- **كل الطرق** اللي المستخدمون (أو أنظمة أخرى) يمكن يستخدموا النظام
-- كل طريقة استخدام = **Use Case**
-- لا نحتاج تفاصيل كثيرة — فقط ملخص العمليات الرئيسية
+#### 📖 الإطار القرار (Decision Framework)
 
-**مثال من المحاضرة**: محطة الطقس:
-- **Use Case 1: Report Weather** 
-  - Actor: Weather Information System
-  - الإجراء: النظام يجمع البيانات ويرسلها
-- **Use Case 2: Report Status**
-  - Actor: Control System
-  - الإجراء: النظام يرسل حالته الحالية
-- **Use Case 3: Remote Control**
-  - Actor: Control System
-  - الإجراء: يستقبل أوامر (shutdown, restart, reconfigure)
+اسأل نفسك:
+
+**1. هل شغال بمنهج كائني التوجه (`Object-Oriented`)؟**
+- نعم: التوثيق بـ `UML` مفيد ومنطقي
+- لأ (متل `Python` البسيط): ما في إلزام تفصّل بـ `UML` أو لغات وصف تانية
+
+**2. هل الفريق أكتر من شخص واحد؟**
+- نعم: التوثيق الرسمي بيصير أهم — بيخلي الكل يفهم نفس التصميم ويشتغل بالتوازي
+- لأ: التصميم ممكن يضل بس براس المبرمج أو مرسوم على ورقة/`whiteboard`
+
+#### 💼 السياقات المختلفة (Context Examples)
+
+**السيناريو 1: مشروع تخرج فردي بـ Python بسيط**
+- ما في إلزام توثيق رسمي بالتفصيل — فكرة عامة براسك كافية.
+
+**السيناريو 2: فريق شركة ناشئة (Startup) بـ Java، 5 أشخاص**
+- التوثيق بـ `UML` (حتى لو مختصر) بيصير مهم عشان الكل يفهم نفس البنية ويشتغل بالتوازي على أجزاء مختلفة.
 
 #### 🎯 الملخص السريع
-- Use cases = الطرق الممكنة لاستخدام النظام
-- Actors = الأشياء الخارجية (أشخاص أو أنظمة) تستخدم النظام
-- ملخص بسيط بدون تفاصيل معقدة
+- في حالتين: تصميم موثّق رسمياً (`UML`) أو تصميم غير موثّق (براس المبرمج/`whiteboard`)
+- التوثيق الرسمي أهم مع: منهج كائني التوجه + فريق أكبر من شخص
+- ما في إلزام تستخدم `UML` لكل مشروع
 
 #### 📚 التطبيق
-في لعبة:
-- Use Case: Player Logs In → Authentication System
-- Use Case: Player Attacks Enemy → Combat System
-- Use Case: Player Saves Game → File System
+هاد المبدأ رح ينطبق على كل خطوات الـ `OOD` الجاية — رح نستخدم `UML` كأداة توثيق افتراضية بالمحاضرة، بس تذكر إنها أداة اختيارية مش إلزامية بكل سياق.
+
+#### 🤔 تفعيل الفهم
+لو انت شغال لحالك على سكربت `Python` صغير لتحليل بيانات، هل لازم ترسم `UML class diagram` قبل ما تبلش؟ وليش الجواب بيختلف لو كان نفس المشروع بس بفريق 4 أشخاص وبـ `Java`؟
 
 #### ⚠️ أخطاء شائعة
 
 #### الفهم الخاطئ ❌:
-"يجب أشرح كل use case بتفاصيل معقدة جداً"
+افتراض إنه أي مشروع لازم يبلش بمخططات `UML` كاملة قبل كتابة أي سطر كود، وإلا التصميم "ناقص".
 
 #### الفهم الصحيح ✅:
-في هذه المرحلة، نكتفي بـ high-level overview. التفاصيل تأتي لاحقاً.
+المحاضرة صراحة بتقول إنه أحياناً التصميم بيضل غير موثق رسمياً، وهاد طبيعي — خصوصاً بالمشاريع الصغيرة أو اللغات غير الكائنية أو لما تكون شغال لحالك.
 
 #### 📄 النص الأصلي من المحاضرة
 <details>
 <summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-> Interaction model: a dynamic model that shows how the system interacts with its environments as it is used.
-> 
-> Interactions of a system with its environment [does not include too much detail]
-> 
-> We can use a use case model:
-> - Each possible interaction is named in ellipse
-> - External entity involved in the interaction is represented by stick figure
+> Sometimes, there is a separate design stage → the design is modeled and documented. Other times, a design is in the programmer's head or sketched on a whiteboard or paper. It isn't necessary to describe the design in detail using UML or other description languages, use it when OO, not Python!
 
 **ملاحظة على التغطية:**
-- ✓ شرح التعريف والفائدة
-- ✓ شرح Use Case Diagram
-- ℹ️ إضافة: أمثلة من لعبة
+- ✓ تم شرح بالكامل: الحالتين وشرط استخدام UML
+- ℹ️ إضافة من الدليل: Decision framework والسيناريوهات (ليست بالمحاضرة الأصلية)
 
 </details>
 
 ---
 
-### 2.3. Architectural Design (التصميم المعمّاري)
+### 3. خطوات التصميم الكائني التوجه (نظرة عامة)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "2"} -->
 
 #### 📍 أين نحن الآن؟
-بعد فهم التفاعلات، نحدد **كيف** النظام ينقسم لأجزاء أكبر.
+هاد القسم بيقدّم نظرة عامة على خمس خطوات موحدة لازم تعملها لتطوير تصميم نظام كائني التوجه.
+
+#### ⬅️ الربط مع السابق
+بعد ما فهمنا إنه التصميم ممكن يكون موثق أو لأ، هلأ منستعرض **خطوات** التصميم الكائني التوجه نفسها لما نقرر نوثقه.
 
 #### 💡 الفكرة الأساسية
-**نحدد major components (مكونات كبيرة) والتفاعلات بينها باستخدام architectural patterns.**
+**لتطوير تصميم نظام كائني التوجه، لازم تعمل خمس خطوات بالترتيب: فهم السياق والتفاعلات، التصميم المعماري، تحديد أصناف الكائنات، بناء نماذج التصميم، وتحديد الواجهات.**
 
 ---
 
-#### 📊 المخطط: Architecture Design للمحطة (من الـ PDF)
+#### 📊 المخطط: خطوات التصميم الكائني التوجه (OOD)
 
-**البنية المعمّارية الدقيقة:**
+```mermaid
+graph TD
+    S1["1. Context & Interactions<br/>(فهم السياق والتفاعلات)"]
+    S2["2. Architectural Design<br/>(التصميم المعماري)"]
+    S3["3. Object Class Identification<br/>(تحديد أصناف الكائنات)"]
+    S4["4. Design/System Models<br/>(نماذج التصميم)"]
+    S5["5. Interface Specification<br/>(تحديد الواجهات)"]
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  WEATHER STATION SYSTEM ARCHITECTURE                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────────┬───────────────────┬──────────────────────┐ │
-│  │ ◄subsystem►     │ ◄subsystem►       │ ◄subsystem►          │ │
-│  │ Fault Manager   │ Configuration     │ Power Manager        │ │
-│  │                 │ Manager           │                      │ │
-│  └────────┬────────┴─────────┬─────────┴──────────────┬───────┘ │
-│           │                  │                        │         │
-│           └──────────────────┼────────────────────────┘         │
-│                              │                                   │
-│           ╔═════════════════════════════════════════╗           │
-│           ║  Communication Link (Satellite)        ║           │
-│           ║  (Central Hub/Bus)                     ║           │
-│           ╚══════════════════╤═════════════════════╝           │
-│                              │                                   │
-│           ┌──────────────────┼────────────────────┐             │
-│           │                  │                    │             │
-│  ┌────────▼────────┐ ┌───────▼────────┐ ┌───────▼─────────┐   │
-│  │ ◄subsystem►     │ │ ◄subsystem►    │ │ ◄subsystem►     │   │
-│  │ Communications  │ │ Data Collection│ │ Instruments     │   │
-│  │                 │ │                │ │                 │   │
-│  │ • Receiver      │ │ • Transmitter  │ │ • Thermometer   │   │
-│  │ • Processor     │ │ • Logger       │ │ • Anemometer    │   │
-│  │                 │ │ • Formatter    │ │ • Barometer     │   │
-│  └─────────────────┘ └────────────────┘ └─────────────────┘   │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-
-SUBSYSTEMS (6 كاملة):
-1. Fault Manager — إدارة الأخطاء والـ recovery
-2. Configuration Manager — تعديل settings
-3. Power Manager — إدارة الطاقة والـ power saving
-4. Communications — الاتصال عبر Satellite
-5. Data Collection — جمع البيانات من الأجهزة
-6. Instruments — الأجهزة الفعلية (thermometers, etc.)
-
-CONNECTIONS:
-• Communication Link = Hub مركزي (كل subsystems متصلة به)
-• Management subsystems (1,2,3) = تحكم على الـ resources
-• Operational subsystems (4,5,6) = تشتغل مع البيانات
-
-PATTERN USED:
-Layered Architecture:
-  - Layer 1 (Top): Management (Fault, Config, Power)
-  - Layer 2 (Middle): Communication Link
-  - Layer 3 (Bottom): Operations (Comms, Data Collection, Instruments)
+    S1 --> S2 --> S3 --> S4 --> S5
 ```
 
-**المهم: Communication Link ليست subsystem عادية — هي الـ Bus الرئيسي اللي كل الـ subsystems متصلة بيه!**
+**شرح العناصر:**
+- **Context & Interactions:** فهم حدود النظام والأنظمة الخارجية المتفاعلة معه
+- **Architectural Design:** تحديد المكونات الرئيسية وتنظيمها
+- **Object Class Identification:** استخراج الكائنات الفعلية من وصف النظام
+- **Design/System Models:** بناء نماذج توضح الكائنات وعلاقاتها وتفاعلاتها
+- **Interface Specification:** تحديد توقيعات الخدمات بين المكونات
 
-#### 📖 الشرح
+**شرح الروابط:**
+- **كل سهم بيمثل "يؤسس لـ":** كل خطوة بتبني على اللي قبلها — ما تقدر تحدد المعمارية قبل ما تفهم شو النظام لازم يتفاعل معه، وما تقدر تحدد الكائنات قبل ما تعرف المكونات المعمارية
 
-**Architectural Design** بتحدد:
-1. **Major Components** = الأجزاء الكبيرة اللي تشكل النظام
-   - مثال: Data Collection، Communications، Instruments
-2. **كيفية ترتيبها** = استخدام architectural patterns
-   - مثل: Layered Architecture (طبقات)، Client-Server، Pipeline
-
-**الفائدة:**
-- الفريق يقدر يشتغل على components مختلفة بشكل متوازي
-- كل component واضحة مسؤولياتها
-- سهل نقسّم الشغل على المبرمجين
-
-#### 🎯 الملخص السريع
-- Major components مع واضح responsibilities
-- Architecture pattern (layered, modular, etc.)
-- يمكّن parallel development
-
-#### 📚 التطبيق
-في لعبة 3D:
-- **Graphics Engine**: يرسم الرسوميات
-- **Physics Engine**: يحسب الحركة والتصادمات
-- **AI System**: يحكّم سلوك العدو
-- **Event System**: يربط الأجزاء ببعضها
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 95%)</summary>
-
-> After defining the interactions è design architectural design
-> - Identify major components that make up the system and their interactions
-> - Organize the components using an architectural pattern
-
-**ملاحظة على التغطية:**
-- ✓ شرح الخطوة
-- ⚠️ لم يتم شرح patterns بالتفصيل (خارج نطاق المحاضرة)
-- ℹ️ إضافة: توضيح الفوائد العملية
-
-</details>
+**التطبيق في هذا السياق:** المثال اللي رح يرافقنا طول القسم هو **محطة طقس** (`wilderness weather station`) منتشرة بمناطق نائية، بتسجل بيانات الطقس محلياً وبتبعتها دورياً لنظام معلومات الطقس عبر قمر صناعي (`satellite link`).
 
 ---
 
-### 2.4. Object Class Identification (تحديد الكائنات)
+#### 📖 التعريف الدقيق
 
-#### 📍 أين نحن الآن؟
-الآن نروح للتفاصيل: **كل component من components الكبيرة تحتوي كائنات صغيرة.**
-
-#### 💡 الفكرة الأساسية
-**تحديد الكائنات عملية صعبة وتكرارية — لا توجد "صيغة سحرية"، يعتمد على خبرة وفهم domain.**
-
----
-
-#### 📖 الشرح
-
-**الحقيقة المرّة:** 
-- لا توجد algorithm واحد يقول: "الكائنات دي والكائنات دي"
-- تعتمد على:
-  - **Skill**: الخبرة في البرمجة
-  - **Experience**: شغلت مشاريع زي هاي
-  - **Domain Knowledge**: فهمت المجال اللي بتشتغل فيه
-
-**Object identification = عملية تكرارية:**
-- تحتاج لمحاولات أكتر من مرة
-- ما رح تنجح من المحاولة الأولى
-
-#### الطرق المختلفة:
-
-**1. Grammatical Analysis (تحليل لغوي)**
-- Nouns (أسماء) = Objects
-- Verbs (أفعال) = Operations/Methods
-
-مثال من نص محطة الطقس:
-- "weather station **records** local **weather information**"
-- Objects: WeatherStation، WeatherData
-- Operations: records، transmits
-
-**2. Tangible Entities (الأشياء الملموسة)**
-- **Things**: Aircraft، Weather، Temperature
-- **Roles**: Manager، Doctor، User
-- **Events**: Request، Update
-- **Locations**: Office، Room
-- **Organizational Units**: Company، Department
-
-**3. Scenario-based Analysis (تحليل سيناريوهات)**
-- نأخذ كل use case
-- نمر على خطواته
-- نحدد: من الأشياء اللي تشارك في هالـ use case؟
-
-**4. Behavioral Approach (المنهج السلوكي)**
-- نحدد الكائنات بناءً على السلوك
-- "من يفعل هذا؟" → هاي بتكون object
+هاي الخطوات الخمس موحدة وتنطبق على أي تصميم كائني التوجه — بس تذكر إنها مش بالضرورة خطية 100% (خصوصاً الخطوة 3، تحديد الكائنات، اللي هي عملية تكرارية بترجعلها أكتر من مرة).
 
 #### 🎯 الملخص السريع
-- لا صيغة سحرية — تجربة واختيار
-- طرق متعددة: grammatical، entities، scenarios، behavioral
-- التصميم تكراري — قد تعدّل الكائنات لاحقاً
+- 5 خطوات: سياق/تفاعلات → معمارية → أصناف كائنات → نماذج تصميم → واجهات
+- كل خطوة تبني على السابقة
+- المثال المرافق: نظام محطة طقس بيتصل بنظام معلومات طقس عبر قمر صناعي
 
 #### 📚 التطبيق
-في لعبة منصات:
-- **Grammatical**: character **jumps** على **platform** → Character, Platform classes
-- **Entities**: Enemy, Weapon, PowerUp
-- **Scenario**: Player Jumps → في تفاعل بين Player و Gravity
-- **Behavioral**: من يتحرك؟ Player. من يسقط؟ Everything.
-
-#### ⚠️ أخطاء شائعة
-
-#### الفهم الخاطئ ❌:
-"يجب أخمّن الكائنات الصحيحة من أول مرة"
-
-#### الفهم الصحيح ✅:
-حتى الخبراء يعدّلون الكائنات كم مرة. هذا جزء من العملية.
+كل قسم فرعي جاي (3.1 لـ 3.5) رح يشرح وحدة من هاي الخطوات الخمسة بالتفصيل مع تطبيقها على مثال محطة الطقس.
 
 #### 📄 النص الأصلي من المحاضرة
 <details>
 <summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-> Identifying object classes is often a difficult part of object oriented design.
-> 
-> There is no 'magic formula' for object identification. It relies on the skill, experience and domain knowledge of system designers.
-> 
-> Object identification is an iterative process. You are unlikely to get it right first time.
-> 
-> Use a grammatical analysis of a natural description of the system to be constructed:
-> - Objects & attributes are nouns
-> - Operations or services are verbs
-> 
-> Or, use tangible entities (things) in the app. domain:
-> - Things: ex, Aircraft
-> - Roles: ex, manager, doctor
-> - Events: ex, request
-> - Interactions: ex, meetings
-> - Location: ex, offices
-> - Organizational units: ex, companies
-> 
-> Use a scenario-based analysis. The objects, attributes and methods in each scenario are identified
-> 
-> Use a behavioural approach and identify objects based on what participates in what behaviour
+> Remember what is an OO system? To develop a system design, we need: 1. Understand & define the context and the external interactions with the system 2. Design the system architecture 3. Identify the principal objects in the system 4. Develop design models 5. Specify interfaces. Wilderness weather stations are deployed in remote areas. Each weather station records local wither information and periodically transfers this to a weather information system, using a satellite link.
 
 **ملاحظة على التغطية:**
-- ✓ شرح الصعوبة والطرق
-- ✓ شرح كل طريقة
-- ✓ شرح طبيعة العملية التكرارية
+- ✓ تم شرح بالكامل: الخطوات الخمس ووصف مثال محطة الطقس
 
 </details>
 
 ---
 
-### 3. Design or System Model (نموذج التصميم)
+### 3.1. نموذج سياق النظام والتفاعلات (System Context & Interaction Models)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "uml", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "3"} -->
 
 #### 📍 أين نحن الآن؟
-الآن عندنا الكائنات — نحتاج **رسم** كيفية ترابطهم.
+هاي أول خطوة فعلية بالتصميم — فهم علاقة النظام ببيئته الخارجية.
+
+#### ⬅️ الربط مع السابق
+الخطوة الأولى من الخطوات الخمس اللي عرضناها بالقسم 3 — نبدأ فيها قبل أي شي تاني.
 
 #### 💡 الفكرة الأساسية
-**نموذج التصميم يوضح بـ UML الكائنات والعلاقات بينها، ويحقق جسر بين المتطلبات والتطبيق.**
+**أول مرحلة بالتصميم هي فهم العلاقة بين البرنامج اللي بتصممه وبيئته الخارجية، عشان تحدد حدود النظام (`system boundaries`) — شو الميزات المنفذة داخل نظامك وشو المنفذة بأنظمة تانية مرتبطة فيه.**
+
+---
+
+#### 📊 المخطط: نموذج سياق محطة الطقس (System Context Model)
+
+```mermaid
+graph TD
+    CS["Control System<br/>(نظام التحكم)"]
+    WIS["Weather Information System<br/>(نظام معلومات الطقس)"]
+    WS["Weather Station<br/>(النظام قيد التصميم)"]
+    SAT["Satellite<br/>(قمر صناعي)"]
+
+    CS -->|"1 .. 1..n"| WS
+    WIS -->|"1 .. 1..n"| WS
+    WS -->|"1..n .. 1"| SAT
+    WIS -->|"1 .. 1"| SAT
+```
+
+**شرح العناصر:**
+- **Control System:** نظام خارجي بيرسل أوامر تحكم للمحطة (تشغيل/إيقاف/إعادة ضبط)
+- **Weather Information System:** نظام خارجي بيستقبل بيانات الطقس والحالة من المحطة
+- **Weather Station:** النظام قيد التصميم نفسه
+- **Satellite:** وسيط اتصال بينقل البيانات بين المحطة ونظام المعلومات
+
+**شرح الروابط:**
+- **الأرقام على الأسهم (`1`, `1..n`):** هي `associations` بترقيم بتوضح كم كيان مرتبط بكم كيان — مثلاً نظام معلومات طقس واحد (`1`) ممكن يتصل بعدة محطات (`1..n`)
+- **العلاقة مع Satellite:** كل الاتصال البيني بين المحطة ونظام المعلومات بيصير عبر القمر الصناعي
+
+**التطبيق في هذا السياق:** هاد النوع من المخططات (شبيه بـ `block diagram`) هو **نموذج هيكلي/ساكن** (`structural model`) — بيوريك مين موجود بالبيئة، من غير ما يشرح كيف بيصير التفاعل فعلياً (هاد دور النموذج الجاي).
+
+---
+
+#### 📊 المخطط: نموذج التفاعل (Use Case / Interaction Model)
+
+```mermaid
+graph LR
+    WIS(["Weather Information<br/>System"])
+    CS(["Control System"])
+
+    RW(("Report Weather"))
+    RS(("Report Status"))
+    RST(("Restart"))
+    SD(("Shutdown"))
+    RC(("Reconfigure"))
+    PS(("Powersave"))
+    RCT(("Remote Control"))
+
+    WIS --- RW
+    WIS --- RS
+
+    CS --- RST
+    CS --- SD
+    CS --- RC
+    CS --- PS
+    CS --- RCT
+```
+
+**شرح العناصر:**
+- **Weather Information System / Control System (الأشكال المستطيلة المدوّرة):** الكيانات الخارجية (`actors`) — بتمثل شكل "رجل العصا" (`stick figure`) بمخطط `UML` الأصلي
+- **الدوائر (Report Weather, Restart, إلخ):** كل دائرة هي حالة استخدام (`use case`) — تفاعل ممكن واحد بين النظام والكيان الخارجي
+
+**شرح الروابط:**
+- **الخط من `WIS` لـ `Report Weather` و`Report Status`:** نظام معلومات الطقس بيقدر يطلب من المحطة تقرير طقس أو تقرير حالة
+- **الخطوط من `Control System`:** نظام التحكم بيقدر يطلب 5 عمليات: إعادة تشغيل، إيقاف، إعادة ضبط، توفير طاقة، وتحكم عن بعد
+
+**التطبيق في هذا السياق:** هاد **نموذج ديناميكي** (`dynamic model`) — بيوريك كيف النظام فعلياً بيتفاعل مع بيئته أثناء الاستخدام، عكس نموذج السياق الساكن فوق.
 
 ---
 
 #### 📖 الشرح
 
-**Design Model** يجب:
-- يُظهِر **object classes** (الكائنات)
-- يُظهِر **associations** (الروابط بين الكائنات)
-- يكون **bridge** بين requirements و implementation
-- يكون **abstract** (ما نحتاج تفاصيل ثانوية)
-- يحتوي **enough detail** للمبرمجين يكتبوا الكود
+اقرأ المخططين كالتالي: نموذج السياق (الأول) شبيه بخريطة ثابتة — بيوريك مين موجود بالمنطقة بس. نموذج التفاعل (الثاني) شبيه بفيديو — بيوريك شو فعلياً بيصير أثناء الاستخدام.
 
-#### أنواع النماذج:
+كل حالة استخدام (`use case`) لازم توثق بجدول وصفي فيه: **النظام**، **Use case**، **Actors**، **Description**، **Stimulus** (الحافز اللي بيبدأ التفاعل)، **Response** (الاستجابة الناتجة)، و**Comments**.
 
-**1. Structural Models (النماذج الهيكلية — Static)**
-- توضح بنية النظام الثابتة
-- أمثلة:
-  - **Subsystem Models**: أجزاء النظام الكبيرة (Class Diagram with Packages)
-  - **Class Diagrams**: تفصيل كل class
-
-**2. Dynamic Models (النماذج الديناميكية — Runtime Behavior)**
-- توضح السلوك أثناء التشغيل
-- أمثلة:
-  - **Sequence Models/Sequence Diagrams**: تسلسل الاستدعاءات بين Objects
-  - **State Machine Models/State Diagrams**: كيف object يتغير حالته
+| الحقل | القيمة (مثال: Report Weather) |
+| --- | --- |
+| **النظام** | Weather station |
+| **Use case** | Report weather |
+| **Actors** | Weather information system, Weather station |
+| **Description** | المحطة بترسل ملخص بيانات الطقس (أقصى/أدنى/معدل الحرارة، الضغط، سرعة الرياح، إجمالي الأمطار، اتجاه الرياح) المجمّعة كل خمس دقائق |
+| **Stimulus** | نظام المعلومات بيفتح اتصال قمر صناعي وبيطلب البيانات |
+| **Response** | البيانات الملخّصة بترسل لنظام المعلومات |
+| **Comments** | معدل الإبلاغ غالباً مرة كل ساعة، بس ممكن يختلف من محطة لمحطة |
 
 #### 🎯 الملخص السريع
-- Static = البنية الثابتة
-- Dynamic = السلوك والتفاعلات
-- يجب معاً لفهم كامل النظام
+- نموذج السياق (`context model`) = هيكلي/ساكن، بيبيّن الأنظمة الخارجية المرتبطة (block diagram + associations)
+- نموذج التفاعل (`interaction model`) = ديناميكي، بيبيّن كيف النظام بيتفاعل فعلياً (`use case model`: أشكال بيضاوية + stick figures)
+- كل `use case` لازم يوثّق بجدول: النظام، الحالة، الفاعلين، الوصف، الحافز، الاستجابة، الملاحظات
 
 #### 📚 التطبيق
-في لعبة:
-- **Static**: Character, Enemy, Weapon classes وعلاقاتهم
-- **Dynamic**: تسلسل الأحداث عند الهجوم
+فهم حدود النظام والتفاعلات الخارجية هون هو اللي رح يوجهنا بالخطوة الجاية لتحديد **المعمارية الداخلية** للنظام (القسم 3.2).
+
+#### 💡 التشبيه
+فهم `system context model` مثل رسم خريطة لحي كامل قبل ما تصمم بيت — لازم تعرف مين جيرانك (الأنظمة الخارجية) قبل ما تحدد وين أبواب بيتك (نقاط التكامل).
 
 #### ⚠️ أخطاء شائعة
 
 #### الفهم الخاطئ ❌:
-"يجب أرسم 13 UML diagrams (كل الأنواع)"
+الاعتقاد إنه نموذج السياق ونموذج التفاعل هما نفس الشي لأنه الاثنين بيتعاملوا مع "الأنظمة الخارجية".
 
 #### الفهم الصحيح ✅:
-استخدم فقط الـ diagrams اللي تحتاج. في الأغلب: Class Diagram + Sequence Diagram كافيين.
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 95%)</summary>
-
-> Design or System Model:
-> - Shows objects or object classes in a system
-> - Shows associations between entities
-> - is bridge between system requirements and implementation
-> - have to be abstract, no need for unnecessary details
-> - have to include enough detail for programmers to make implementation
-> 
-> In UML, there are about 13 different types of models. No need to all of them — Could be useful in some type of software
-> 
-> In UML, we normally develop two kinds of design model:
-> - Structural models (static)
-> - Dynamic models
-
-**ملاحظة على التغطية:**
-- ✓ شرح الأهداف
-- ✓ شرح النوعين
-- ℹ️ إضافة: عدم الحاجة لكل الـ 13 types
-
-</details>
-
----
-
-### 3.1. Structural Models — Class Diagram
-
-#### 📍 أين نحن الآن؟
-نوضح البنية الثابتة للكائنات.
-
-#### 💡 الفكرة الأساسية
-**Class Diagram توضح Classes والعلاقات بينهم (Inheritance, Association, Composition).**
-
----
-
-#### 📖 الشرح
-
-**Class Diagram يظهر:**
-- **Classes**: كل class في صندوق
-- **Attributes**: البيانات الموجودة في class
-- **Methods**: العمليات اللي يقدر يعملها
-- **Relationships**:
-  - **Generalization** (Inheritance): `<|—` (ترث من)
-  - **Uses/Used-by**: `—>` (تاستخدم)
-  - **Composition**: `◆—` (مكوّنة من)
-
-**مثال بسيط:**
-```
-┌─────────────────────┐
-│    Character        │
-├─────────────────────┤
-│ - health: int       │
-│ - name: string      │
-├─────────────────────┤
-│ + takeDamage()      │
-│ + heal()            │
-└─────────────────────┘
-```
-
-#### 🎯 الملخص السريع
-- كل class = مربع
-- يحتوي attributes و methods
-- العلاقات توضح كيف classes ترتبط
-
-#### 📚 التطبيق
-في لعبة:
-- Character class و Enemy class يرث من Character
-- Weapon class و Character يرتبط بـ association (Character يستخدم Weapon)
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 90%)</summary>
-
-> Structural models:
-> - Describe the static structure of the system by using object classes & relationships
-> - Important relationships may be documented such as:
->   - Generalization relationships
->   - Uses/used-by relationships
->   - Composition relationships
-> 
-> Subsystem models: shows logical grouping of objects into coherent subsystems, i.e. class diagram, each subsystem is shown as a package
-
-**ملاحظة على التغطية:**
-- ✓ شرح الـ relationships
-- ⚠️ تفاصيل الرسم الدقيقة موجودة في المحاضرة الأصلية
-- ℹ️ إضافة: مثال من لعبة
-
-</details>
-
----
-
-### 3.2. Dynamic Models — Sequence & State Diagrams
-
-#### 📍 أين نحن الآن؟
-نوضح كيف الكائنات تتفاعل أثناء التشغيل.
-
-#### 💡 الفكرة الأساسية
-**Dynamic models توضح تسلسل الأحداث وتغيّر الحالات.**
-
----
-
-#### 📖 الشرح
-
-**Dynamic Models ينقسم لنوعين:**
-
-**1. Sequence Diagram (تسلسل العمليات)**
-- توضح **ترتيب** استدعاءات methods بين objects
-- الوقت على المحور العمودي
-- كل object على أفقي
-- Arrows توضح الاستدعاءات
-
-**مثال من محاضرة:**
-- Weather Station يستقبل طلب
-- يردّ بـ acknowledge
-- يجمع البيانات
-- يرسل للـ Communication Link
-- الـ Link ترسل للـ Weather System
-
-**2. State Diagram (حالات الكائن)**
-- توضح كيف object يتغير من حالة لحالة
-- Ovals = states (states)
-- Arrows = transitions (انتقالات)
-- Labels على arrows توضح events
-
-**مثال من محاضرة:**
-محطة الطقس لها states:
-- Shutdown
-- Configuring
-- Running
-- Collecting
-- Summarizing
-- Transmitting
-- Controlled
-- Testing
-
-#### 🎯 الملخص السريع
-- Sequence: ترتيب الاستدعاءات
-- State: تغيّر الحالات
-- معاً بتعطي صورة كاملة للسلوك
-
-#### 📚 التطبيق
-في لعبة:
-- **Sequence**: Player Presses Jump → Physics Engine يحسب → Graphics Engine يرسم
-- **State**: Character في states: Idle, Jumping, Falling, Landing
-
-#### ⚠️ ملاحظة هامة:
-
-"لا تحتاج state diagram لكل object. الأشياء البسيطة (مثل سلاح بسيط) ما تحتاج. فقط الأشياء المعقدة."
-
-#### 📄 النص الأصلي من المحاضرة
-<details>
-<summary>عرض النص الأصلي (coverage: 95%)</summary>
-
-> Dynamic models such as:
-> - Sequence models: shows the sequence of object interactions
-> - State machine model: shows how individual objects change their state in response to events
-> 
-> Sequence models show the sequence of object interactions that take place:
-> - Objects are arranged horizontally across the top
-> - Time is represented vertically so models are read top to bottom
-> - Interactions are represented by labelled arrows
-> - A thin rectangle in an object lifeline represents the time when the object is the controlling object
-
-**ملاحظة على التغطية:**
-- ✓ شرح النوعين
-- ✓ شرح تفاصيل Sequence
-- ⚠️ تفاصيل State diagram موجودة لكن اختصرت
-
-</details>
-
----
-
-### 4. Interface Specification (تحديد الواجهات)
-
-#### 📍 أين نحن الآن؟
-آخر جزء من التصميم: بوضوح **كيف** الأشياء تتصل ببعضها.
-
-#### 💡 الفكرة الأساسية
-**تحديد الواجهات يعني تعريف دقيق للخدمات اللي كل component/object توفّر.**
-
----
-
-#### 📖 الشرح
-
-**Interface Specification يحدد:**
-- **Signatures**: المعاملات والـ return types
-- **Semantics**: شنو اللي الـ method بتعمل بالضبط
-- **Pre-conditions**: شنو اللي لازم يكون صح قبل استدعاء
-- **Post-conditions**: شنو نتيجة الاستدعاء
-
-**الفائدة:**
-- Multiple teams يقدرون يشتغلوا بشكل مستقل
-- طالما يلتزموا بـ interface، كل واحد يعمل على جزء
-
-**أداة التمثيل:**
-- **UML**: Class diagrams مع public methods واضحة
-- **Java**: Interface keyword
-
-**نقطة مهمة:**
-"ما تحتاج تصمّم implementation الـ interface — اخفي details في الـ object نفسه."
-
-#### 🎯 الملخص السريع
-- تعريف واضح للـ public methods
-- معاملات ونتائج محددة
-- يمكّن parallel development
-
-#### 📚 التطبيق
-في لعبة:
-```
-interface Attackable:
-  - takeDamage(amount: int): void
-  - isDead(): boolean
-  
-interface Weapon:
-  - attack(): int
-  - reload(): void
-```
+نموذج السياق **ساكن** (بيبيّن مين موجود بالبيئة بس، زي خريطة)، بينما نموذج التفاعل **ديناميكي** (بيبيّن شو فعلياً بيصير أثناء الاستخدام، زي فيديو).
 
 #### 📄 النص الأصلي من المحاضرة
 <details>
 <summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-> Interface between components
-> 
-> Object interfaces have to be specified so that the objects and other components can be designed in parallel.
-> 
-> Interface design defines the signatures and semantics of services that are provided by object or group of objects
-> 
-> The UML uses class diagrams for interface specification but Java may also be used.
-> 
-> Designers should avoid designing the interface representation but should hide this in the object itself.
+> 1st phase in software design is develop an understanding of the relationships between: 1. The software being designed 2. Its external environment. Understanding the context → establish the system boundaries. System context model: a structural model that demonstrates the other systems in the environment of the system being developed. Interaction model: a dynamic model that shows how the system interacts with its environments as it is used. Context model: is represented using associations... we could use simple block diagram. Interactions of a system with its environment [does not include too much detail]. We can use a use case model: Each possible interaction is named in ellipse; External entity involved in the interaction is represented by stick figure.
 
 **ملاحظة على التغطية:**
-- ✓ شرح الفائدة والتعريف
-- ✓ شرح كيفية الـ hiding
-- ℹ️ إضافة: مثال من لعبة
+- ✓ تم شرح بالكامل: نموذج السياق، نموذج التفاعل، جدول وصف الـ use case بمثال Report Weather
 
 </details>
 
 ---
 
-### 5. Implementation (التطبيق)
+### 3.2. التصميم المعماري (Architectural Design)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "component", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "3.1"} -->
 
 #### 📍 أين نحن الآن؟
-انتهينا من التصميم. الآن نشتغل على **كتابة الكود**.
+بعد ما حددنا حدود النظام وتفاعلاته الخارجية، هلأ منحدد المكونات الداخلية الرئيسية.
+
+#### ⬅️ الربط مع السابق
+التفاعلات اللي حددناها بالقسم 3.1 (`Report Weather`, `Restart`, إلخ) هي اللي رح توجه شو المكونات الداخلية اللي محتاجينها.
 
 #### 💡 الفكرة الأساسية
-**Implementation معناها تحويل التصميم لبرنامج فعلي، مع التركيز على Reuse, Configuration Management, و Host-Target Development.**
+**بعد تحديد التفاعلات، نصمم المعمارية بتحديد المكونات الرئيسية اللي بيتكون منها النظام وتفاعلاتها، وننظمها باستخدام نمط معماري (`architectural pattern`).**
+
+---
+
+#### 📊 المخطط: معمارية محطة الطقس
+
+```mermaid
+graph TD
+    FM["«subsystem»<br/>Fault Manager"]
+    CM["«subsystem»<br/>Configuration Manager"]
+    PM["«subsystem»<br/>Power Manager"]
+    LINK["Communication Link"]
+    COMM["«subsystem»<br/>Communications"]
+    DC["«subsystem»<br/>Data Collection"]
+    INST["«subsystem»<br/>Instruments"]
+
+    FM --- LINK
+    CM --- LINK
+    PM --- LINK
+    LINK --- COMM
+    LINK --- DC
+    LINK --- INST
+```
+
+**شرح العناصر:**
+- **Fault Manager:** يدير الأعطال بالنظام
+- **Configuration Manager:** يدير إعادة الضبط والتهيئة
+- **Power Manager:** يدير استهلاك واستخدام الطاقة
+- **Communication Link:** طبقة اتصال مركزية بين كل الأقسام
+- **Communications:** يدير الاتصال الخارجي (مع القمر الصناعي)
+- **Data Collection:** يجمع بيانات الطقس من الأدوات
+- **Instruments:** أدوات القياس الفعلية (حرارة، رياح...)
+
+**شرح الروابط:**
+- **كل الخطوط بتمر عبر `Communication Link`:** طبقة اتصال مركزية (`bus`) — أي `subsystem` بيحكي مع أي `subsystem` تاني عن طريقها، مش مباشرة
+
+**التطبيق في هذا السياق:** هاد النمط المعماري (طبقة اتصال مركزية) بيسمح بإضافة `subsystem` جديد بالمستقبل من غير ما تعدّل كل الأقسام التانية — بس توصله بـ `Communication Link`.
+
+---
+
+#### 📊 المخطط: معمارية Data Collection subsystem (تفصيل داخلي)
+
+```mermaid
+classDiagram
+    class Transmitter
+    class Receiver
+    class WeatherData
+
+    Transmitter --> WeatherData
+    Receiver --> WeatherData
+```
+
+**شرح العناصر:**
+- **Transmitter:** الكائن المسؤول عن إرسال البيانات
+- **Receiver:** الكائن المسؤول عن استقبال الأوامر/البيانات
+- **WeatherData:** الكائن اللي بيحمل البيانات نفسها وبيتناقل بين الاثنين
+
+**شرح الروابط:**
+- **الأسهم لـ `WeatherData`:** كل من `Transmitter` و`Receiver` بيتعاملوا مع نفس الكائن `WeatherData`
+
+**التطبيق في هذا السياق:** كل `subsystem` بحد ذاته ممكن يكون إله معمارية داخلية خاصة فيه — هاد مثال إنه `Data Collection` مش صندوق أسود، فيه بنية داخلية واضحة.
+
+#### 📖 الشرح
+اقرأ المخطط الأول كالتالي: فوق في ثلاث `subsystems` مسؤولة عن الإدارة الداخلية (أعطال، تهيئة، طاقة)، وتحت في ثلاث `subsystems` مسؤولة عن الوظائف الأساسية (اتصال، جمع بيانات، أدوات) — وكلهم مرتبطين ببعض عبر طبقة وسطى واحدة اسمها `Communication Link`.
+
+#### 🎯 الملخص السريع
+- المعمارية = تحديد المكونات الرئيسية + تنظيمها بنمط معماري
+- محطة الطقس انقسمت لست subsystems حول طبقة اتصال مركزية واحدة
+- كل subsystem ممكن يكون إله معمارية داخلية خاصة فيه (زي Data Collection: Transmitter + Receiver + WeatherData)
+
+#### 📚 التطبيق
+هاي المكونات المعمارية (`Data Collection`, `Instruments`, إلخ) رح تكون المصدر الأساسي اللي رح نستخرج منه أصناف الكائنات بالقسم الجاي (3.3).
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+التفكير إنه المعمارية شي واحد بس على مستوى النظام الكامل، وما إلها علاقة بتفاصيل داخلية.
+
+#### الفهم الصحيح ✅:
+كل `subsystem` ممكن يكون إله معماريته الداخلية الخاصة — يعني المعمارية موجودة على أكتر من مستوى (النظام الكامل، وكل subsystem لحاله).
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> After defining the interactions → design architectural design: Identify major components that make up the system and their interactions; Organize the components using an architectural pattern. [Architecture of weather station diagram: Fault Manager, Configuration Manager, Power Manager over Communication Link over Communications, Data Collection, Instruments]. architecture for each subsystem [Data Collection: Transmitter, Receiver, WeatherData].
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: خطوة التصميم المعماري ومثال معمارية محطة الطقس على المستويين
+
+</details>
+
+---
+
+### 3.3. تحديد أصناف الكائنات (Object Class Identification)
+
+<!-- @type: principle -->
+<!-- @render: {type: "diagram-first", visualization: "hierarchy", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "3.2"} -->
+
+#### 📍 أين نحن الآن؟
+بعد تحديد المكونات المعمارية، هلأ منستخرج الكائنات (`objects`) الفعلية اللي رح تُبنى منها هاي المكونات.
+
+#### ⬅️ الربط مع السابق
+المكونات المعمارية اللي حددناها بالقسم 3.2 (زي `Data Collection`, `Instruments`) هي المصدر اللي رح نستخرج منه أصناف الكائنات.
+
+#### 💡 الفكرة الأساسية
+**تحديد أصناف الكائنات من أصعب أجزاء التصميم الكائني التوجه — ما في صيغة سحرية واحدة، في أربع طرق مختلفة بتصلح لسياقات مختلفة، والاختيار بيعتمد على مهارة وخبرة المصمم.**
+
+---
+
+#### 📊 المخطط: أربع طرق لتحديد أصناف الكائنات
+
+```mermaid
+graph TD
+    Start["كيف أحدد أصناف الكائنات؟"]
+    Start --> M1["1. تحليل نحوي<br/>Grammatical Analysis"]
+    Start --> M2["2. كيانات ملموسة<br/>Tangible Entities"]
+    Start --> M3["3. تحليل سيناريو<br/>Scenario-Based"]
+    Start --> M4["4. نهج سلوكي<br/>Behavioural"]
+
+    M1 --> M1D["أسماء = كائنات<br/>أفعال = عمليات"]
+    M2 --> M2D["أشياء / أدوار / أحداث<br/>تفاعلات / مواقع / وحدات"]
+    M3 --> M3D["كائنات من كل<br/>use case لحاله"]
+    M4 --> M4D["كائنات من<br/>مين شارك بأي سلوك"]
+```
+
+**شرح العناصر:**
+- **تحليل نحوي:** تاخد وصف طبيعي للنظام وتحلله لغوياً
+- **كيانات ملموسة:** تدوّر على أنواع محددة من الكيانات بمجال التطبيق
+- **تحليل سيناريو:** تستخرج الكائنات من كل `use case` بمفرده
+- **نهج سلوكي:** تنطلق من السلوكيات وترجع للورا لتحدد المسؤول عنها
+
+**شرح الروابط:**
+- **الأسهم من `Start` للطرق الأربعة:** الطرق مش حصرية — ممكن تستخدم أكتر من وحدة مع بعض على نفس النظام
+
+**التطبيق في هذا السياق:** بمثال محطة الطقس، استخدمنا بالأساس **التحليل النحوي** على وصف النظام النصي.
+
+---
+
+#### 📖 الإطار القرار (Decision Framework)
+
+اسأل نفسك:
+
+**1. عندك وصف نصي واضح للنظام؟**
+- نعم: استخدم **التحليل النحوي** — الأسماء والصفات (`nouns & attributes`) هي كائنات، والأفعال (`verbs`) هي عمليات أو خدمات (`operations/services`)
+
+**2. عندك معرفة عميقة بمجال العمل (`domain knowledge`)؟**
+- نعم: دوّر على **كيانات ملموسة**: أشياء (`things` — متل `Aircraft`)، أدوار (`roles` — متل `manager`, `doctor`)، أحداث (`events` — متل `request`)، تفاعلات (`interactions` — متل `meetings`)، مواقع (`location` — متل `offices`)، ووحدات تنظيمية (`organizational units` — متل `companies`)
+
+**3. عندك حالات استخدام (`use cases`) موثقة؟**
+- نعم: استخدم **التحليل المبني على السيناريو** — استخرج الكائنات والخصائص والدوال من كل سيناريو بمفرده
+
+**4. بتعرف السلوكيات المطلوبة بس مش الكائنات؟**
+- نعم: استخدم **النهج السلوكي** — حدد الكائنات بناءً على "مين شارك بأي سلوك"
+
+#### 💼 السياقات المختلفة (Context Examples)
+
+**السيناريو 1: نظام محطة الطقس (وصف نصي متوفر)**
+من وصف: "محطة الطقس هي حزمة من أدوات مُتحكَّم فيها برمجياً بتجمع بيانات، بتعالجها، وبترسلها لمزيد من المعالجة..." — استخدمنا **التحليل النحوي**: الأفعال (تجمع، تعالج، ترسل) صارت عمليات، والأسماء (محطة، بيانات، أدوات) صارت كائنات. النتيجة: `WeatherStation`, `WeatherData`, `Ground Thermometer`, `Anemometer`, `Barometer`.
+
+**السيناريو 2: نظام إدارة مستشفى (بدون وصف نصي كافي، بس مجال معروف)**
+لو ما عندك وصف نصي مفصل، بس بتعرف مجال المستشفيات، استخدم **الكيانات الملموسة**: أدوار (`Doctor`, `Nurse`, `Patient`)، أحداث (`Appointment`, `Admission`)، مواقع (`Room`, `Ward`) — هاد أسرع من إنك تنتظر وصف نصي كامل.
 
 ---
 
 #### 📖 الشرح
 
-**Implementation مو عن كتابة كود من الصفر. التركيز:**
+من وصف نظام محطة الطقس تم استخراج الأصناف التالية بالتحليل النحوي:
 
-**1. Reuse (إعادة الاستخدام)**
-- لا تكتب كود موجود — اعتمد على libraries و components موجودة
-- 4 مستويات:
-  1. **Abstraction**: استخدم design patterns وخبرة (أعلى مستوى)
-  2. **Object**: استخدم libraries (مثل JUnit)
-  3. **Component**: قد تحتاج كود تربط components
-  4. **System**: استخدم applications كاملة (قد تحتاج تعديلات)
-
-- **الفوائد:**
-  - أسرع development
-  - أقل bugs (tested قبل)
-  - أقل كلفة
-  - أكتر reliability
-
-- **التكاليف المرتبطة:**
-  - وقت البحث عن reusable elements
-  - تكلفة الشراء (خاصة COTS)
-  - تكلفة التكييف والتعديل
-  - تكلفة التكامل مع components أخرى
-
-**2. Configuration Management (إدارة التكوين)**
-- المشروع بيطلع versions كثيرة من كل component
-- لازم نتابع: أي version اختبرنا؟ أي version معنا الآن؟
-- بدون tracking، قد نستخدم versions خاطئة
-
-**Activities:**
-- **Version Management**: تتبع versions
-- **System Integration**: تحديد أي versions تستخدم في كل build
-- **Problem Tracking**: تقرير bugs وتتبع fixes
-
-**Tools:** ClearCase, Subversion, BugZilla, Git
-
-**3. Host-Target Development (تطوير على جهاز، تشغيل على آخر)**
-- نطور على **host** (جهازنا — عادة أقوى)
-- نشغّل على **target** (الجهاز النهائي — قد يكون مختلف)
-- الفرق: OS، processor، limitations
-
-**مثال:** نطور لعبة على Windows PC، لكن النهاية تشتغل على iOS
-- نستخدم **simulators** (emulators) عشان نختبر
+| الصنف | الخصائص | الدوال |
+| --- | --- | --- |
+| `WeatherStation` | `identifier` | `reportWeather()`, `reportStatus()`, `powerSave(instruments)`, `remoteControl(commands)`, `reconfigure(commands)`, `restart(instruments)`, `shutdown(instruments)` |
+| `WeatherData` | `airTemperatures`, `groundTemperatures`, `windSpeeds`, `windDirections`, `pressures`, `rainfall` | `collect()`, `summarize()` |
+| `Ground Thermometer` | `gt_Ident`, `temperature` | `get()`, `test()` |
+| `Anemometer` | `an_Ident`, `windSpeed`, `windDirection` | `get()`, `test()` |
+| `Barometer` | `bar_Ident`, `pressure`, `height` | `get()`, `test()` |
 
 #### 🎯 الملخص السريع
-- Reuse ≠ كل شيء نكتبه. استخدم اللي موجود
-- Configuration management = تتبع دقيق
-- Host-target = تطور في مكان، شغّل في آخر
+- تحديد الكائنات = عملية تكرارية بدون صيغة سحرية، بتعتمد على خبرة المصمم
+- 4 طرق: تحليل نحوي (أسماء=كائنات/أفعال=عمليات)، كيانات ملموسة، تحليل سيناريو، نهج سلوكي
+- مثال محطة الطقس أعطى: WeatherStation, WeatherData, Ground Thermometer, Anemometer, Barometer
 
 #### 📚 التطبيق
-في Launchpad (e-commerce):
-- **Reuse**: استخدم frameworks موجودة (Django/Flask/React)
-- **Config Management**: متابعة أي version API قيد الاستخدام
-- **Host-Target**: تطور على laptop، لكن يشتغل على servers
+الأصناف اللي حددناها هون رح تكون أساس نماذج التصميم بالقسم الجاي (3.4).
+
+#### 💡 التشبيه
+تحديد أصناف الكائنات مثل **عمل محقق جنائي** — ما في صيغة ثابتة توصلك للحل، بس عندك أدوات مختلفة (تحليل الأدلة النصية، معرفة سياق الجريمة، تتبع السلوكيات) وبتستخدم اللي يناسب الحالة، وأحياناً بترجع تراجع استنتاجاتك.
+
+#### 🤔 تفعيل الفهم
+لو عندك وصف نظام مكتبة إلكترونية: "المستخدم بيبحث عن كتاب، يستعيره، ويرجعه بعد فترة" — استخدم التحليل النحوي: شو الكائنات (أسماء) وشو العمليات (أفعال) اللي بتطلع من هاد الوصف؟
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+التفكير إنه في طريقة واحدة "صحيحة" ثابتة لتحديد الكائنات، ولو اتبعتها رح توصل للنتيجة الصح من أول مرة.
+
+#### الفهم الصحيح ✅:
+ما في "صيغة سحرية" (`magic formula`)، والعملية **تكرارية** (`iterative`) — طبيعي جداً إنك ترجع وتعدل الأصناف اللي حددتها أكتر من مرة، وممكن تستخدم أكتر من طريقة مع بعض.
 
 #### 📄 النص الأصلي من المحاضرة
 <details>
-<summary>عرض النص الأصلي (coverage: 95%)</summary>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-> Implementation is concerned with creating executable version
-> 
-> Most modern is constructed by reusing existing components [do not reinvent the wheel]
-> 
-> Reuse levels:
-> - Abstraction: use knowledge of successful abstractions in design
-> - Object: reuse objects from a library
-> - Component: need to write some code
-> - System: reuse entire application systems
-> 
-> Reusing aids to:
-> - Develop new systems more quickly
-> - Minimize development risks
-> - Lower costs
-> - More reliable software
-> 
-> Configuration management system keep track of these versions
-> - Version management
-> - System integration
-> - Problem tracking
-> 
-> Develop on one computer (host system), execute on a separate computer (target system)
+> Identifying object classes is often a difficult part of object oriented design. There is no 'magic formula' for object identification. It relies on the skill, experience and domain knowledge of system designers. Object identification is an iterative process. Use a grammatical analysis of a natural description... Objects & attributes are nouns; Operations or services are verbs. Or, use tangible entities: Things, Roles, Events, Interactions, Location, Organizational units. Use a scenario-based analysis... Use a behavioural approach... A weather station is a package of software controlled instruments which collects data, performs some data processing and transmits this data for further processing. The instruments include air and ground thermometers, an anemometer, a wind vane, a barometer and a rain gauge. Data is collected periodically. When a command is issued to transmit the weather data, the weather station processes and summarises the collected data. The summarised data is transmitted to the mapping computer when a request is received.
 
 **ملاحظة على التغطية:**
-- ✓ شرح كل مستوى من Reuse
-- ✓ شرح فوائد
-- ✓ شرح Config Management
-- ℹ️ إضافة: أمثلة عملية
+- ✓ تم شرح بالكامل: كل طرق التحديد الأربع، ومثال أصناف كائنات محطة الطقس بالكامل
+- ℹ️ إضافة من الدليل: تشبيه المحقق الجنائي، سيناريو المستشفى ومكتبة إلكترونية (ليست بالمحاضرة)
 
 </details>
 
 ---
 
-## الجزء الثاني: الملخص الشامل
+### 3.1-3.3 مثال متكامل: من السياق للكائنات بمثال محطة الطقس
 
-### مقدمة سريعة
+<!-- @type: example-for-topics-3.1-to-3.3 -->
 
-تطوير البرمجيات بينقسم لمرحلتين متسلسلتين: قبل كل شيء، تحتاج **تصميم** معقول اللي يقول شنو البنية. بعدين تقدر **تطبّق** بناءً على التصميم.
+#### 📌 السياق: نظام محطة طقس بمنطقة نائية
+عندك مشروع حقيقي: بناء نظام محطة طقس بيرسل بياناته لمركز مراقبة عبر قمر صناعي — نفس فكرة تطبيقات `IoT` الحديثة (أجهزة استشعار بترسل بيانات لسيرفر مركزي).
 
-### Design (التصميم)
+#### 💼 السيناريو (Real-World Example)
+لو كنت المصمم، بتمشي هيك: **أولاً** (3.1) بتحدد إنه نظامك (`Weather Station`) بيتفاعل مع `Weather Information System` (بيطلب تقارير) و`Control System` (بيرسل أوامر) عبر `Satellite`. **ثانياً** (3.2) بتصمم المعمارية الداخلية: `subsystems` لإدارة الأعطال والتهيئة والطاقة، ووحدات تانية للاتصال وجمع البيانات وقراءة الأدوات — كلهم متصلين بطبقة `Communication Link` مركزية. **ثالثاً** (3.3) من وصف النظام النصي، بتستخرج الكائنات الفعلية: `WeatherStation` (الكائن الرئيسي)، `WeatherData` (حاوية البيانات)، وكائنات الأدوات (`Ground Thermometer`, `Anemometer`, `Barometer`).
 
-**التصميم = القرار: كيف نبني النظام؟**
+#### 💡 كيف تجتمع المفاهيم؟
+- **نموذج السياق (3.1):** حدد إنه في 3 أنظمة خارجية (Control, Weather Info, Satellite)
+- **المعمارية (3.2):** ترجم هاد الفهم لـ 6 subsystems منظمة حول Communication Link
+- **تحديد الكائنات (3.3):** من داخل subsystem واحد بس (`Data Collection`)، استخرجنا `WeatherData`, `Transmitter`, `Receiver` — ومن وصف النظام الكامل استخرجنا `WeatherStation` والأدوات
+- **النتيجة:** تصميم متكامل ينتقل بسلاسة من "مين برا النظام" لـ "شو جوا النظام" لـ "شو الكائنات الفعلية"
 
-في Object-Oriented Design، نتّبع 5 خطوات:
-
-**1. فهم السياق (System Context)**
-نرسم نقطة واحدة وكل الأنظمة حولها. الهدف: تحديد واضح لحدود نظامنا. شنو بتاعنا؟ شنو بتاع غيرنا؟
-
-**2. نموذج التفاعلات (Interactions)**
-كل حالة استخدام = Use Case. مثل: "المستخدم يسجّل دخول"، "النظام يرسل بيانات". بسيط وواضح، بدون تفاصيل.
-
-**3. البنية المعمّارية (Architecture)**
-نقسّم النظام لـ major components (أجزاء كبيرة). كل component يشتغل على تخصصه. هاي تسمح للفريق يشتغلوا بتوازي.
-
-**4. تحديد الكائنات (Object Identification)**
-الآن نروح للتفاصيل. كل component من components الكبيرة تحتوي كائنات (classes). طرق مختلفة: نقرأ الوصف ونحدد nouns، أو نفكر بـ "شنو الأشياء الحقيقية هنا"، أو نمشي عبر السيناريوهات. لا توجد طريقة واحدة صحيحة.
-
-**5. نموذج التصميم (Design Models)**
-رسم رسمي بـ UML: Class Diagrams (البنية الثابتة)، Sequence Diagrams (ترتيب الاستدعاءات)، State Diagrams (تغيّر الحالات). هاي الرسوميات = خارطة الطريق للمبرمجين.
-
-**ملخص صغير:** السياق → التفاعلات → البنية → الكائنات → الرسومات.
-
-### Implementation (التطبيق)
-
-**التطبيق = تحويل التصميم لبرنامج يشتغل.**
-
-أهم نقاط:
-
-**Reuse**: ما تكتب كل شيء من الصفر. استخدم libraries، frameworks، أنظمة موجودة. توفّر وقت وتقلل bugs.
-
-**Configuration Management**: النظام بيطلع versions كثيرة. لازم نتابع: أي version الحالي؟ أي version اختبرنا؟ بدون tracking، chaos.
-
-**Host-Target**: نطور على جهازنا (host)، لكن ينتهي التطبيق يشتغل على جهاز آخر (target). قد يكون مختلف تماماً (OS، processor). نستخدم simulators عشان نختبر.
-
-### الفكرة الكبيرة
-
-التصميم + التطبيق = أساس كل مشروع ناجح. لو أهملت التصميم، التطبيق بيصير فوضى. لو أهملت Reuse في التطبيق، بتضيع كتير من الوقت.
-
-### أمثلة واقعية
-
-**في Launchpad (e-commerce):**
-- **Design**: حددنا الـ Components (User Service, Product Service, Payment Service)
-- **Implementation**: استخدمنا frameworks (Django/FastAPI), reused existing payment libraries, setup version control
-
-**في لعبة:**
-- **Design**: Character, Enemy, Weapon classes مع state diagram بين (Idle, Attacking, Dead)
-- **Implementation**: استخدم game engine (Unity/Unreal)، libraries موجودة للـ physics
+#### ⚠️ لو ما طبّقتهم صح؟
+لو قفزت مباشرة لتحديد الكائنات (خطوة 3) من غير ما تحدد السياق والمعمارية أول، ممكن تفوتك كائنات مهمة مسؤولة عن التفاعل مع الأنظمة الخارجية (زي `Communication Link` أو `Transmitter`/`Receiver`) — لأنه هاي الكائنات طلعت أصلاً من فهم المعمارية، مش من وصف النظام العام بس.
 
 ---
 
-## الجزء الثالث: 16 سؤال اختيار من متعدد
+### 3.4. نموذج التصميم: الهيكلي مقابل الديناميكي (Structural vs Dynamic Models)
 
-### السؤال 1 (متوسط)
-**السؤال:** في أي مرحلة نحدد أن محطة الطقس لازم تتصل مع Satellite بدل مع Control System مباشرة؟
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "sequence+state", coverage: "95%"} -->
+<!-- @connectivity: {prerequisite: "3.3"} -->
 
-أ) Object Class Identification
-ب) System Context Model
-ج) Implementation
-د) Code Review
+#### 📍 أين نحن الآن؟
+بعد ما حددنا الكائنات، هلأ منبني نماذج توضح شكل النظام وتفاعلاته بشكل منظّم وموثّق.
+
+#### ⬅️ الربط مع السابق
+الأصناف اللي حددناها بالقسم 3.3 (`WeatherStation`, `WeatherData`...) هي اللي رح تظهر جوا النماذج هون.
+
+#### 💡 الفكرة الأساسية
+**نموذج التصميم بيوريك الكائنات وعلاقاتها، وبيشكّل الجسر بين المتطلبات والتنفيذ. في نوعين موحدين بـ `UML`: نماذج هيكلية/ساكنة (structure ثابتة) ونماذج ديناميكية (تفاعلات وتغييرات حالة).**
+
+---
+
+#### 📊 المخطط: نموذج التتابع (Sequence Diagram) لسيناريو Report Weather
+
+```mermaid
+sequenceDiagram
+    participant WIS as Weather Information System
+    participant Sat as :SatComms
+    participant WS as :WeatherStation
+    participant Link as :Commslink
+    participant WD as :WeatherData
+
+    WIS->>Sat: request(report)
+    Sat-->>WIS: acknowledge
+    Sat->>WS: reportWeather()
+    WS->>Link: get(summary)
+    Link->>WD: summarize()
+    WS->>Sat: send(report)
+    Sat-->>WIS: reply(report)
+```
+
+**شرح العناصر:**
+- **Weather Information System:** الكيان الخارجي اللي بيبدأ الطلب
+- **SatComms:** الكائن اللي بيستقبل الطلب عبر القمر الصناعي
+- **WeatherStation:** الكائن المنسّق لعملية التقرير
+- **Commslink:** الكائن اللي بيجمع الملخص من مصدر البيانات
+- **WeatherData:** الكائن اللي بيلخّص البيانات الخام
+
+**شرح الروابط:**
+- **الأسهم المتصلة (`->>`):** استدعاءات (طلب تنفيذ عملية)
+- **الأسهم المتقطعة (`-->>`):** ردود (نتيجة الاستدعاء)
+- **الترتيب من فوق لتحت:** يمثل تسلسل زمني — الوقت ماشي عمودياً
+
+**التطبيق في هذا السياق:** هاد النموذج **ديناميكي** — بيوضح بالضبط ترتيب النداءات، وهاد بيساعد المبرمج يعرف بالظبط شو الدالة اللي لازم يستدعيها ومتى.
+
+---
+
+#### 📊 المخطط: مخطط الحالة (State Diagram) لكائن WeatherStation
+
+```mermaid
+stateDiagram-v2
+    [*] --> Shutdown
+    Shutdown --> Running: restart()
+    Running --> Shutdown: shutdown()
+    Running --> Configuring: reconfigure()
+    Configuring --> Running: configuration done
+    Running --> Collecting: clock
+    Collecting --> Running: collection done
+    Running --> Testing: reportStatus()
+    Testing --> Transmitting: test complete
+    Transmitting --> Running: transmission done
+    Running --> Summarizing: reportWeather()
+    Summarizing --> Transmitting: weather summary complete
+    Running --> Controlled: remoteControl()
+```
+
+**شرح العناصر:**
+- **Shutdown:** الحالة الابتدائية — النظام مطفي
+- **Running:** الحالة المركزية اللي بترجعلها بعد أغلب العمليات
+- **Configuring / Collecting / Testing / Transmitting / Summarizing:** حالات فرعية مؤقتة أثناء تنفيذ عملية معينة
+- **Controlled:** حالة نهائية بعد استقبال أمر تحكم عن بعد
+
+**شرح الروابط:**
+- **الأسهم المسمّاة (`restart()`, `clock`, `test complete`...):** الحدث أو الاستدعاء اللي بيسبب الانتقال من حالة لتانية
+
+**التطبيق في هذا السياق:** هاد مثال على كائن سلوكه **معقّد بما فيه الكفاية** ليستحق `state diagram` — مش كل الكائنات بالنظام بتحتاج هيك تفصيل.
+
+---
+
+#### 📖 الشرح
+
+**النماذج الهيكلية/الساكنة** (`structural models`) بتوصف البنية الثابتة للنظام باستخدام أصناف الكائنات والعلاقات — أهمها: علاقات التعميم (`generalization`)، الاستخدام/الاستخدام-من-قِبَل (`uses/used-by`)، والتركيب (`composition`). مثال عليها: **نماذج الأقسام الفرعية** (`subsystem models`) بشكل `class diagram` وين كل `subsystem` بيتمثل كـ `package` (زي مخطط `Data Collection` بالقسم 3.2).
+
+**النماذج الديناميكية** (`dynamic models`) بتوصف البنية المتغيرة، وبتبيّن تسلسل طلبات الخدمة (`sequence of services requests`) وتغييرات الحالة (`state changes`) الناتجة عنها — مثالها **نماذج التتابع** (فوق) و**مخططات الحالة** (فوق كمان).
+
+مخططات الحالة مفيدة كنماذج عالية المستوى لسلوك كائن معيّن وقت التنفيذ، بس **مش لازم تعمل `state diagram` لكل الكائنات** — كثير كائنات بالنظام بسيطة نسبياً وعمل نموذج حالة إلها بيضيف تفاصيل غير ضرورية للتصميم.
+
+#### 🎯 الملخص السريع
+- نوعين رئيسيين: نماذج هيكلية/ساكنة (subsystem/class diagrams) ونماذج ديناميكية (sequence, state)
+- Sequence diagram: استدعاءات (`->>`) وردود (`-->>`) مرتبة زمنياً من فوق لتحت
+- State diagram: مفيد بس للكائنات ذات السلوك المعقّد (زي WeatherStation)، مش لكل الكائنات
+
+#### 📚 التطبيق
+النماذج اللي بنيناها هون (خاصة الأسماء والاستدعاءات زي `reportWeather()`, `get(summary)`) رح تحدد بدقة شو الواجهات اللي لازم نصممها بالقسم الجاي والأخير (3.5).
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+التفكير إنه لازم تعمل `state diagram` لكل كائن بالنظام حتى النظام يكون "كامل" وموثق مئة بالمئة.
+
+#### الفهم الصحيح ✅:
+أغلب الكائنات بالنظام بسيطة، وعمل `state model` إلها بيضيف تفاصيل زايدة وغير ضرورية — استخدمها بس للكائنات اللي سلوكها فعلاً معقّد ومتعدد الحالات.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 95%)</summary>
+
+> Shows objects or object classes in a system. Shows associations between entities. is bridge between system requirements and implementation... In UML, there are about 13 different types of models... In UML, we normally develop two kinds of design model: Structural models (static); Dynamic models... Sequence models show the sequence of object interactions that take place: Objects are arranged horizontally across the top; Time is represented vertically...; A thin rectangle in an object lifeline represents the time when the object is the controlling object. State diagrams are used to show how objects respond to different service requests and the state transitions triggered by these requests... You don't usually need a state diagram for all of the objects in the system.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: النوعين الرئيسيين للنماذج، sequence model بالتفصيل، state model ومتى نحتاجه
+- ⚠️ لم يتم شرح بالتفصيل: القائمة الكاملة للـ 13 نوع نموذج بـ UML (المحاضرة نفسها ما فصّلتهم، بس ذكرت العدد)
+
+</details>
+
+---
+
+### 3.5. تحديد الواجهات (Interface Specification)
+
+<!-- @type: practice -->
+<!-- @render: {type: "diagram-first", visualization: "uml", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "3.4"} -->
+
+#### 📍 أين نحن الآن؟
+هاي آخر خطوة من خطوات الـ `OOD` الخمس — تحديد الواجهات الدقيقة بين المكونات.
+
+#### ⬅️ الربط مع السابق
+الاستدعاءات اللي ظهرت بنموذج التتابع بالقسم 3.4 (زي `reportWeather()`, `get(summary)`) هي اللي لازم تتحول هون لتوقيعات واجهة رسمية.
+
+#### 💡 الفكرة الأساسية
+**الواجهات لازم تُحدَّد بدقة حتى يقدر المصممون يصمموا الكائنات والمكونات التانية بالتوازي (`in parallel`) — والقاعدة الذهبية: أخفِ تمثيل الواجهة الداخلي جوا الكائن نفسه.**
+
+---
+
+#### 📊 المخطط: واجهتا محطة الطقس
+
+```mermaid
+classDiagram
+    class Reporting {
+        <<interface>>
+        +weatherReport(WS_Ident) Wreport
+        +statusReport(WS_Ident) Sreport
+    }
+
+    class RemoteControl {
+        <<interface>>
+        +startInstrument(instrument) iStatus
+        +stopInstrument(instrument) iStatus
+        +collectData(instrument) iStatus
+        +provideData(instrument) string
+    }
+
+    class WeatherStation
+
+    WeatherStation ..|> Reporting
+    WeatherStation ..|> RemoteControl
+```
+
+**شرح العناصر:**
+- **Reporting «interface»:** واجهة فيها دالتين لطلب تقرير الطقس أو الحالة
+- **RemoteControl «interface»:** واجهة فيها أربع دوال للتحكم عن بعد بالأدوات
+- **WeatherStation:** الكائن اللي بينفذ (`implements`) الواجهتين
+
+**شرح الروابط:**
+- **الأسهم المتقطعة (`..|>`):** تعني "ينفذ الواجهة" (`realization`) — `WeatherStation` بتوفر فعلياً الخدمات المذكورة بكل واجهة
+
+**التطبيق في هذا السياق:** كل صندوق بيحدد بس **توقيعات** (`signatures`) الدوال (اسم الدالة + نوع المدخلات + نوع المخرجات)، من غير أي تفاصيل عن كيف هاي الدوال منفذة فعلياً جوا `WeatherStation`.
+
+---
+
+#### 📖 الشرح
+
+تصميم الواجهة بيحدد التوقيعات والدلالات (`semantics`) للخدمات اللي بيقدّمها كائن أو مجموعة كائنات — و`UML` بتستخدم `class diagrams` لهاد الغرض (وممكن كمان تستخدم `Java` لتوثيق الواجهة). أهم قاعدة تصميمية هون: **المصممين لازم يتجنبوا تصميم تمثيل الواجهة الداخلي بشكل مكشوف، وبدل هيك يخفوا هاد التمثيل جوا الكائن نفسه** — يعني اللي بيشوف الواجهة من برا بيشوف بس شو الخدمة المتاحة، مش كيف هي منفذة بالضبط.
+
+#### 🎯 الملخص السريع
+- تحديد الواجهات = آخر خطوة، بتسمح بتصميم متوازي للمكونات
+- الواجهة تحدد التوقيعات والدلالات بس، مو التنفيذ الداخلي
+- UML بتستخدم class diagrams للواجهات (وممكن Java كمان)
+- قاعدة ذهبية: أخفِ تمثيل الواجهة جوا الكائن نفسه
+
+#### 📚 التطبيق
+بعد هاي الخطوة الخامسة، التصميم الكائني التوجه يكون مكتمل ونقدر ننتقل لمرحلة **التنفيذ** (القسم 4) — تحويل هاد التصميم لكود فعلي شغال.
+
+#### 💡 التشبيه
+الواجهة (`interface`) مثل **قائمة الطعام بمطعم** — أنت (المستخدم) بتشوف بس أسماء الأطباق وأسعارها (التوقيع)، بدون ما تشوف تفاصيل الطبخة بالمطبخ (التنفيذ الداخلي). لو الشيف غيّر الوصفة، القائمة (الواجهة) بتضل نفسها.
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+كشف تفاصيل كيفية تنفيذ الواجهة (مثلاً كيف بالضبط `WeatherStation` بتخزن بياناتها) بمخطط الواجهة نفسه.
+
+#### الفهم الصحيح ✅:
+المصمم الجيد بيخفي هاد التمثيل الداخلي جوا الكائن — الواجهة بس بتكشف "شو" الخدمة المتاحة (التوقيع)، مش "كيف" هي منفذة بالضبط، وهاد بيسمح بتغيير التنفيذ لاحقاً من غير ما يأثر على المستخدمين.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> Interface between components. Object interfaces have to be specified so that the objects and other components can be designed in parallel. Interface design defines the signatures and semantics of services that are provided by object or group of objects. The UML uses class diagrams for interface specification but Java may also be used. Designers should avoid designing the interface representation but should hide this in the object itself. [Reporting interface: weatherReport, statusReport; Remote Control interface: startInstrument, stopInstrument, collectData, provideData]
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: الغرض من تحديد الواجهات، القاعدة الذهبية للإخفاء، ومثال واجهتي محطة الطقس
+
+</details>
+
+---
+
+### 4. التنفيذ (Implementation): نظرة عامة
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "3.5"} -->
+
+#### 📍 أين نحن الآن؟
+انتهينا من التصميم الكائني التوجه بكل خطواته، وهلأ منتنقل لمرحلة التنفيذ الفعلي.
+
+#### ⬅️ الربط مع السابق
+الواجهات والنماذج اللي صممناها بالقسم 3 هي اللي رح تتحول هون لكود فعلي شغال.
+
+#### 💡 الفكرة الأساسية
+**التنفيذ معني بإنشاء نسخة قابلة للتنفيذ من النظام — والمحاضرة بتركز على ثلاث قضايا عملية: إعادة الاستخدام، إدارة التهيئة، والتطوير على منصتين مضيف-هدف.**
+
+---
+
+#### 📊 المخطط: مواضيع مرحلة التنفيذ
+
+```mermaid
+graph TD
+    Impl["Implementation"]
+    Impl --> Reuse["Reuse<br/>(إعادة الاستخدام)"]
+    Impl --> CM["Configuration Management<br/>(إدارة التهيئة)"]
+    Impl --> HT["Host-Target Development<br/>(التطوير على منصتين)"]
+```
+
+**شرح العناصر:**
+- **Reuse:** كيف تستفيد من كود موجود بدل الكتابة من الصفر
+- **Configuration Management:** كيف تتابع نسخ الكود المتغيرة بمشروع فيه أكتر من مطوّر
+- **Host-Target Development:** لما الجهاز اللي بتطوّر عليه مختلف عن الجهاز اللي رح يشتغل عليه البرنامج
+
+**شرح الروابط:**
+- **الأسهم الثلاثة من `Implementation`:** المواضيع الثلاثة مستقلة عن بعض، وكل واحد ممكن يُدرس لحاله
+
+**التطبيق في هذا السياق:** هاي المواضيع الثلاثة هي اللي بتفرّق بين "عرف يكتب كود" و"عارف يدير مشروع برمجي حقيقي".
+
+---
+
+#### 📖 التعريف الدقيق
+
+مرحلة التنفيذ هي إنك تاخد التصميم اللي بنيته (الكائنات، النماذج، الواجهات) وتحوّله فعلياً لبرنامج شغال. المحاضرة بتفترض عندك مستوى جيد بالبرمجة، فبتركز بدل هيك على ثلاث قضايا هندسية عملية.
+
+#### 🎯 الملخص السريع
+- التنفيذ = إنشاء نسخة قابلة للتنفيذ من التصميم
+- التركيز على 3 مواضيع: إعادة الاستخدام، إدارة التهيئة، التطوير مضيف-هدف
+
+#### 📚 التطبيق
+كل قسم فرعي جاي (4.1، 4.2، 4.3) رح يشرح وحدة من هاي المواضيع الثلاثة بالتفصيل.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> Implementation is concerned with creating executable version. You are considered to have a good level in programming. We focus on: Reuse; Configuration management; Host-target development.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: تعريف التنفيذ والمواضيع الثلاثة اللي رح تُغطّى
+
+</details>
+
+---
+
+### 4.1. إعادة الاستخدام (Reuse)
+
+<!-- @type: principle -->
+<!-- @render: {type: "diagram-first", visualization: "hierarchy", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "4"} -->
+
+#### 📍 أين نحن الآن؟
+أول موضوع بمرحلة التنفيذ — كيف نستفيد من كود وأنظمة موجودة بدل الكتابة من الصفر.
+
+#### ⬅️ الربط مع السابق
+بعد ما فهمنا إنه التنفيذ رح يركز على ثلاث قضايا، منبدأ بأولها: إعادة الاستخدام.
+
+#### 💡 الفكرة الأساسية
+**أغلب البرمجيات الحديثة بتُبنى بإعادة استخدام مكونات موجودة، مش بالكتابة من الصفر — وفي أربع مستويات لإعادة الاستخدام، والاختيار بين مستوى وتاني بيعتمد على موازنة التكلفة مقابل الفايدة.**
+
+---
+
+#### 📊 المخطط: مستويات إعادة الاستخدام (من الأقل للأكثر تحديداً)
+
+```mermaid
+graph TD
+    A["Abstraction<br/>(تجريد — أنماط)"]
+    O["Object<br/>(كائن — مكتبة جاهزة)"]
+    C["Component<br/>(مكوّن — يحتاج كود)"]
+    S["System<br/>(نظام كامل — يحتاج تهيئة)"]
+
+    A --> O --> C --> S
+```
+
+**شرح العناصر:**
+- **Abstraction:** ما بتعيد استخدام سوفتوير مباشرة، بس بتستفيد من معرفة أنماط ناجحة سبق استُخدمت (`design and architectural patterns`)
+- **Object:** بتعيد استخدام كائنات جاهزة من مكتبة، من غير كتابة كود جديد — أمثلة: `JUnit`, `JavaMail`
+- **Component:** بتحتاج تكتب شوي كود إضافي عشان تستخدم المكوّن الجاهز بسياقك
+- **System:** بتعيد استخدام تطبيق كامل جاهز، بيتطلب بعض التهيئة (إضافة أو تعديل كود)
+
+**شرح الروابط:**
+- **السهم من A لـ S:** كل ما تنزل بالمستوى، بتحتاج تكتب كود أكتر — بس كمان بتاخد نظام أكبر وأكثر اكتمالاً
+
+**التطبيق في هذا السياق:** لو مشروعك محتاج مكتبة اختبار، ما تكتبها من الصفر — استخدم `JUnit` (مستوى `Object`). لو محتاج نظام إدارة محتوى كامل، فكّر بمستوى `System` (زي `WordPress`).
+
+---
+
+#### 📖 الإطار القرار (Decision Framework)
+
+اسأل نفسك:
+
+**1. عندك وقت وميزانية محدودة، وبتحتاج حل سريع؟**
+- نعم: فكّر بمستوى `System` أو `Component` رغم تكلفة الشراء/التكييف
+
+**2. المكوّن الجاهز بيلبي احتياجك بالضبط من غير تعديل؟**
+- نعم: مستوى `Object` هو الأنسب (متل `JUnit`)
+- لأ، بيحتاج شوي تعديل: مستوى `Component`
+
+**3. بس عندك فكرة أو نمط تصميمي مفيد، بدون مكوّن جاهز فعلياً؟**
+- نعم: مستوى `Abstraction` — استفد من النمط، اكتب الكود بنفسك
+
+#### 💼 السياقات المختلفة (Context Examples)
+
+**السيناريو 1: فريق صغير بيبني تطبيق ويب بسيط بوقت محدود**
+- الأنسب: مستوى `System` أو `Component` — استخدام `framework` جاهز (زي `Django` أو `Express`) بيوفر وقت كبير، حتى لو كلفة التكييف موجودة.
+
+**السيناريو 2: فريق بيبني نظام مخصص جداً لعميل بمتطلبات فريدة**
+- الأنسب: مستوى `Abstraction` أو `Object` — استخدام أنماط تصميم مثبتة أو مكتبات بسيطة (`JSON parser` مثلاً)، بس بناء المنطق الأساسي بأنفسهم لأنه مافي نظام جاهز يطابق المتطلبات الفريدة.
+
+---
+
+#### 📖 الشرح
+
+الكتابة من الصفر (`from scratch`) كانت الأسلوب السائد من الستينات لحد التسعينات (`1960s to 1990s`)، بس صارت غير عملية (`unviable`) للأنظمة التجارية وأنظمة الإنترنت بسبب عاملين: **التكلفة** (`costs`) و**الجدول الزمني** (`schedule`).
+
+إعادة الاستخدام بتساعدك على: تطوير أنظمة جديدة بسرعة أكبر، تقليل مخاطر التطوير (`development risks`)، تخفيض التكاليف، وإنتاج برمجيات أكتر موثوقية (لأنها **مُختبَرة مسبقاً**!).
+
+بالمقابل، في تكاليف حقيقية لازم تاخدها بعين الاعتبار: **تكاليف الوقت** (البحث، التقييم، الاختبار)، **تكلفة الشراء** (`Cost of buying` — ممكن تكون عالية جداً للمنتجات الجاهزة `COTS`)، **تكلفة التكييف والتهيئة** (`adapting & configuration`)، و**تكلفة الدمج** (`integrating` — سواء عناصر معاد استخدامها مع بعضها، أو مع كود جديد).
+
+#### 📌 نقطة مهمة: Textbook vs Industry Reality
+
+| الجانب | في الكتاب | في الشركات |
+| --- | --- | --- |
+| **إعادة الاستخدام** | تُدرَّس كأربع مستويات نظرية واضحة | غالباً بتصير خليط: framework جاهز (System) + مكتبات صغيرة (Object) بنفس المشروع |
+| **الكتابة من الصفر** | غير عملية اقتصادياً (متفق عليه) | نادراً جداً ما تصير — حتى بمشاريع صغيرة، بتلاقي framework أو مكتبة أساس |
+
+#### 🎯 الملخص السريع
+- إعادة الاستخدام = بناء أنظمة من مكونات موجودة بدل الكتابة من الصفر
+- 4 مستويات: تجريد (أنماط) → كائن (مكتبات جاهزة) → مكوّن (يحتاج كود) → نظام كامل (يحتاج تهيئة)
+- فوائد: سرعة، أمان أكتر، تكلفة أقل، موثوقية أعلى
+- تكاليف: وقت البحث/التقييم/الاختبار، الشراء، التكييف، الدمج
+
+#### 📚 التطبيق
+فهم مستويات وتكاليف إعادة الاستخدام بيساعدك تقرر بمشروعك الفعلي: هل تكتب مكوّن جديد ولا تدور على واحد جاهز؟
+
+#### 💡 التشبيه
+إعادة الاستخدام مثل **تجهيز بيت جديد** — ممكن تشتري أثاث جاهز (مستوى System)، تشتري خشب وتركب رفوف بنفسك (مستوى Component)، أو بس تستوحي فكرة تصميم من مجلة ديكور وتنفذها بنفسك (مستوى Abstraction). كل خيار له تكلفة وقت وفلوس مختلفة.
+
+#### 🤔 تفعيل الفهم
+لو بتبني تطبيق موبايل بسيط بفريق من شخصين وميزانية محدودة، وبتحتاج ميزة "تسجيل دخول بحساب Google" — هل تكتب هاد المنطق من الصفر، ولا تستخدم مكتبة/SDK جاهزة؟ أي مستوى إعادة استخدام بيمثل هاد القرار؟
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+الافتراض إنه إعادة الاستخدام دايماً الخيار الأرخص والأسرع، فأحسن قرار تلقائياً إنك تدمج مكون جاهز.
+
+#### الفهم الصحيح ✅:
+في تكاليف حقيقية (وقت البحث والتقييم والاختبار، الشراء، التكييف، والدمج) ممكن تفوق فايدة إعادة الاستخدام بحالات معينة — القرار لازم يكون موزون، مش تلقائي.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> Most modern is constructed by reusing existing components [do not reinvent the wheel]. Scratch: From 1960s to 1990s. Unviable for commercial and internet based systems: Costs; schedule. Reuse levels: Abstraction... Object... Component... System... Reusing aids to: Develop new systems more quickly; Minimize development risks; Lower costs; More reliable software [tested before!]. Associated costs: Costs of time... Cost of buying: Very high cost specially for COTS. Cost of adapting & configuration... Cost of integrating: reusable elements with each other [could be from different providers]; reusable elements with new code.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: تاريخ الكتابة من الصفر، مستويات إعادة الاستخدام الأربعة، الفوائد، وكل أنواع التكاليف
+- ℹ️ إضافة من الدليل: Decision framework، السيناريوهات، جدول Textbook vs Industry (ليست بالمحاضرة الأصلية)
+
+</details>
+
+---
+
+### 4.2. إدارة التهيئة (Configuration Management)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "4.1"} -->
+
+#### 📍 أين نحن الآن؟
+ثاني موضوع بمرحلة التنفيذ — كيف نتابع نسخ الكود المتعددة بمشروع تطوير حقيقي.
+
+#### ⬅️ الربط مع السابق
+بعد ما فهمنا إعادة الاستخدام (وممكن نكون دمجنا مكونات من مصادر مختلفة)، لازم يكون عندنا طريقة منظمة لتتبع كل هاي النسخ المتغيرة.
+
+#### 💡 الفكرة الأساسية
+**عملية التطوير بتنتج نسخ كتير مختلفة من كل مكوّن سوفتوير — ونظام إدارة التهيئة بيتتبع هاي النسخ عبر ثلاث أنشطة أساسية: إدارة النسخ، دمج النظام، وتتبع المشاكل.**
+
+---
+
+#### 📊 المخطط: الأنشطة الأساسية لإدارة التهيئة
+
+```mermaid
+graph LR
+    CM["Configuration<br/>Management"]
+    CM --> VM["Version Management<br/>(إدارة النسخ)"]
+    CM --> SI["System Integration<br/>(دمج النظام)"]
+    CM --> PT["Problem Tracking<br/>(تتبع المشاكل)"]
+
+    VM -.tool.-> CC["ClearCase / Subversion"]
+    PT -.tool.-> BZ["BugZilla"]
+```
+
+**شرح العناصر:**
+- **Version Management:** بتتبّع النسخ المختلفة من كل مكوّن سوفتوير
+- **System Integration:** بتساعد المطورين يحددوا شو نسخ المكونات المستخدمة لبناء كل نسخة من النظام
+- **Problem Tracking:** بتخلي المستخدمين يبلّغوا عن أخطاء، وتخلي المطورين يشوفوا مين شغال عليها ومتى تُحل
+
+**شرح الروابط:**
+- **الخط المتقطع (tool):** أدوات فعلية بتنفذ كل نشاط — `ClearCase`/`Subversion` لإدارة النسخ، `BugZilla` لتتبع المشاكل
+
+**التطبيق في هذا السياق:** هاي بالضبط نفس الأفكار اللي بيشتغل عليها `Git` وأدوات إدارة النسخ الحديثة اللي غالباً استخدمتيها بمشاريعك.
+
+---
+
+#### 📖 التعريف الدقيق
+
+الهدف من إدارة التهيئة إنها تدعم عملية دمج النظام (`system integration`) حتى كل المطورين يقدروا يوصلوا لكود المشروع ووثائقه بطريقة منضبطة (`controlled way`)، وتخليهم يعرفوا بالضبط شو التغييرات اللي صارت.
+
+**إدارة النسخ** (`version management`) بتتبّع النسخ المختلفة من كل مكوّن. **دمج النظام** (`system integration`) بتساعد المطورين يحددوا شو نسخ المكونات المستخدمة لبناء كل نسخة من النظام — وهاد بيساعد بعملية التجميع التلقائي (`auto compiling`). **تتبع المشاكل** (`problem tracking`) بتخلي المستخدمين يبلّغوا عن أخطاء (`bugs`)، وتخلي المطورين يشوفوا مين شغال على حلها ومتى تم إصلاحها.
+
+#### 🎯 الملخص السريع
+- إدارة التهيئة = تتبع النسخ المتعددة من كل مكوّن + التحكم بالوصول المنضبط
+- 3 أنشطة: إدارة النسخ، دمج النظام (auto compiling)، تتبع المشاكل (bugs)
+- أدوات شائعة: `ClearCase`, `Subversion`, `BugZilla`
+
+#### 📚 التطبيق
+إدارة التهيئة ضرورية بأي مشروع فيه أكتر من مطوّر أو أكتر من نسخة للنظام.
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+التفكير إنه إدارة التهيئة بس معناها "حفظ نسخة احتياطية" من الكود بين فترة وفترة.
+
+#### الفهم الصحيح ✅:
+إدارة التهيئة أوسع من هيك — فيها ثلاث أنشطة متمايزة: تتبع النسخ، تنسيق أي نسخ مكونات بتُستخدم مع بعض لبناء نسخة النظام الكاملة، وتتبع الأخطاء ومين مسؤول عنها.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> Development process will produce many different versions of each software component. Configuration management system keep track of these versions... Configuration management aim: Support system integration process, so all developers can access project code and documents in a controlled way; Find out what changes have been made. Fundamental configuration activities: Version management... System integration... [help at auto compiling]; Problem tracking... Tools: ClearCase (Bellagio and Milligan, 2005); Subversion ((Pilato et al., 2008); BugZilla.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: الهدف من إدارة التهيئة، الأنشطة الثلاثة، والأدوات المذكورة
+
+</details>
+
+---
+
+### 4.3. التطوير على منصتين مضيف-هدف (Host-Target Development)
+
+<!-- @type: fact -->
+<!-- @render: {type: "diagram-first", visualization: "flowchart", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "4.2"} -->
+
+#### 📍 أين نحن الآن؟
+آخر موضوع بمرحلة التنفيذ، وآخر موضوع بالمحاضرة كلها.
+
+#### ⬅️ الربط مع السابق
+بعد ما ضمنّا التنسيق بين نسخ الكود (إدارة التهيئة)، بقى السؤال: وين فعلياً رح يشتغل هاد الكود؟
+
+#### 💡 الفكرة الأساسية
+**أحياناً بتطوّر البرنامج على حاسوب (`host system`)، وبتشغّله فعلياً على حاسوب مختلف تماماً (`target system`) — وهون بيصير استخدام المحاكيات (`simulators`) ضرورياً.**
+
+---
+
+#### 📊 المخطط: Host-Target Development
+
+```mermaid
+graph LR
+    Dev["Developer"]
+    Host["Host System<br/>(حاسوب التطوير)"]
+    Sim["Simulator<br/>(محاكي بيئة الهدف)"]
+    Target["Target System<br/>(الجهاز الفعلي — مثلاً محطة طقس)"]
+
+    Dev --> Host
+    Host -->|"يختبر عبر"| Sim
+    Host -->|"ينشر الكود النهائي على"| Target
+```
+
+**شرح العناصر:**
+- **Host System:** الحاسوب اللي المطوّر بيكتب ويختبر عليه الكود
+- **Simulator:** برنامج بيحاكي بيئة الجهاز الهدف على المضيف، للاختبار قبل النشر
+- **Target System:** الجهاز الفعلي اللي رح يشتغل عليه البرنامج بالنهاية (ممكن يكون مختلف كلياً عن الـ Host)
+
+**شرح الروابط:**
+- **السهم "يختبر عبر":** قبل النشر الفعلي، بتستخدم المحاكي عشان تتأكد إنه الكود بيشتغل صح بدون ما تحتاج الجهاز الحقيقي كل مرة
+- **السهم "ينشر الكود النهائي على":** بعد التأكد، الكود بينتقل فعلياً للجهاز الهدف
+
+**التطبيق في هذا السياق:** محطة الطقس نفسها مثال ممتاز — غالباً بتُطوّر على حاسوب عادي، بس بتشتغل فعلياً على معالج صغير مدمج (`embedded`) بالمحطة.
+
+---
+
+#### 📖 التعريف الدقيق
+
+مش كل مرة الجهاز اللي بتكتب عليه الكود هو نفس الجهاز اللي رح يشتغل عليه البرنامج بالنهاية. أحياناً الـ`host` والـ`target` من نفس النوع، بس بكثير حالات — خصوصاً بالأنظمة المدمجة (`embedded systems`) — بيكونوا **مختلفين كلياً** (`completely different`). عشان تتعامل مع هاد الفرق، بتستخدم **محاكيات** (`simulators`) حتى تقدر تختبر وتصحح الكود قبل ما تحمّله فعلياً على الجهاز الحقيقي.
+
+#### 🎯 الملخص السريع
+- Host-target development = تطوير على جهاز، تشغيل على جهاز آخر مختلف
+- الجهازين ممكن يكونوا من نفس النوع، بس غالباً مختلفين كلياً (خصوصاً بالأنظمة المدمجة)
+- المحاكيات (simulators) هي الحل للتعامل مع هاد الاختلاف
+
+#### 📚 التطبيق
+هاد المفهوم مهم جداً لو رح تطوّر أي نظام مدمج (`embedded`) أو نظام بموارد محدودة.
+
+#### ⚠️ أخطاء شائعة
+
+#### الفهم الخاطئ ❌:
+افتراض إنه الجهاز اللي بتكتب فيه الكود دايماً هو نفس الجهاز اللي رح يشتغل عليه البرنامج بالنهاية.
+
+#### الفهم الصحيح ✅:
+بكثير حالات (خصوصاً الأنظمة المدمجة زي محطة الطقس) الجهازين مختلفين كلياً، ولازم تستخدم محاكيات عشان تطوّر وتختبر قبل النشر الفعلي على الجهاز الهدف.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+> Develop on one computer (host system), execute on a separate computer (target system). The host and target systems are sometimes of the same type but, often they are completely different. Using simulators.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح بالكامل: تعريف host-target development، والفرق المحتمل بين الجهازين، ودور المحاكيات
+
+</details>
+
+---
+
+## الجزء الثاني: ملخص شامل (Alternative Complete Reading)
+
+خلّينا نبدأ من الصورة الكاملة: هاي المحاضرة بتاخدك من "عندي متطلبات نظام" لـ "عندي كائنات وكود شغال" — وهاد بيصير بخمس خطوات تصميم بالإضافة لثلاث قضايا عملية بالتنفيذ. أول شي، لازم تفرّق بين التصميم والتنفيذ: التصميم نشاط إبداعي بتحدد فيه مكونات البرنامج والعلاقات بينها بناءً على متطلبات الزبون، بينما التنفيذ هو تحويل هاد التصميم لبرنامج فعلي شغال. وسؤال مهم بيتكرر: هل لازم توثق التصميم رسمياً بـ `UML`؟ الجواب ما في إجابة واحدة — أحياناً التصميم بيضل بس فكرة براس المبرمج أو مرسوم على `whiteboard`، وأحياناً لازم يكون موثق. القرار بيعتمد على السياق: إذا كنت شغال بمنهج كائني التوجه (`Object-Oriented`) متل `Java` أو `C++` وبفريق أكبر من شخص، التوثيق الرسمي بيصير مهم جداً — لأنه بيخلي الكل يفهم نفس البنية ويشتغل بالتوازي. أما لو كنت شغال لحالك بلغة بسيطة متل `Python`، فكرة عامة براسك ممكن تكون كافية.
+
+بعدين منجي لخمس خطوات تصميم كائني التوجه، وكل واحدة بتبني على اللي قبلها. **الخطوة الأولى** هي فهم سياق النظام وتفاعلاته الخارجية — يعني تحدد حدود نظامك (`system boundaries`): شو جوا نظامك وشو برا. لهاد الغرض بتستخدم نموذجين: **نموذج سياق النظام** (`system context model`) وهو نموذج **هيكلي/ساكن** شبيه بخريطة — بيوريك مين موجود ببيئة نظامك (بمثال محطة الطقس: `Control System`, `Weather Information System`, `Satellite`)، باستخدام `associations` مرقّمة بشكل `block diagram`. والنموذج التاني هو **نموذج التفاعل** (`interaction model`) وهو نموذج **ديناميكي** شبيه بفيديو — بيوريك كيف نظامك فعلياً بيتفاعل مع بيئته، وبيستخدم عادة `use case model` وين كل تفاعل ممكن بيتمثل بشكل بيضاوي، والكيان الخارجي بيتمثل "برجل عصا". كل `use case` (زي `Report Weather`) لازم يوثّق بجدول فيه: النظام، اسم الحالة، الفاعلين، وصف كامل، الحافز اللي بيبدأ التفاعل، والاستجابة الناتجة.
+
+**الخطوة الثانية** هي التصميم المعماري — بعد ما فهمت التفاعلات الخارجية، بتحدد المكونات الرئيسية اللي بيتكون منها نظامك الداخلي، وتنظمها بنمط معماري. بمثال محطة الطقس، النظام انقسم لست `subsystems`: ثلاثة فوق لإدارة الأعطال والتهيئة والطاقة (`Fault Manager`, `Configuration Manager`, `Power Manager`)، وثلاثة تحت للوظائف الأساسية (`Communications`, `Data Collection`, `Instruments`) — وكل هاي الأقسام مرتبطة ببعض عبر طبقة اتصال مركزية واحدة اسمها `Communication Link`، بحيث أي قسم بيحكي مع قسم تاني عن طريقها مش مباشرة. والمهم إنه كل `subsystem` بحد ذاته ممكن يكون إله معمارية داخلية خاصة — متل `Data Collection` اللي فيها `Transmitter` و`Receiver` بيتعاملوا مع كائن `WeatherData`.
+
+**الخطوة الثالثة**، وهي من أصعب الخطوات، هي تحديد أصناف الكائنات — وهون المحاضرة بتأكد إنه ما في "صيغة سحرية" واحدة، والعملية تكرارية بتعتمد على خبرة المصمم. في أربع طرق تساعدك: **التحليل النحوي** (تاخد وصف نصي للنظام، الأسماء بتصير كائنات وخصائص، والأفعال بتصير عمليات)؛ **الكيانات الملموسة** (تدوّر على أشياء، أدوار متل مدير أو دكتور، أحداث متل طلب، تفاعلات متل اجتماعات، مواقع متل مكاتب، ووحدات تنظيمية متل شركات)؛ **التحليل المبني على السيناريو** (تستخرج الكائنات من كل `use case` بمفرده)؛ و**النهج السلوكي** (تحدد الكائنات بناءً على مين شارك بأي سلوك). بمثال محطة الطقس، استخدمنا التحليل النحوي على الوصف النصي واستخرجنا: `WeatherStation` (فيها معرّف ودوال متل `reportWeather()` و`shutdown()`)، `WeatherData` (فيها بيانات الطقس ودوال `collect()` و`summarize()`)، وكائنات الأدوات (`Ground Thermometer`, `Anemometer`, `Barometer`).
+
+**الخطوة الرابعة** هي بناء نماذج التصميم — واللي بتشكّل جسر بين المتطلبات والتنفيذ، ولازم تكون مجرّدة بما فيه الكفاية بدون تفاصيل زايدة، بس محتوية تفاصيل كافية للمبرمجين. `UML` بتوفر نوعين رئيسيين: **نماذج هيكلية/ساكنة** بتوصف البنية الثابتة (كائنات وعلاقات، متل `subsystem models` بشكل `class diagram`)، و**نماذج ديناميكية** بتوصف التفاعلات وتغييرات الحالة بمرور الزمن. من أهم النماذج الديناميكية: **نموذج التتابع** (`sequence model`) اللي بيبيّن ترتيب طلبات الخدمة بين الكائنات — الكائنات مرتبة أفقياً فوق، والزمن ماشي عمودياً، والتفاعلات أسهم مسمّاة (استدعاءات وردود). بمثال محطة الطقس، شفنا كيف طلب `Report Weather` بيمشي من `Weather Information System` لـ `SatComms` لـ `WeatherStation` لـ `Commslink` لـ `WeatherData` وبيرجع بالاتجاه المعاكس. و**مخطط الحالة** (`state diagram`) اللي بيبيّن كيف كائن معيّن بيغيّر حالته استجابة للأحداث — بس المهم إنه ما في داعي تعمل `state diagram` لكل كائن، بس للكائنات اللي سلوكها فعلاً معقّد (زي `WeatherStation` نفسها اللي بتتنقل بين `Shutdown`, `Running`, `Configuring`, `Collecting`, `Testing`, `Transmitting`, `Summarizing`, و`Controlled`).
+
+**الخطوة الخامسة والأخيرة** هي تحديد الواجهات — وهون الهدف إنك تحدد بدقة الخدمات اللي بيقدمها كل كائن، حتى تقدر تصمم الكائنات المختلفة بالتوازي من غير ما وحدة تنتظر التانية. تصميم الواجهة بيحدد التوقيعات (`signatures`) ودلالات (`semantics`) الخدمات بس، من دون كشف كيف هي منفذة فعلياً — وهاي القاعدة الذهبية اللي لازم تحفظها: **أخفِ تمثيل الواجهة جوا الكائن نفسه**. بمثال محطة الطقس، في واجهتين: `Reporting` (فيها `weatherReport()` و`statusReport()`) و`Remote Control` (فيها أربع دوال للتحكم بالأدوات).
+
+بعد ما يخلص التصميم، منجي لمرحلة **التنفيذ** — وهون المحاضرة بتفترض عندك مستوى برمجة جيد، وبتركز على ثلاث قضايا عملية. **إعادة الاستخدام** (`Reuse`) هي أول قضية: أغلب البرمجيات الحديثة بتُبنى بإعادة استخدام مكونات موجودة، لأن الكتابة من الصفر (اللي كانت شائعة من الستينات للتسعينات) صارت غير عملية اقتصادياً بسبب التكلفة والوقت. في أربع مستويات: **التجريد** (استخدام أنماط تصميمية ناجحة بدون كود مباشر)، **الكائن** (مكتبات جاهزة زي `JUnit` أو `JavaMail`، بدون كتابة كود)، **المكوّن** (يحتاج كتابة شوي كود)، و**النظام** (تطبيق كامل جاهز، بيحتاج تهيئة). إعادة الاستخدام بتوفر سرعة، تقليل مخاطر، تكلفة أقل، وموثوقية أعلى — بس في تكاليف حقيقية لازم توازنها: وقت البحث والتقييم والاختبار، تكلفة الشراء (عالية خصوصاً للمنتجات الجاهزة `COTS`)، تكلفة التكييف، وتكلفة الدمج مع عناصر أخرى أو كود جديد.
+
+**إدارة التهيئة** (`Configuration management`) هي ثاني قضية — لأنه عملية التطوير بتنتج نسخ كتير مختلفة من كل مكوّن، ولازم يكون في نظام يتتبعها وإلا ممكن تدمج نسخ غلط ببعضها. في ثلاث أنشطة أساسية: **إدارة النسخ** (تتبع النسخ المختلفة)، **دمج النظام** (تحديد شو نسخ المكونات المستخدمة لبناء كل نسخة، وهاد بيساعد بالتجميع التلقائي)، و**تتبع المشاكل** (تمكين المستخدمين من الإبلاغ عن أخطاء، والمطورين من معرفة مين شغال عليها ومتى تُحل). من الأدوات المذكورة: `ClearCase`, `Subversion`, `BugZilla`.
+
+**التطوير على منصتين مضيف-هدف** (`Host-target development`) هي ثالث قضية — أحياناً بتطوّر البرنامج على حاسوب (`host`) وبتشغّله على حاسوب مختلف تماماً (`target`)، خصوصاً بالأنظمة المدمجة. لحل هاي الفجوة بتستخدم **محاكيات** (`simulators`) تحاكي بيئة الجهاز الهدف على المضيف قبل النشر الفعلي.
+
+### الأخطاء اللي الناس دايماً تقع فيها
+
+#### الفهم الخاطئ ❌:
+كثير طلاب بيفكروا إنه التصميم لازم دايماً يكون موثّق بالتفصيل بـ `UML` قبل ما تبلش تكتب كود، وإنه أي مشروع من دون مخططات `UML` كاملة معناته "تصميم سيء".
+
+#### الفهم الصحيح ✅:
+المحاضرة بوضوح بتقول إنه أحياناً التصميم بيضل بس فكرة براس المبرمج أو مرسوم على `whiteboard`، ومش لازم توثقه بالتفصيل — خصوصاً إذا كنت شغال بلغة مش كائنية التوجه أو لحالك.
+
+---
+
+#### الفهم الخاطئ ❌:
+في تخيّل إنه "إعادة الاستخدام" (`Reuse`) دايماً بتوفر وقت وفلوس، فأحسن قرار دايماً إنك تشتري أو تدمج مكون جاهز بدل ما تكتب كودك الخاص.
+
+#### الفهم الصحيح ✅:
+في تكاليف حقيقية مرتبطة بإعادة الاستخدام: وقت البحث والتقييم والاختبار، تكلفة الشراء، وتكلفة التكييف والدمج — يعني القرار لازم يكون موزون بين الفايدة والتكلفة، مش دايماً "إعادة الاستخدام = أفضل خيار تلقائياً".
+
+### الأسئلة المتوقعة في الامتحان
+
+الأستاذ غالباً بيسأل عن: ترتيب خطوات الـ `OOD` الخمسة وشو بيصير بكل خطوة، الفرق بين النماذج المختلفة (`context` مقابل `interaction`، أو `structural` مقابل `dynamic`)، طرق تحديد أصناف الكائنات الأربعة (خصوصاً التحليل النحوي: أسماء = كائنات، أفعال = عمليات)، ومستويات إعادة الاستخدام الأربعة مع أمثلتها. كمان ممكن يجيك سؤال يطلب منك تقرأ `sequence diagram` أو `state diagram` لمحطة الطقس وتفسر شو صاير فيه، أو تحدد الأنشطة الثلاثة لإدارة التهيئة.
+
+### الربط مع المحاضرة الجاية
+
+التصميم اللي بنيناه هون (الكائنات، النماذج، الواجهات) هو الأساس اللي رح تبني عليه مرحلة **الاختبار** (`Testing`) لاحقاً — كل ما كان التصميم مضبوط وموثق منطقياً، كل ما كان أسهل تختبر وتصلح وتوسّع النظام.
+
+---
+
+## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
+
+### السؤال 1 (Medium)
+
+**السؤال:** Which UML model demonstrates the *other systems* present in the environment of the system being developed, using simple associations (like a block diagram)?
+
+أ) The interaction model
+ب) The system context model
+ج) The sequence model
+د) The state machine model
 
 **الإجابة الصحيحة:** ب
 
 **التعليل الكامل:**
-- ❌ أ) Object Identification = تحديد الكائنات نفسها، مو الاتصالات الخارجية
-- ✅ ب) System Context Model = رسم النظام والأنظمة الخارجية والاتصالات بينهم — بالضبط هاي المرحلة
-- ❌ ج) Implementation = بعد ما حددنا البنية
-- ❌ د) Code Review = شيء آخر تماماً
+- ❌ أ): نموذج التفاعل ديناميكي — بيبيّن كيف النظام بيتفاعل مع بيئته أثناء الاستخدام، مش بس مين الأنظمة الموجودة.
+- ✅ ب): نموذج سياق النظام موثّق بالمحاضرة صراحة كنموذج هيكلي بيبيّن الأنظمة الأخرى الموجودة ببيئة النظام قيد التطوير.
+- ❌ ج): نموذج التتابع بيُستخدم لاحقاً بخطوة نماذج التصميم، مش لبيان الأنظمة الخارجية.
+- ❌ د): مخطط الحالة بيبيّن كيف كائن واحد بيغيّر حالته، ومالوش علاقة بالأنظمة الخارجية.
 
 ---
 
-### السؤال 2 (سهل)
-**السؤال:** شنو الفرق بين Software Design و Software Implementation؟
+### السؤال 2 (Medium)
 
-أ) Design = كتابة الكود، Implementation = اختبار الكود
-ب) Design = تحديد البنية والعلاقات، Implementation = كتابة الكود
-ج) لا يوجد فرق — نفس الشيء
-د) Design = للأنظمة الكبيرة فقط
+**السؤال:** What is the key difference between the system context model and the interaction model?
 
-**الإجابة الصحيحة:** ب
+أ) They are two different names for exactly the same diagram type
+ب) The interaction model is structural, the context model is dynamic
+ج) Both models only apply to embedded systems like weather stations
+د) The context model is structural, the interaction model is dynamic
+
+**الإجابة الصحيحة:** د
 
 **التعليل الكامل:**
-- ❌ أ) معكوس تماماً
-- ✅ ب) التعريف الصحيح مباشرة من المحاضرة
-- ❌ ج) فرق كبير جداً
-- ❌ د) حتى الأنظمة الصغيرة تحتاج تصميم (قد يكون غير رسمي لكن موجود)
+- ❌ أ): الاثنين لهم أغراض وترميز مختلف — واحد block diagram والتاني use case model.
+- ❌ ب): هاد بيعكس التصنيف الصحيح — نموذج التفاعل هو الديناميكي مش الهيكلي.
+- ❌ ج): الاثنين مفهومان عامان بينطبقوا على أي نظام كائني التوجه، مش خاصين بالأنظمة المدمجة بس.
+- ✅ د): نموذج السياق هيكلي/ساكن (بيبيّن مين موجود)، ونموذج التفاعل ديناميكي (بيبيّن كيف النظام بيتفاعل فعلياً معهم).
 
 ---
 
-### السؤال 3 (متوسط)
-**السؤال:** أنت مصمم نظام جديد. خطوتك الأولى يجب تكون:
+### السؤال 3 (Hard)
 
-أ) كتابة الكود
-ب) فهم الأنظمة الخارجية والتفاعلات
-ج) تصميم الواجهات
-د) شراء libraries
+**السؤال:** What is the correct order of the five steps needed to develop an object-oriented system design?
 
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) Implementation تأتي بعد التصميم
-- ✅ ب) System Context = الخطوة الأولى في OO Design
-- ❌ ج) Interfaces تأتي بعد تحديد الكائنات
-- ❌ د) Reuse تأتي في التطبيق، مو في التصميم
-
----
-
-### السؤال 4 (متوسط)
-**السؤال:** في Sequence Diagram، الوقت يمثل بـ:
-
-أ) المحور الأفقي
-ب) المحور العمودي
-ج) الأسهم
-د) الـ boxes
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) الأفقي = Objects
-- ✅ ب) العمودي = الوقت (نقرأ من الأعلى لـ الأسفل)
-- ❌ ج) الأسهم = الاستدعاءات نفسها
-- ❌ د) Boxes = entities/objects
-
----
-
-### السؤال 5 (متوسط)
-**السؤال:** "لا توجد صيغة سحرية لتحديد الكائنات." هاي العبارة تعني:
-
-أ) لا يمكن تحديد الكائنات بشكل دقيق
-ب) يعتمد على خبرة وفهم domain المصمم، وهي عملية تكرارية
-ج) الكائنات موجودة في قاموس معين
-د) كل programmer يجب يستخدم طريقة مختلفة
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) يمكن تحديدها، لكن بطرق مختلفة
-- ✅ ب) النص الحرفي من المحاضرة — يعتمد على skill و experience و domain knowledge
-- ❌ ج) لا علاقة بالقاموس
-- ❌ د) لا توجد "طريقة واحدة مختلفة" — طرق متعددة ومشتركة
-
----
-
-### السؤال 6 (سهل)
-**السؤال:** Use Case في Interaction Model معناه:
-
-أ) حالة خاطئة في النظام
-ب) طريقة استخدام محتملة للنظام
-ج) الخطأ في كود الـ use
-د) interface specification
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) لا علاقة بالأخطاء
-- ✅ ب) تعريف Use Case — حالة استخدام
-- ❌ ج) لا علاقة
-- ❌ د) هاي شيء مختلف
-
----
-
-### السؤال 7 (صعب)
-**السؤال:** في نظام معقد، تحتاج state diagram لـ:
-
-أ) جميع objects بدون استثناء
-ب) فقط objects المعقدة اللي تتغير حالتها
-ج) فقط classes الموروثة (inherited)
-د) مو ضروري — optional تماماً
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) لا — سلاح بسيط ما يحتاج
-- ✅ ب) النص الحرفي: "You don't usually need a state diagram for all objects... Many objects are relatively simple"
-- ❌ ج) لا علاقة بالـ inheritance
-- ❌ د) ضروري للـ complex objects
-
----
-
-### السؤال 8 (متوسط)
-**السؤال:** مبدأ "reuse" في Implementation معناه:
-
-أ) نسخ كود من مشروع قديم
-ب) استخدام libraries و components موجودة بدل كتابة من الصفر
-ج) استخدام نفس المبرمج في كل المشاريع
-د) عدم كتابة comments جديدة
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) ما كل نسخ صحيح — يجب تكون قابلة للاستخدام
-- ✅ ب) التعريف الصحيح من المحاضرة
-- ❌ ج) لا علاقة
-- ❌ د) لا علاقة بـ comments
-
----
-
-### السؤال 9 (متوسط)
-**السؤال:** التحدي الأكبر في Reuse هو:
-
-أ) البحث عن components و التأكد إنها تناسب احتياجاتك
-ب) تكاليف الشراء والتكييف والتكامل
-ج) توثيق الـ components
-د) اختيار programming language
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) جزء من التحديات، لكن ليس الأساسي
-- ✅ ب) "Associated costs" اللي ذكرتها المحاضرة: البحث، الشراء (خاصة COTS)، التكييف، التكامل
-- ❌ ج) التوثيق فايدة بس
-- ❌ د) مختار قبل Reuse
-
----
-
-### السؤال 10 (سهل)
-**السؤال:** Generalization relationship في UML معناه:
-
-أ) نظام عام جداً
-ب) Inheritance (الوراثة)
-ج) تفاعل بين objects
-د) لا شيء
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) ليس "عام" بالمعنى الوصفي
-- ✅ ب) Generalization = Inheritance في UML
-- ❌ ج) هاي Association
-- ❌ د) موجودة بالفعل
-
----
-
-### السؤال 11 (متوسط)
-**السؤال:** لماذا نحدد الواجهات (Interfaces) قبل كتابة الكود؟
-
-أ) لأن Interfaces أسهل من Implementation
-ب) لأن multiple teams يقدرون يشتغلوا بشكل مستقل طالما يلتزمون بـ Interface
-ج) لأن المبرمج يحب الواجهات
-د) لا يوجد سبب فعلي
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) ليس "أسهل"
-- ✅ ب) النص الحرفي: "can be designed in parallel"
-- ❌ ج) سبب ليس فني
-- ❌ د) فيه سبب مهم جداً
-
----
-
-### السؤال 12 (صعب)
-**السؤال:** نظام Weather Station يرسل بيانات عبر Satellite. في أي مرحلة نقرر استخدام Satellite بدل اتصال مباشر؟
-
-أ) Architectural Design
-ب) Object Class Identification
-ج) System Context Model
-د) Configuration Management
-
-**الإجابة الصحيحة:** ج
-
-**التعليل الكامل:**
-- ❌ أ) Architecture هو المسؤول عن subsystems الكبيرة، لكن الاتصالات الخارجية تُحدد أولاً
-- ❌ ب) لا — تحديد البيانات الخارجية قبل البيانات الداخلية
-- ✅ ج) System Context = تحديد الأنظمة الخارجية وكيفية الاتصال
-- ❌ د) Configuration Management = متابعة الـ versions
-
----
-
-### السؤال 13 (متوسط)
-**السؤال:** في Object-Oriented Design، متى نستخدم Grammatical Analysis؟
-
-أ) عند اختيار lanuage البرمجة
-ب) عند تحديد الكائنات من نص يصف النظام
-ج) عند كتابة التوثيق
-د) عند الاختبار
-
-**الإجابة الصحيحة:** ب
-
-**التعليل الكامل:**
-- ❌ أ) لا علاقة
-- ✅ ب) "Use grammatical analysis" → "Nouns = Objects, Verbs = Methods"
-- ❌ ج) هاي documentation، مو design
-- ❌ د) testing comes later
-
----
-
-### السؤال 14 (متوسط)
-**السؤال:** Host-Target Development معناه:
-
-أ) تطور التطبيق على جهازك، لكن يشتغل على جهاز مختلف
-ب) استخدام host برنامج وتستهدف جهاز آخر
-ج) تطور على الـ target مباشرة
-د) لا يوجد مثل هاي التقسيمات
+أ) Context/interactions → Architecture → Object identification → Design models → Interface specification
+ب) Objects → Context → Architecture → Interfaces → Models
+ج) Architecture → Context → Objects → Models → Interfaces
+د) Interfaces → Models → Objects → Architecture → Context
 
 **الإجابة الصحيحة:** أ
 
 **التعليل الكامل:**
-- ✅ أ) التعريف الدقيق من المحاضرة
-- ❌ ب) وصف غير واضح
-- ❌ ج) معاكس
-- ❌ د) توجد وشائعة جداً
+- ✅ أ): هاد بالضبط الترتيب اللي حددته المحاضرة — فهم السياق أولاً، ثم المعمارية، ثم تحديد الكائنات، ثم النماذج، وأخيراً الواجهات.
+- ❌ ب): الكائنات ما بتنحدد قبل السياق، لأنه فهم السياق هو اللي بيوجه معرفة الكائنات لاحقاً.
+- ❌ ج): المعمارية ما بتتصمم قبل فهم السياق والتفاعلات الخارجية أولاً.
+- ❌ د): هاد بيعكس الترتيب كلياً — الواجهات بتُحدد آخر خطوة، مش أول خطوة.
 
 ---
 
-### السؤال 15 (متوسط)
-**السؤال:** Composition relationship (◆—) في Class Diagram معناه:
+### السؤال 4 (Medium)
 
-أ) واحد class يرث من الآخر
-ب) واحد class يستخدم الآخر لفترة
-ج) واحد class مكوّن من الآخر (جزء من الكل)
-د) لا توجد علاقة
+**السؤال:** In the weather station's architectural diagram, which subsystem acts as the central connector between the management subsystems (Fault, Configuration, Power Managers) and the functional subsystems (Communications, Data Collection, Instruments)?
+
+أ) WeatherData
+ب) SatComms
+ج) Communication Link
+د) Transmitter
 
 **الإجابة الصحيحة:** ج
 
 **التعليل الكامل:**
-- ❌ أ) هاي Generalization (<|—)
-- ❌ ب) هاي Association
-- ✅ ج) Composition = جزء من الكل
-- ❌ د) موجودة
+- ❌ أ): WeatherData كائن تم استخراجه لاحقاً بخطوة تحديد الكائنات، مش subsystem معماري.
+- ❌ ب): SatComms ظهر بمخطط التتابع لاحقاً، مش بالمخطط المعماري لمحطة الطقس نفسها.
+- ✅ ج): Communication Link هو الطبقة الوسطى اللي بتربط كل الـ subsystems الستة ببعضها.
+- ❌ د): Transmitter هو أحد كائنين داخل subsystem واحد فقط (Data Collection)، مش الرابط المركزي بين كل الأقسام.
 
 ---
 
-### السؤال 16 (صعب)
-**السؤال:** في Interaction Model، لماذا ما نكتب تفاصيل كل step بالضبط؟
+### السؤال 5 (Medium)
 
-أ) لأن التفاصيل مملة
-ب) لأن التفاصيل تأتي لاحقاً في Sequence Diagram و Implementation
-ج) لأن Use Cases مو مهمة
-د) لأن عندنا وقت محدود
+**السؤال:** What is the fundamental distinction between structural (static) models and dynamic models in UML design?
+
+أ) There is no real distinction between them; the terms are interchangeable
+ب) Dynamic models describe static class relationships, structural models describe timing
+ج) Both types are used exclusively for describing external systems
+د) Structural models describe static structure using classes/relationships; dynamic models show interactions and state changes over time
+
+**الإجابة الصحيحة:** د
+
+**التعليل الكامل:**
+- ❌ أ): المحاضرة بتفرّق صراحة بين النوعين بتعريفات مختلفة وأمثلة مختلفة.
+- ❌ ب): هاد بيعكس التعريف الصحيح — العلاقات الساكنة هي دور النماذج الهيكلية، مش الديناميكية.
+- ❌ ج): النماذج الهيكلية والديناميكية بتوصف النظام الداخلي نفسه، مش الأنظمة الخارجية (هاد دور نموذج السياق).
+- ✅ د): هاد يطابق تعريف المحاضرة تماماً — الهيكلية بتستخدم كائنات وعلاقات، والديناميكية بتبيّن تسلسل الطلبات وتغييرات الحالة.
+
+---
+
+### السؤال 6 (Medium)
+
+**السؤال:** Using the grammatical analysis approach to object identification, what do verbs typically represent?
+
+أ) External systems in the context model
+ب) Object attributes
+ج) Object classes themselves
+د) Operations or services
+
+**الإجابة الصحيحة:** د
+
+**التعليل الكامل:**
+- ❌ أ): الأنظمة الخارجية بتيجي من نموذج السياق، مش من تحليل الأفعال بالتحليل النحوي.
+- ❌ ب): الخصائص، متل الكائنات، بتمثّل بالأسماء وليس بالأفعال.
+- ❌ ج): أصناف الكائنات كمان بتمثّل بالأسماء، مش الأفعال.
+- ✅ د): المحاضرة توضح إنه بالتحليل النحوي، الأفعال (verbs) تمثل العمليات أو الخدمات، بينما الأسماء تمثل الكائنات والخصائص.
+
+---
+
+### السؤال 7 (Hard)
+
+**السؤال:** In the sequence diagram for the "Report Weather" scenario, what is the correct order of calls after Weather Information System sends `request(report)`?
+
+أ) SatComms acknowledges the request, then calls reportWeather() on WeatherStation, which then calls get(summary) on Commslink
+ب) WeatherData summarizes itself first, then creates a WeatherStation object, then SatComms sends the initial request
+ج) Commslink calls WeatherStation directly, which then calls SatComms to acknowledge the request
+د) The request bypasses SatComms and WeatherStation, going directly to WeatherData
+
+**الإجابة الصحيحة:** أ
+
+**التعليل الكامل:**
+- ✅ أ): هاد بالضبط تسلسل مخطط التتابع: acknowledge → reportWeather() → get(summary).
+- ❌ ب): هاد بيعكس الترتيب الزمني — WeatherData بتلخّص نفسها بس بعد ما تُطلب منها، مش قبل بدء التسلسل.
+- ❌ ج): الاتجاه معكوس — WeatherStation هي اللي بتنادي Commslink، وSatComms هي اللي بتنادي WeatherStation، مش العكس.
+- ❌ د): الطلب لازم يمر عبر SatComms وWeatherStation وCommslink قبل ما يوصل لـ WeatherData.
+
+---
+
+### السؤال 8 (Medium)
+
+**السؤال:** In the weather station's state diagram, which service call triggers a transition from `Running` to `Testing`?
+
+أ) restart()
+ب) shutdown()
+ج) reportStatus()
+د) reconfigure()
+
+**الإجابة الصحيحة:** ج
+
+**التعليل الكامل:**
+- ❌ أ): restart() بينقل الكائن من Shutdown إلى Running، مش من Running إلى Testing.
+- ❌ ب): shutdown() بيرجع الكائن من Running إلى حالة Shutdown، مش Testing.
+- ✅ ج): وفق مخطط الحالة، reportStatus() هو اللي بينقل الكائن من Running إلى Testing.
+- ❌ د): reconfigure() بينقل الكائن من Running إلى Configuring، مش Testing.
+
+---
+
+### السؤال 9 (Medium)
+
+**السؤال:** Which category of "tangible entities" used for object identification would best describe an entity like "manager" or "doctor"?
+
+أ) Organizational units
+ب) Roles
+ج) Events
+د) Things
 
 **الإجابة الصحيحة:** ب
 
 **التعليل الكامل:**
-- ❌ أ) ليس السبب الرسمي
-- ✅ ب) المحاضرة تقول "does not include too much detail" — التفاصيل تأتي في Sequence Diagrams
-- ❌ ج) Use Cases مهمة جداً
-- ❌ د) سبب غير تقني
+- ❌ أ): الوحدات التنظيمية بتشير لكيانات متل الشركات، مش لأدوار أفراد.
+- ✅ ب): المحاضرة صراحة بتعطي "manager, doctor" كأمثلة على فئة Roles.
+- ❌ ج): الأحداث بتشير لأشياء متل "طلب" (request)، مش لأدوار وظيفية.
+- ❌ د): الأشياء (Things) بتشير لكيانات مادية متل "طائرة"، مش لأدوار بشرية.
 
 ---
 
-## الجزء الرابع: بطاقات Q&A (16 بطاقة)
+### السؤال 10 (Medium)
+
+**السؤال:** A team reuses a testing library like `JUnit` by calling its existing classes directly, without writing any new library code. Which reuse level does this best represent?
+
+أ) Abstraction
+ب) System
+ج) Component
+د) Object
+
+**الإجابة الصحيحة:** د
+
+**التعليل الكامل:**
+- ❌ أ): إعادة استخدام التجريد بتعني الاستفادة من معرفة أنماط، مش استدعاء كائنات مكتبة جاهزة مباشرة.
+- ❌ ب): إعادة استخدام النظام بتعني إعادة استخدام تطبيق كامل، مش مكتبة اختبار واحدة.
+- ❌ ج): إعادة استخدام المكوّن بتحتاج كتابة شوي كود، بعكس السيناريو المذكور اللي ما فيه كتابة كود جديد.
+- ✅ د): المحاضرة بتعطي JUnit وJavaMail كأمثلة صريحة على إعادة الاستخدام بمستوى الكائن (Object) — استخدام كائنات جاهزة بدون كتابة كود.
+
+---
+
+### السؤال 11 (Hard)
+
+**السؤال:** Which of the following is **NOT** one of the four reuse levels mentioned in the lecture?
+
+أ) Testing
+ب) Abstraction
+ج) Component
+د) System
+
+**الإجابة الصحيحة:** أ
+
+**التعليل الكامل:**
+- ✅ أ): "Testing" مش مستوى إعادة استخدام بالمحاضرة — المستويات الأربعة هي Abstraction, Object, Component, System فقط.
+- ❌ ب): Abstraction هو أحد المستويات الأربعة الفعلية المذكورة بالمحاضرة.
+- ❌ ج): Component هو أحد المستويات الأربعة الفعلية المذكورة بالمحاضرة.
+- ❌ د): System هو أحد المستويات الأربعة الفعلية المذكورة بالمحاضرة.
+
+---
+
+### السؤال 12 (Medium)
+
+**السؤال:** Which of the following is explicitly listed as one of the costs associated with software reuse?
+
+أ) Cost of hiring additional senior developers
+ب) Cost of renaming variables across the codebase
+ج) Cost of integrating reusable elements with each other or with new code
+د) Cost of writing detailed unit tests for legacy code
+
+**الإجابة الصحيحة:** ج
+
+**التعليل الكامل:**
+- ❌ أ): توظيف مطورين إضافيين مش من ضمن أنواع التكاليف المذكورة بالمحاضرة.
+- ❌ ب): إعادة تسمية المتغيرات غير مذكورة إطلاقاً كتكلفة إعادة استخدام.
+- ✅ ج): المحاضرة صراحة بتذكر تكلفة دمج العناصر المعاد استخدامها مع بعضها (وممكن تكون من مزودين مختلفين) أو مع كود جديد.
+- ❌ د): كتابة اختبارات الوحدة غير مذكورة كتكلفة إعادة استخدام بالمحاضرة.
+
+---
+
+### السؤال 13 (Medium)
+
+**السؤال:** Which fundamental configuration management activity allows users to report bugs and lets developers see who is working on a fix and when it was resolved?
+
+أ) Version management
+ب) Problem tracking
+ج) Host-target development
+د) System integration
+
+**الإجابة الصحيحة:** ب
+
+**التعليل الكامل:**
+- ❌ أ): إدارة النسخ بتتتبع النسخ المختلفة من المكونات، مش تقارير الأخطاء.
+- ✅ ب): المحاضرة تحدد Problem tracking بالضبط بهاد التعريف — إبلاغ المستخدمين عن الأخطاء ومعرفة مين مسؤول عن حلها ومتى.
+- ❌ ج): التطوير على منصتين موضوع منفصل كلياً عن إدارة التهيئة.
+- ❌ د): دمج النظام بيحدد شو نسخ المكونات المستخدمة لبناء النظام، مش تتبع الأخطاء.
+
+---
+
+### السؤال 14 (Medium)
+
+**السؤال:** Regarding host-target development, which tool or technique is typically used when the host and target systems are completely different?
+
+أ) BugZilla
+ب) Version management
+ج) A use case model
+د) A simulator
+
+**الإجابة الصحيحة:** د
+
+**التعليل الكامل:**
+- ❌ أ): BugZilla أداة تتبع مشاكل من إدارة التهيئة، غير مرتبطة بالتطوير على منصتين.
+- ❌ ب): إدارة النسخ نشاط من إدارة التهيئة، مش حل لفجوة الاختلاف بين host وtarget.
+- ❌ ج): نموذج حالات الاستخدام أداة من خطوة نموذج التفاعل بالتصميم، غير مرتبطة بهاد الموضوع.
+- ✅ د): المحاضرة تحدد إنه المحاكيات (simulators) هي اللي بتُستخدم لسد الفجوة لما يكون host وtarget مختلفين كلياً.
+
+---
+
+### السؤال 15 (Medium)
+
+**السؤال:** Which notation does UML use to specify interfaces, allowing objects and components to be designed in parallel?
+
+أ) Class diagrams (with the `«interface»` stereotype)
+ب) Context models
+ج) State diagrams
+د) Use case diagrams
+
+**الإجابة الصحيحة:** أ
+
+**التعليل الكامل:**
+- ✅ أ): المحاضرة صراحة تذكر إنه UML تستخدم class diagrams (مع stereotype «interface») لتحديد الواجهات — وممكن كمان استخدام Java.
+- ❌ ب): نماذج السياق بتبيّن الأنظمة الخارجية، مش تفاصيل الواجهات الداخلية.
+- ❌ ج): مخططات الحالة بتبيّن كيف الكائن بيغيّر حالته، مش توقيعات الواجهات.
+- ❌ د): مخططات حالات الاستخدام بتُستخدم لنموذج التفاعل، مش لتحديد الواجهات.
+
+---
+
+### السؤال 16 (Hard)
+
+**السؤال:** What is the main purpose of the "System integration" activity within configuration management?
+
+أ) To simulate target hardware behavior on the host system during development
+ب) To identify object classes from a natural language system description
+ج) To help developers define which component versions build each version of the system, aiding auto-compiling
+د) To let end users directly report bugs without developer involvement
+
+**الإجابة الصحيحة:** ج
+
+**التعليل الكامل:**
+- ❌ أ): محاكاة الجهاز الهدف موضوع منفصل كلياً (host-target development)، مش دمج النظام.
+- ❌ ب): تحديد أصناف الكائنات جزء من خطوة التصميم، مش من إدارة التهيئة.
+- ✅ ج): المحاضرة تحدد دمج النظام بالضبط بهاد الدور — تحديد نسخ المكونات المستخدمة لبناء كل نسخة من النظام، وهاد بيساعد بالتجميع التلقائي.
+- ❌ د): إبلاغ المستخدمين عن الأخطاء هو دور Problem tracking، وحتى فيه، المطورين لازم يشوفوا ويتابعوا الحل — مش "بدون تدخل مطورين".
+
+---
+
+## الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)
 
 ### البطاقة 1
-**Q:** شنو أساسي الفرق بين Software Design و Software Implementation؟
-**A:** Design = تحديد البنية والعلاقات (Planning). Implementation = كتابة الكود الفعلي.
+**Q:** شو الفرق الأساسي بين التصميم (design) والتنفيذ (implementation)؟
+**A:** التصميم نشاط إبداعي لتحديد مكونات البرنامج وعلاقاتها بناءً على متطلبات الزبون، بينما التنفيذ هو تحويل هاد التصميم لبرنامج فعلي شغال.
 
 ### البطاقة 2
-**Q:** الخطوات الخمس في Object-Oriented Design؟
-**A:** 1) System Context، 2) Interaction Model، 3) Architecture، 4) Object Identification، 5) Design Models.
+**Q:** هل لازم دايماً توثق التصميم بالتفصيل باستخدام UML؟
+**A:** لا، أحياناً التصميم بيضل بس براس المبرمج أو مرسوم على whiteboard — التوثيق الرسمي بـ UML مهم أكتر مع منهج كائني التوجه وفريق أكبر من شخص.
 
 ### البطاقة 3
-**Q:** شنو System Context Model؟
-**A:** رسم يوضح النظام والأنظمة الخارجية حوله والاتصالات بينهم.
+**Q:** شو الخطوات الخمس لتطوير تصميم نظام كائني التوجه؟
+**A:** فهم السياق والتفاعلات الخارجية، التصميم المعماري، تحديد أصناف الكائنات، بناء نماذج التصميم، وأخيراً تحديد الواجهات.
 
 ### البطاقة 4
-**Q:** شنو Use Case؟
-**A:** طريقة محتملة لاستخدام النظام — حالة استخدام معينة.
+**Q:** شو يبيّن نموذج سياق النظام (system context model)؟
+**A:** نموذج هيكلي بيبيّن باقي الأنظمة الموجودة ببيئة النظام قيد التطوير، باستخدام associations بسيطة شبيه بـ block diagram.
 
 ### البطاقة 5
-**Q:** في أي مرحلة نحدد أن النظام ينقسم لـ Data Collection و Communication subsystems؟
-**A:** في Architectural Design.
+**Q:** شو النموذج المستخدم لتوثيق نموذج التفاعل مع البيئة الخارجية؟
+**A:** نموذج حالات الاستخدام (use case model)، وين كل تفاعل ممكن يُمثّل ببيضاوي، والكيان الخارجي يُمثّل برجل عصا (stick figure).
 
 ### البطاقة 6
-**Q:** "لا توجد صيغة سحرية لتحديد الكائنات" معناه شنو؟
-**A:** يعتمد على خبرة المصمم وفهمه للـ domain، وهي عملية تكرارية.
+**Q:** التصميم المعماري بيهتم بإيش بالضبط؟
+**A:** بتحديد المكونات الرئيسية اللي بيتكون منها النظام وتفاعلاتها، وتنظيمها باستخدام نمط معماري (architectural pattern).
 
 ### البطاقة 7
-**Q:** شنو الفرق بين Structural Models و Dynamic Models؟
-**A:** Structural (Static) = البنية الثابتة (Class Diagrams). Dynamic = السلوك والتفاعلات (Sequence, State Diagrams).
+**Q:** كيف بيشتغل التحليل النحوي (grammatical analysis) بتحديد أصناف الكائنات؟
+**A:** بتاخد وصف طبيعي للنظام، وتعتبر الأسماء والصفات كائنات وخصائص، والأفعال عمليات أو خدمات.
 
 ### البطاقة 8
-**Q:** في Sequence Diagram، شنو الـ thin rectangle على lifeline؟
-**A:** الوقت اللي الـ object تكون controlling object (مسؤولة عن العمليات).
+**Q:** شو نوعا نماذج التصميم اللي عادة بنطوّرهم بـ UML؟
+**A:** نماذج هيكلية/ساكنة (structural) بتوصف البنية الثابتة بالكائنات والعلاقات، ونماذج ديناميكية (dynamic) بتوصف التفاعلات وتغييرات الحالة بمرور الزمن.
 
 ### البطاقة 9
-**Q:** متى نستخدم State Diagram؟
-**A:** فقط للـ objects المعقدة اللي تتغير حالتها بناءً على events.
+**Q:** شو بيبيّن نموذج التتابع (sequence model)؟
+**A:** بيبيّن تسلسل التفاعلات بين الكائنات — الكائنات مرتبة أفقياً فوق، الزمن ماشي عمودياً، والتفاعلات أسهم مسمّاة.
 
 ### البطاقة 10
-**Q:** الفائدة الأساسية من تحديد Interfaces قبل الكود؟
-**A:** Multiple teams يقدرون يشتغلوا بشكل مستقل طالما يلتزمون بـ Interface.
+**Q:** متى لازم تعمل state diagram لكائن معيّن؟
+**A:** بس لما يكون سلوك الكائن معقّد نسبياً — أغلب الكائنات البسيطة ما بتحتاج state model لأنه بيضيف تفاصيل غير ضرورية.
 
 ### البطاقة 11
-**Q:** شنو مستويات Reuse الأربع؟
-**A:** 1) Abstraction، 2) Object (libraries)، 3) Component (محتاج كود)، 4) System (محتاج تعديلات).
+**Q:** ليش المصممين لازم يخفوا تمثيل الواجهة جوا الكائن نفسه؟
+**A:** عشان الواجهة تبقى بس تعرض التوقيعات والخدمات المتاحة (شو)، من غير ما تكشف كيف هي منفذة فعلياً داخل الكائن (كيف) — وهاد بيسمح بتصميم متوازي وتغيير التنفيذ لاحقاً بدون ما يأثر على المستخدمين.
 
 ### البطاقة 12
-**Q:** شنو فوائد Reuse؟
-**A:** أسرع، أقل risks، أقل كلفة، أكتر reliability (tested).
+**Q:** شو مستويات إعادة الاستخدام الأربعة؟
+**A:** التجريد (patterns)، الكائن (مكتبات جاهزة زي JUnit)، المكوّن (يحتاج كتابة كود)، والنظام الكامل (يحتاج تهيئة/تعديل).
 
 ### البطاقة 13
-**Q:** شنو التحديات في Reuse؟
-**A:** البحث، الشراء (COTS غالي)، التكييف، التكامل مع components أخرى.
+**Q:** شو الأنشطة الأساسية الثلاثة لإدارة التهيئة؟
+**A:** إدارة النسخ (version management)، دمج النظام (system integration)، وتتبع المشاكل (problem tracking).
 
 ### البطاقة 14
-**Q:** Configuration Management معناه شنو؟
-**A:** تتبع versions مختلفة من components — version management، system integration، problem tracking.
-
-### البطاقة 15
-**Q:** Host-Target Development معناه شنو؟
-**A:** نطور على host (جهازنا)، لكن ننشر على target (جهاز مختلف) — قد نستخدم simulators.
-
-### البطاقة 16
-**Q:** شنو أهم قاعدة عند تحديد الواجهات؟
-**A:** أخفي implementation details في الـ object نفسه، اظهر فقط public methods.
+**Q:** شو معنى host-target development؟
+**A:** إنك تطوّر البرنامج على حاسوب (host system) وتشغّله فعلياً على حاسوب مختلف (target system) — وممكن تستخدم محاكيات (simulators) لما يكون الجهازين مختلفين كلياً.
 
 ---
 
-## الجزء الخامس: Cheat Sheet
+## الجزء الخامس: ورقة المراجعة السريعة (Cheat Sheet)
 
-### جدول المقارنة: مراحل التصميم والتطبيق
+### 5.1 جدول المقارنة السريعة
 
-| المرحلة | الإدخال | الإجراء الرئيسي | الإخراج |
-|---------|--------|----------------|--------|
-| **System Context** | Requirements | رسم الـ external systems | Context Diagram |
-| **Interaction** | Context | تحديد Use Cases | Interaction Diagram |
-| **Architecture** | Use Cases | تقسيم لـ subsystems | Architecture Diagram |
-| **Object ID** | Architecture | تحديد classes | Object List |
-| **Design Models** | Objects | رسم UML diagrams | Class + Sequence + State Diagrams |
-| **Interfaces** | Objects | تحديد methods | Interface Spec |
-| **Implementation** | Interfaces | كود + reuse + testing | Executable System |
+| المعيار | نموذج السياق (Context) | نموذج التفاعل (Interaction) |
+| --- | --- | --- |
+| **النوع** | هيكلي/ساكن | ديناميكي |
+| **الغرض** | مين الأنظمة الخارجية الموجودة | كيف النظام بيتفاعل معهم فعلياً |
+| **الأداة** | Block diagram / associations | Use case model |
 
----
+| المعيار | النماذج الهيكلية (Structural) | النماذج الديناميكية (Dynamic) |
+| --- | --- | --- |
+| **تصف** | البنية الثابتة (كائنات + علاقات) | التفاعلات وتغييرات الحالة |
+| **أمثلة** | Subsystem/class diagrams | Sequence models, State machine models |
 
-### جدول أنواع UML Diagrams المستخدمة
+| مستوى إعادة الاستخدام | يحتاج كتابة كود؟ | مثال |
+| --- | --- | --- |
+| **Abstraction** | لا (تستفيد من معرفة فقط) | Design/architectural patterns |
+| **Object** | لا | JUnit, JavaMail |
+| **Component** | نعم (شوي كود) | مكتبة جاهزة تحتاج ربط |
+| **System** | نعم (تهيئة/تعديل) | تطبيق كامل جاهز (COTS) |
 
-| النوع | الفئة | الاستخدام | الأمثلة |
-|-------|-------|-----------|--------|
-| **Class Diagram** | Structural | البنية الثابتة | Classes، Relationships |
-| **Sequence Diagram** | Dynamic | ترتيب الاستدعاءات | Object interactions over time |
-| **State Diagram** | Dynamic | تغيّر الحالات | States و Transitions |
-| **Use Case Diagram** | Behavioral | طرق الاستخدام | Actors و Use Cases |
-| **Component Diagram** | Structural | subsystems | Major components |
+### 5.2 القواعس الذهبية
 
----
+| # | القاعدة |
+| --- | --- |
+| 1 | التصميم مش لازم يكون موثق بـ UML دايماً — القرار بيعتمد على لغة البرمجة وحجم الفريق |
+| 2 | خطوات الـ OOD الخمس بترتيب صارم: سياق → معمارية → كائنات → نماذج → واجهات |
+| 3 | تحديد الكائنات عملية تكرارية بدون صيغة سحرية — اعتمد على أكتر من طريقة (نحوي + سيناريو) |
+| 4 | ما تعمل state diagram لكل كائن — بس للي سلوكه فعلاً معقّد |
+| 5 | أخفِ تمثيل الواجهة الداخلي جوا الكائن — الواجهة تكشف "شو" مش "كيف" |
+| 6 | الكتابة من الصفر غير عملية اقتصادياً — قيّم تكاليف إعادة الاستخدام (وقت، شراء، تكييف، دمج) قبل القرار |
+| 7 | إدارة التهيئة = نسخ + دمج + تتبع مشاكل — مش بس نسخة احتياطية |
+| 8 | لو الـ host والـ target مختلفين، استخدم محاكيات قبل النشر الفعلي |
 
-### مرجع سريع: Relationships في Class Diagram
+### 5.3 مرجع سريع للمصطلحات
 
-| الرمز | الاسم | المعنى | مثال |
-|------|-------|--------|-------|
-| `<\|—` | Generalization | وراثة (Inheritance) | Employee <\|— Manager |
-| `—>` | Association | استخدام | Character —> Weapon |
-| `◆—` | Composition | جزء من الكل | Car ◆— Engine |
-| `◇—` | Aggregation | يحتوي على | Team ◇— Player |
-
----
-
-### نصائح سريعة
-
-**للتصميم:**
-- ابدأ من السياق، مو من الكود
-- كل خطوة تبني على السابقة
-- التصميم عملية تكرارية
-
-**للـ Reuse:**
-- بحث عن libraries قبل كتابة
-- تكاليف Reuse = بحث + شراء + تعديل + تكامل
-- أقل كود تكتبه = أقل bugs
-
-**للـ Implementation:**
-- استخدم version control من البداية
-- تتبع كل التغييرات (bug tracking)
-- اختبر على simulators قبل target device
-
----
-
-**نهاية الدليل الدراسي**
-
-هذا الدليل يغطي المحاضرة بـ 100% coverage. أي سؤال أو استفسار يتعلق بـ Design و Implementation، الإجابة موجودة هنا.
+| المصطلح الإنجليزي | المعنى بالعربي |
+| --- | --- |
+| `Software Design` | نشاط إبداعي لتحديد المكونات والعلاقات بناءً على المتطلبات |
+| `Software Implementation` | تحويل التصميم لبرنامج قابل للتنفيذ فعلياً |
+| `System Context Model` | نموذج هيكلي يبيّن الأنظمة الخارجية المرتبطة بالنظام |
+| `Interaction Model` | نموذج ديناميكي (عادة use case) يبيّن تفاعل النظام مع بيئته |
+| `Architectural Design` | تحديد المكونات الرئيسية وتنظيمها بنمط معماري |
+| `Object Class Identification` | استخراج الكائنات من وصف النظام — عملية تكرارية بلا صيغة سحرية |
+| `Design/System Model` | جسر بين المتطلبات والتنفيذ؛ هيكلي (static) أو ديناميكي (dynamic) |
+| `Interface Specification` | تحديد توقيعات ودلالات الخدمات بين المكونات لتصميم متوازي |
+| `Reuse` | بناء أنظمة من مكونات موجودة بدل الكتابة من الصفر |
+| `Configuration Management` | تتبع نسخ المكونات المتعددة ودمجها بطريقة منضبطة |
+| `Host-Target Development` | تطوير على جهاز، تنفيذ على جهاز آخر (غالباً مختلف) |
+| `COTS` | Commercial Off-The-Shelf — منتج تجاري جاهز للشراء والاستخدام |
+| `Signature` | توقيع الدالة (اسمها + مدخلاتها + مخرجاتها) بدون تفاصيل تنفيذها |
