@@ -397,11 +397,7 @@ body {
 }
 
 .dark .lecture-picker-card {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-primary) 12%, var(--dm-elevated)) 0%,
-    var(--dm-elevated) 60%
-  ) !important;
+  background: var(--dm-elevated) !important;
   border-color: var(--dm-border) !important;
 }
 
@@ -628,22 +624,14 @@ body {
   overflow: hidden;
   opacity: 0;
   animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-primary-fixed) 45%, var(--color-surface-container-lowest)) 0%,
-    var(--color-surface-container-lowest) 55%
-  ) !important;
-  border-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-outline-variant)) !important;
+  background: var(--color-surface-container-lowest) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-outline-variant)) !important;
+  border-radius: 1.25rem !important;
+  padding: 1.5rem !important;
 }
 
 .lecture-picker-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary-accent), var(--color-tertiary-fixed-dim));
-  opacity: 0.85;
+  display: none !important;
 }
 
 .lecture-picker-card:hover {

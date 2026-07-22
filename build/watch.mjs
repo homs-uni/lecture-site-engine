@@ -29,7 +29,7 @@ function parseArgs(argv) {
 
 function run(cmd, args) {
     return new Promise((resolve, reject) => {
-        const child = spawn(cmd, args, {
+        const child = spawn(process.platform === "win32" ? `"${cmd}"` : cmd, args, {
             stdio: "inherit",
             cwd: ENGINE_ROOT,
             shell: process.platform === "win32", // use shell on Windows to find .cmd files
@@ -81,8 +81,8 @@ async function main() {
     if (!subject && !all) {
         console.error(
             "Usage:\n" +
-                "  node build/watch.mjs --subject <year-N/subject-id> [--port 8080]   (one subject)\n" +
-                "  node build/watch.mjs --all [--port 8080]                          (whole site)"
+            "  node build/watch.mjs --subject <year-N/subject-id> [--port 8080]   (one subject)\n" +
+            "  node build/watch.mjs --all [--port 8080]                          (whole site)"
         )
         process.exit(1)
     }
@@ -100,19 +100,19 @@ async function main() {
 
     const watchDirs = all
         ? [
-              path.join(ENGINE_ROOT, "subjects"),
-              path.join(ENGINE_ROOT, "site-shell"),
-              path.join(ENGINE_ROOT, "renderer"),
-              path.join(ENGINE_ROOT, "themes"),
-              path.join(ENGINE_ROOT, "build"),
-          ]
+            path.join(ENGINE_ROOT, "subjects"),
+            path.join(ENGINE_ROOT, "site-shell"),
+            path.join(ENGINE_ROOT, "renderer"),
+            path.join(ENGINE_ROOT, "themes"),
+            path.join(ENGINE_ROOT, "build"),
+        ]
         : [
-              path.join(ENGINE_ROOT, "subjects", subjectRel),
-              path.join(ENGINE_ROOT, "site-shell"),
-              path.join(ENGINE_ROOT, "renderer"),
-              path.join(ENGINE_ROOT, "themes"),
-              path.join(ENGINE_ROOT, "build"),
-          ]
+            path.join(ENGINE_ROOT, "subjects", subjectRel),
+            path.join(ENGINE_ROOT, "site-shell"),
+            path.join(ENGINE_ROOT, "renderer"),
+            path.join(ENGINE_ROOT, "themes"),
+            path.join(ENGINE_ROOT, "build"),
+        ]
 
     for (const dir of watchDirs) {
         try {

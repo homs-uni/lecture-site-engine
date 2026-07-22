@@ -976,44 +976,67 @@ function renderHomeGrid() {
     const mastered = stats.mcq
       ? Math.min(appState.quizStats?.getMasteredCount(lectureId) || 0, stats.mcq)
       : 0;
+    const badgeText = badge || (num ? `المحاضرة ${num}` : '');
     return `
-      <article class="lecture-picker-card group text-right bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow box-hover w-full"
+      <article class="lecture-picker-card group text-right flex flex-col justify-between items-start bg-surface-container-lowest border border-outline-variant rounded-2xl p-lg custom-shadow box-hover w-full"
                data-lecture-card="${i}" aria-label="${esc(title)}">
-        <div class="flex items-start justify-between mb-md">
-          <div class="picker-icon-wrap w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container shrink-0">
-            ${ms(item.matIcon, true, 'text-3xl')}
-          </div>
-          <div class="flex flex-col items-end gap-xs lecture-card-head-actions">
-            <span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-lg font-code-sm text-code-sm">#${esc(num)}</span>
-            ${badge ? `<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-lg font-label-md text-label-md">${esc(badge)}</span>` : ''}
-            <button type="button" class="lecture-complete-btn ${isDone ? 'is-complete' : ''}" data-toggle-complete-index="${i}" aria-pressed="${isDone ? 'true' : 'false'}" aria-label="${isDone ? 'إلغاء إكمال' : 'تحديد كمكتملة'} ${escAttr(title)}">
-              ${ms(isDone ? 'task_alt' : 'radio_button_unchecked', false, 'text-base')}
-              <span>${doneLabel}</span>
-            </button>
-          </div>
+        <!-- Top Row -->
+        <div class="flex items-center justify-between mb-md w-full">
+          <!-- Badge (Top-Right in RTL) -->
+          ${badgeText ? `
+            <span class="px-md py-xs bg-surface-container-high text-on-surface rounded-full text-xs font-bold font-label-md">
+              ${esc(badgeText)}
+            </span>
+          ` : '<span></span>'}
+
+          <!-- Completion Status (Top-Left in RTL) -->
+          <button type="button" class="lecture-complete-btn flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors text-sm font-label-md shrink-0"
+                  data-toggle-complete-index="${i}" aria-pressed="${isDone ? 'true' : 'false'}" aria-label="${isDone ? 'إلغاء إكمال' : 'تحديد كمكتملة'} ${escAttr(title)}">
+            ${ms(isDone ? 'check_circle' : 'radio_button_unchecked', isDone, 'text-base text-on-surface-variant')}
+            <span>${doneLabel}</span>
+          </button>
         </div>
-        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs group-hover:text-primary transition-colors">${esc(title)}</h3>
-        ${tag ? `<p class="font-label-md text-label-md text-on-surface-variant mb-md line-clamp-2">${esc(tag)}</p>` : '<div class="mb-md"></div>'}
-        <div class="flex flex-wrap gap-sm mb-lg">
-          <span class="inline-flex items-center gap-xs px-sm py-xs bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface-variant">
-            ${ms('menu_book', false, 'text-sm text-primary')} ${stats.parts} أجزاء
-          </span>
-          ${stats.mcq ? `<span class="inline-flex items-center gap-xs px-sm py-xs bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface-variant">
-            ${ms('quiz', false, 'text-sm text-secondary')} ${stats.mcq} سؤال
-          </span>` : ''}
-          ${mastered ? `<span class="inline-flex items-center gap-xs px-sm py-xs bg-primary-container text-on-primary-container rounded-full font-label-md text-label-md" title="أسئلة أجبت عنها صحيحاً ولو مرة">
-            ${ms('workspace_premium', false, 'text-sm')} إتقان ${mastered}/${stats.mcq}
-          </span>` : ''}
-          ${stats.sections ? `<span class="inline-flex items-center gap-xs px-sm py-xs bg-surface-container-high rounded-full font-label-md text-label-md text-on-surface-variant">
-            ${ms('format_list_bulleted', false, 'text-sm text-tertiary')} ${stats.sections} أقسام
-          </span>` : ''}
+
+        <!-- Middle Content (Right-Aligned Title & Subtitle) -->
+        <div class="flex flex-col items-start text-right flex-grow mb-md w-full">
+          <!-- Title -->
+          <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs group-hover:text-primary transition-colors text-right line-clamp-2 max-w-full">
+            ${esc(title)}
+          </h3>
+          
+          <!-- Subtitle Pill -->
+          ${tag ? `
+            <div class="inline-flex items-center px-md py-xs bg-surface-container-high/40 text-on-surface-variant rounded-full text-xs font-label-md border border-outline-variant/20 max-w-[95%] text-right">
+              <span class="line-clamp-1">${esc(tag)}</span>
+            </div>
+          ` : ''}
         </div>
-        <div class="lecture-card-footer">
-          <span class="lecture-card-status ${isDone ? 'is-complete' : ''}">
-            ${ms(isDone ? 'check_circle' : 'pending', false, 'text-base')} ${doneLabel}
+
+        <!-- Stats Row (Right-Aligned Pills) -->
+        <div class="flex items-center justify-start gap-sm mb-lg flex-wrap w-full">
+          <span class="inline-flex items-center gap-xs px-md py-xs bg-surface-container-high/60 rounded-full font-label-md text-label-md text-on-surface-variant">
+            ${ms('menu_book', false, 'text-sm text-primary')}
+            <span>${stats.parts} أجزاء</span>
           </span>
-          <button type="button" class="lecture-open-btn inline-flex items-center gap-sm text-primary font-label-md font-bold group-hover:gap-md transition-all" data-open-lecture-index="${i}" aria-label="فتح ${escAttr(title)}">
-            ابدأ الدراسة ${ms('arrow_back', false, 'text-lg')}
+          ${stats.mcq ? `
+            <span class="inline-flex items-center gap-xs px-md py-xs bg-surface-container-high/60 rounded-full font-label-md text-label-md text-on-surface-variant">
+              ${ms('quiz', false, 'text-sm text-secondary')}
+              <span>${stats.mcq} سؤال</span>
+            </span>
+          ` : ''}
+          ${mastered ? `
+            <span class="inline-flex items-center gap-xs px-md py-xs bg-primary-container text-on-primary-container rounded-full font-label-md text-label-md" title="أسئلة أجبت عنها صحيحاً ولو مرة">
+              ${ms('workspace_premium', false, 'text-sm')}
+              <span>إتقان ${mastered}/${stats.mcq}</span>
+            </span>
+          ` : ''}
+        </div>
+
+        <!-- Action Button (Bottom) -->
+        <div class="w-full mt-auto">
+          <button type="button" class="lecture-open-btn w-full py-md bg-inverse-surface text-inverse-on-surface hover:opacity-90 active:scale-[0.98] rounded-xl font-label-md font-bold inline-flex items-center justify-center gap-sm transition-all shadow-sm" data-open-lecture-index="${i}" aria-label="فتح ${escAttr(title)}">
+            <span>ابدأ الدراسة</span>
+            ${ms('arrow_back', false, 'text-lg')}
           </button>
         </div>
       </article>`;
