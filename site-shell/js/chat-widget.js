@@ -129,26 +129,33 @@
   }
 
   function askQuestion(messages, input) {
-    var question = input.value.trim()
-    if (!question) return
-    input.value = ''
-    addMsg(messages, question, 'user')
-    var thinking = addMsg(messages, 'Thinking...', 'ai')
-    thinking.classList.add('thinking')
-    fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: question, lectureText: getLectureText() })
-    })
-    .then(function(res) { return res.json() })
-    .then(function(data) {
-      thinking.classList.remove('thinking')
-      thinking.textContent = data.answer
-    })
-    .catch(function() {
-      thinking.textContent = 'Something went wrong. Please try again.'
-    })
-  }
+  var question = input.value.trim()
+  if (!question) return
+  input.value = ''
+  addMsg(messages, question, 'user')
+  var thinking = addMsg(messages, 'Thinking...', 'ai')
+  thinking.classList.add('thinking')
+  fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: question, lectureText: getLectureText() })
+  })
+  .then(function(res) { return res.text() })
+  .then(function(text) {
+    thinking.classList.remove('thinking')
+    // Handle both plain text and JSON responses
+    try {
+      var data = JSON.parse(text)
+      thinking.textContent = data.answer || text
+    } catch(e) {
+      thinking.textContent = text
+    }
+  })
+  .catch(function() {
+    thinking.classList.remove('thinking')
+    thinking.textContent = 'Something went wrong. Please try again.'
+  })
+}
 
   function init() {
     if (document.getElementById('ai-chat-btn')) return
