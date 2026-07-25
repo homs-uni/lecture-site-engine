@@ -9,7 +9,6 @@
     const primary   = cssVar('--color-primary',            '#4f46e5')
     const onPrimary = cssVar('--color-on-primary',         '#ffffff')
     const surface   = cssVar('--color-surface',            '#ffffff')
-    const onSurface = cssVar('--color-on-surface-variant', '#444444')
     const border    = cssVar('--color-border',             '#e2e8f0')
     const radius    = cssVar('--radius-md',                '12px')
     const shadow    = cssVar('--shadow-lg',                '0 8px 30px rgba(0,0,0,0.15)')
@@ -27,16 +26,18 @@
       #ai-chat-btn:hover { opacity: 0.85; }
       #ai-chat-box {
         display: none; position: fixed; bottom: 80px; right: 24px; z-index: 9999;
-        width: 340px; max-height: 520px; background: ${surface};
+        width: 360px; height: 500px; min-width: 280px; min-height: 300px;
+        background: ${surface};
         border-radius: ${radius}; box-shadow: ${shadow};
-        overflow: hidden; flex-direction: column; font-family: ${font}; resize: both;
+        overflow: hidden; flex-direction: column; font-family: ${font};
+        resize: both;
       }
       #ai-chat-box.open { display: flex; }
       #ai-chat-header {
         background: ${primary}; color: ${onPrimary};
         padding: 12px 16px; font-weight: 600; font-size: 14px;
         cursor: grab; display: flex; justify-content: space-between; align-items: center;
-        user-select: none;
+        user-select: none; flex-shrink: 0;
       }
       #ai-chat-header:active { cursor: grabbing; }
       #ai-chat-close {
@@ -50,21 +51,26 @@
       .user-msg {
         max-width: 85%; padding: 8px 12px; border-radius: ${radius};
         background: ${primary}; color: ${onPrimary}; align-self: flex-end;
-        font-size: 13px; line-height: 1.5; border-bottom-right-radius: 4px;
+        font-size: 13px; line-height: 1.6; border-bottom-right-radius: 4px;
       }
       .ai-msg {
         max-width: 85%; padding: 8px 12px; border-radius: ${radius};
-        background: ${border}; color: ${onSurface}; align-self: flex-start;
-        font-size: 13px; line-height: 1.5; border-bottom-left-radius: 4px;
+        background: #e8e8e8; color: #1a1a1a; align-self: flex-start;
+        font-size: 13px; line-height: 1.6; border-bottom-left-radius: 4px;
       }
-      .ai-msg.thinking { opacity: 0.6; font-style: italic; }
+      .ai-msg.thinking { opacity: 0.6; font-style: italic; color: #444; }
+      .ai-msg strong { font-weight: 700; color: #111; }
+      .ai-msg ul, .ai-msg ol { margin: 6px 0 6px 18px; padding: 0; }
+      .ai-msg li { margin-bottom: 3px; }
+      .ai-msg p { margin: 4px 0; }
       #ai-chat-input-row {
         display: flex; border-top: 1px solid ${border}; padding: 10px; gap: 8px;
+        flex-shrink: 0;
       }
       #ai-chat-input {
         flex: 1; border: 1px solid ${border}; border-radius: ${radius};
         padding: 8px 10px; font-size: 13px; font-family: ${font};
-        outline: none; resize: none; background: ${surface}; color: ${onSurface};
+        outline: none; resize: none; background: ${surface}; color: #1a1a1a;
       }
       #ai-chat-send {
         background: ${primary}; color: ${onPrimary}; border: none;
@@ -74,6 +80,41 @@
       #ai-chat-send:hover { opacity: 0.85; }
     `
     document.head.appendChild(style)
+  }
+
+  // Convert markdown-like text to HTML
+  function markdownToHtml(text) {
+    // Normalize line endings
+    text = text.replace(/\\n/g, '\n')
+
+    // Escape HTML first
+    text = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+
+    // Bold: **text**
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+
+    // Italic: *text* (single)
+    text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+
+    // Bullet lists: lines starting with * or -
+    text = text.replace(/^[\*\-] (.+)$/gm, '<li>$1</li>')
+    text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+
+    // Numbered lists
+    text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+
+    // Paragraphs: double newlines
+    text = text.split(/\n{2,}/).map(function(p) {
+      p = p.trim()
+      if (!p) return ''
+      if (p.startsWith('<ul>') || p.startsWith('<ol>') || p.startsWith('<li>')) return p
+      return '<p>' + p.replace(/\n/g, '<br>') + '</p>'
+    }).join('')
+
+    return text
   }
 
   function getLectureText() {
@@ -102,60 +143,78 @@
   }
 
   function makeDraggable(el, handle) {
-    var x = 0, y = 0, startX = 0, startY = 0
+    var posX = 0, posY = 0, startX = 0, startY = 0
+
     handle.addEventListener('mousedown', function(e) {
       e.preventDefault()
-      startX = e.clientX - x
-      startY = e.clientY - y
-      document.addEventListener('mousemove', drag)
-      document.addEventListener('mouseup', function() {
-        document.removeEventListener('mousemove', drag)
-      })
+      // Get current position from transform
+      var style = window.getComputedStyle(el)
+      var matrix = new DOMMatrix(style.transform)
+      posX = matrix.m41
+      posY = matrix.m42
+      startX = e.clientX - posX
+      startY = e.clientY - posY
+
+      document.addEventListener('mousemove', onDrag)
+      document.addEventListener('mouseup', onStop)
     })
-    function drag(e) {
-      x = e.clientX - startX
-      y = e.clientY - startY
-      el.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+
+    function onDrag(e) {
+      posX = e.clientX - startX
+      posY = e.clientY - startY
+      el.style.transform = 'translate(' + posX + 'px, ' + posY + 'px)'
+    }
+
+    function onStop() {
+      document.removeEventListener('mousemove', onDrag)
+      document.removeEventListener('mouseup', onStop)
     }
   }
 
-  function addMsg(messages, text, type) {
+  function addMsg(messages, text, type, isHtml) {
     var div = document.createElement('div')
     div.className = type === 'user' ? 'user-msg' : 'ai-msg'
-    div.textContent = text
+    if (isHtml) {
+      div.innerHTML = text
+    } else {
+      div.textContent = text
+    }
     messages.appendChild(div)
     messages.scrollTop = messages.scrollHeight
     return div
   }
 
   function askQuestion(messages, input) {
-  var question = input.value.trim()
-  if (!question) return
-  input.value = ''
-  addMsg(messages, question, 'user')
-  var thinking = addMsg(messages, 'Thinking...', 'ai')
-  thinking.classList.add('thinking')
-  fetch(WORKER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: question, lectureText: getLectureText() })
-  })
-  .then(function(res) { return res.text() })
-  .then(function(text) {
-    thinking.classList.remove('thinking')
-    // Handle both plain text and JSON responses
-    try {
-      var data = JSON.parse(text)
-      thinking.textContent = data.answer || text
-    } catch(e) {
-      thinking.textContent = text
-    }
-  })
-  .catch(function() {
-    thinking.classList.remove('thinking')
-    thinking.textContent = 'Something went wrong. Please try again.'
-  })
-}
+    var question = input.value.trim()
+    if (!question) return
+    input.value = ''
+    addMsg(messages, question, 'user', false)
+    var thinking = addMsg(messages, 'Thinking...', 'ai', false)
+    thinking.classList.add('thinking')
+
+    fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question, lectureText: getLectureText() })
+    })
+    .then(function(res) { return res.text() })
+    .then(function(text) {
+      thinking.classList.remove('thinking')
+      // Handle both plain text and JSON responses
+      try {
+        var data = JSON.parse(text)
+        text = data.answer || text
+      } catch(e) {
+        // plain text, use as-is
+      }
+      thinking.innerHTML = markdownToHtml(text)
+      messages.scrollTop = messages.scrollHeight
+    })
+    .catch(function() {
+      thinking.classList.remove('thinking')
+      thinking.textContent = 'Something went wrong. Please try again.'
+    })
+  }
 
   function init() {
     if (document.getElementById('ai-chat-btn')) return
@@ -183,15 +242,11 @@
     }
   }
 
-  // Try immediately
   tryInit()
-
-  // Try after app finishes rendering
   setTimeout(tryInit, 500)
   setTimeout(tryInit, 1500)
   setTimeout(tryInit, 3000)
 
-  // Watch for dynamic changes
   var observer = new MutationObserver(tryInit)
   observer.observe(document.body, { childList: true, subtree: true })
 
