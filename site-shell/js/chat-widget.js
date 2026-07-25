@@ -169,6 +169,12 @@
     makeDraggable(box, header)
   }
 
+ // Check immediately in case content is already rendered
+  if (document.querySelector('.section-block') && !document.getElementById('ai-chat-btn')) {
+    init()
+  }
+
+  // Also watch for dynamic changes
   var observer = new MutationObserver(function() {
     if (document.querySelector('.section-block') && !document.getElementById('ai-chat-btn')) {
       init()
