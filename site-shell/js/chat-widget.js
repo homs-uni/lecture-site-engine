@@ -19,25 +19,55 @@
     return /^#par\d+/.test(window.location.hash);
   }
 
+  /* ─── read a CSS variable from the site, with fallback ─── */
+  function cssVar(name, fallback) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  /* ─── derive a darker shade by blending with black (~20%) ─── */
+  function darken(hex) {
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    r = Math.round(r * 0.78); g = Math.round(g * 0.78); b = Math.round(b * 0.78);
+    return '#' + [r,g,b].map(function(v){ return ('0'+v.toString(16)).slice(-2); }).join('');
+  }
+
+  /* ─── derive a very light tint (~8% opacity on white) ─── */
+  function lighten(hex) {
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    r = Math.round(r * 0.12 + 255 * 0.88);
+    g = Math.round(g * 0.12 + 255 * 0.88);
+    b = Math.round(b * 0.12 + 255 * 0.88);
+    return '#' + [r,g,b].map(function(v){ return ('0'+v.toString(16)).slice(-2); }).join('');
+  }
+
   /* ─── styles ─── */
   function injectStyles() {
     if (document.getElementById('ai-chat-styles')) return;
+
+    // Pull colours from the host site's CSS variables
+    var accent  = cssVar('--color-primary',   '#4f46e5');
+    var surface = cssVar('--color-surface',   '#ffffff');
+    var border  = cssVar('--color-border',    '#e2e8f0');
+    var font    = cssVar('--font-sans', 'system-ui,-apple-system,sans-serif');
+    var accentDk = darken(accent);
+    var accentLt = lighten(accent);
+    var bg      = cssVar('--color-background', '#f7f8fb');
 
     const s = document.createElement('style');
     s.id = 'ai-chat-styles';
     s.textContent = `
       :root {
-        --aw-accent:    #5b5ef4;
-        --aw-accent-dk: #4340c4;
-        --aw-accent-lt: #eeeeff;
-        --aw-surface:   #ffffff;
-        --aw-bg:        #f7f8fb;
-        --aw-border:    #e4e6ef;
+        --aw-accent:    ${accent};
+        --aw-accent-dk: ${accentDk};
+        --aw-accent-lt: ${accentLt};
+        --aw-surface:   ${surface};
+        --aw-bg:        ${bg};
+        --aw-border:    ${border};
         --aw-text:      #1c1e2b;
         --aw-muted:     #8b90a8;
         --aw-radius:    14px;
-        --aw-font:      'Inter', system-ui, -apple-system, sans-serif;
-        --aw-shadow:    0 8px 32px rgba(60,60,120,.13), 0 1.5px 5px rgba(60,60,120,.07);
+        --aw-font:      ${font};
+        --aw-shadow:    0 8px 32px rgba(0,0,0,.12), 0 1.5px 5px rgba(0,0,0,.07);
       }
 
       /* ── FAB button ── */
@@ -56,7 +86,7 @@
         font-weight: 600;
         letter-spacing: .01em;
         cursor: pointer;
-        box-shadow: 0 4px 18px rgba(91,94,244,.35);
+        box-shadow: 0 4px 18px rgba(0,0,0,.22);
         display: flex;
         align-items: center;
         gap: 7px;
@@ -67,7 +97,7 @@
       #ai-chat-btn:hover {
         background: var(--aw-accent-dk);
         transform: translateY(-2px);
-        box-shadow: 0 7px 24px rgba(91,94,244,.42);
+        box-shadow: 0 7px 24px rgba(0,0,0,.28);
       }
       #ai-chat-btn:active { transform: translateY(0); }
       #ai-chat-btn .btn-icon {
