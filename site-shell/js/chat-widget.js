@@ -16,7 +16,7 @@
   }
 
   function isLecturePage() {
-    return !!document.querySelector('.section-block');
+    return /^#par\d+/.test(window.location.hash);
   }
 
   /* ─── styles ─── */
@@ -795,32 +795,12 @@
     }
   }
 
-  /* ─── SPA navigation polling ─── */
-  setInterval(function () {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      setTimeout(syncWidget, 350);   // let new page render first
-    }
-  }, 400);
-
-  /* ─── MutationObserver — only watches direct children of body, ignores our own changes ─── */
-  new MutationObserver(function (mutations) {
-    if (syncPaused) return;
-    // Only act when .section-block appears or disappears (lecture content)
-    var relevant = mutations.some(function (m) {
-      return Array.from(m.addedNodes).concat(Array.from(m.removedNodes)).some(function (n) {
-        return n.nodeType === 1 && (
-          n.classList && n.classList.contains('section-block') ||
-          n.querySelector && n.querySelector('.section-block')
-        );
-      });
-    });
-    if (relevant) syncWidget();
-  }).observe(document.body, { childList: true, subtree: true });
+  /* ─── hash change = navigation between lectures / home ─── */
+  window.addEventListener('hashchange', function () {
+    syncWidget();
+  });
 
   /* ─── initial run ─── */
   syncWidget();
-  setTimeout(syncWidget, 600);
-  setTimeout(syncWidget, 2000);
 
 })();
