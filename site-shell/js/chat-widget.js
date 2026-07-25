@@ -1,11 +1,7 @@
 (function () {
   const WORKER_URL = 'https://n8n-production-b7424.up.railway.app/webhook/chat'
 
-  // Session ID based on page URL — same lecture = same session, new lecture = new session
-  const sessionId = 'sess_' + btoa(window.location.pathname).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)
-
   var conversationHistory = []
-  var isFirstMessage = true
   var lectureTextCache = null
 
   function cssVar(name, fallback) {
@@ -280,18 +276,10 @@
     var thinking = addMsg(messages, 'Thinking...', 'ai', false)
     thinking.classList.add('thinking')
 
-    // Build payload
     var payload = {
-      sessionId: sessionId,
       question: question,
-history: conversationHistory.slice(-5, -1) // last 4 turns only
-    }
-
-    // Only send lecture text on first message
-    if (isFirstMessage) {
-      payload.lectureText = getLectureText()
-      payload.isFirstMessage = true
-      isFirstMessage = false
+      lectureText: getLectureText(),
+      history: conversationHistory.slice(-5, -1)
     }
 
     fetch(WORKER_URL, {
