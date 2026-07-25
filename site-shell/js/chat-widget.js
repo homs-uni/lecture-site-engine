@@ -284,7 +284,7 @@
     var payload = {
       sessionId: sessionId,
       question: question,
-      history: conversationHistory.slice(0, -1) // all previous turns
+history: conversationHistory.slice(-5, -1) // last 4 turns only
     }
 
     // Only send lecture text on first message
