@@ -176,6 +176,12 @@
     makeDraggable(box, header)
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
-  else init()
+// Wait for lecture content to appear before initialising
+  const observer = new MutationObserver(() => {
+    if (document.querySelector('.section-block') && !document.getElementById('ai-chat-btn')) {
+      init()
+    }
+  })
+  observer.observe(document.body, { childList: true, subtree: true })
+})()
 })()
