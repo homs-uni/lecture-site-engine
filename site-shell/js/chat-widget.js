@@ -8,6 +8,7 @@
   var currentLectureId    = null;
   var lastUrl             = location.href;
   var widgetMounted       = false;
+  var syncPaused          = false;   // prevents observer re-entry during DOM mutations
 
   /* ─── helpers ─── */
   function getLectureId() {
@@ -481,6 +482,7 @@
   function buildWidget() {
     if (document.getElementById('ai-chat-btn')) return;
 
+    syncPaused = true;
     document.body.insertAdjacentHTML('beforeend', `
       <button id="ai-chat-btn" title="Ask the Lecture Assistant">
         <span class="btn-icon">💬</span>
@@ -529,10 +531,12 @@
     widgetMounted = true;
     currentLectureId = getLectureId();
     wireEvents();
+    syncPaused = false;
   }
 
   /* ─── remove widget ─── */
   function removeWidget() {
+    syncPaused = true;
     var btn = document.getElementById('ai-chat-btn');
     var box = document.getElementById('ai-chat-box');
     if (btn) btn.remove();
@@ -540,6 +544,7 @@
     widgetMounted = false;
     conversationHistory = [];
     lectureTextCache = null;
+    syncPaused = false;
   }
 
   /* ─── open / close ─── */
@@ -775,6 +780,7 @@
 
   /* ─── main sync: mount or unmount widget based on page type ─── */
   function syncWidget() {
+    if (syncPaused) return;   // don't re-enter while we're mutating the DOM
     if (isLecturePage()) {
       if (!widgetMounted) {
         injectStyles();
@@ -783,7 +789,6 @@
         handleLectureChange();
       }
     } else {
-      // Not a lecture page — remove widget entirely (button + box)
       if (widgetMounted) {
         removeWidget();
       }
@@ -794,19 +799,28 @@
   setInterval(function () {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
-      // Small delay to let the new page render its DOM
-      setTimeout(syncWidget, 300);
+      setTimeout(syncWidget, 350);   // let new page render first
     }
   }, 400);
 
-  /* ─── MutationObserver for dynamic content ─── */
-  new MutationObserver(function () {
-    syncWidget();
-  }).observe(document.body, { childList: true, subtree: false });
+  /* ─── MutationObserver — only watches direct children of body, ignores our own changes ─── */
+  new MutationObserver(function (mutations) {
+    if (syncPaused) return;
+    // Only act when .section-block appears or disappears (lecture content)
+    var relevant = mutations.some(function (m) {
+      return Array.from(m.addedNodes).concat(Array.from(m.removedNodes)).some(function (n) {
+        return n.nodeType === 1 && (
+          n.classList && n.classList.contains('section-block') ||
+          n.querySelector && n.querySelector('.section-block')
+        );
+      });
+    });
+    if (relevant) syncWidget();
+  }).observe(document.body, { childList: true, subtree: true });
 
   /* ─── initial run ─── */
   syncWidget();
   setTimeout(syncWidget, 600);
-  setTimeout(syncWidget, 1800);
+  setTimeout(syncWidget, 2000);
 
 })();
