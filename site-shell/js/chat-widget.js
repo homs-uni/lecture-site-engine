@@ -151,6 +151,7 @@
   }
 
   function init() {
+    if (document.getElementById('ai-chat-btn')) return
     injectStyles()
     buildHTML()
     var btn      = document.getElementById('ai-chat-btn')
@@ -169,17 +170,22 @@
     makeDraggable(box, header)
   }
 
- // Check immediately in case content is already rendered
-  if (document.querySelector('.section-block') && !document.getElementById('ai-chat-btn')) {
-    init()
-  }
-
-  // Also watch for dynamic changes
-  var observer = new MutationObserver(function() {
-    if (document.querySelector('.section-block') && !document.getElementById('ai-chat-btn')) {
+  function tryInit() {
+    if (document.querySelector('.section-block')) {
       init()
     }
-  })
+  }
+
+  // Try immediately
+  tryInit()
+
+  // Try after app finishes rendering
+  setTimeout(tryInit, 500)
+  setTimeout(tryInit, 1500)
+  setTimeout(tryInit, 3000)
+
+  // Watch for dynamic changes
+  var observer = new MutationObserver(tryInit)
   observer.observe(document.body, { childList: true, subtree: true })
 
 })()
