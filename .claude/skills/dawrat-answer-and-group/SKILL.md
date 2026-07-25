@@ -1,6 +1,6 @@
 ---
 name: dawrat-answer-and-group
-description: Answers and organizes an already-extracted past-exam MCQ file (دورات/DAWRAT) for a subject in this repo — fills in the blank الإجابة الصحيحة/التعليل fields by matching each question against that subject's own lecture content (mainly its "النص الأصلي يقول" quoted paragraphs), groups the questions by which lecture their answer came from, and writes subjects/<year-N>/<subject-id>/DAWRAT/exams.md + manifest.json. Use this whenever the user asks to answer, fill in, combine, or organize a DAWRAT/دورات past-exam file, or mentions matching exam questions to lecture answers — even if they don't name the skill or say "DAWRAT" explicitly. This picks up AFTER templates/prompt-past-exam-mcq.md's extraction step (which only pulls raw questions out of a PDF with blank answers) — don't use this skill to do that extraction itself, and don't use it to touch any file outside one subject's DAWRAT/ folder.
+description: Answers and organizes an already-extracted past-exam MCQ file (دورات/DAWRAT) for a subject in this repo — fills in the blank الإجابة الصحيحة/التعليل fields by matching each question against that subject's own lecture content (mainly its "النص الأصلي يقول" quoted paragraphs), recreates lost exam figures as mermaid fences (see templates/mermaid-template.md), groups the questions by which lecture their answer came from, and writes subjects/<year-N>/<subject-id>/DAWRAT/exams.md + manifest.json. Use this whenever the user asks to answer, fill in, combine, or organize a DAWRAT/دورات past-exam file, or mentions matching exam questions to lecture answers — even if they don't name the skill or say "DAWRAT" explicitly. This picks up AFTER templates/prompt-past-exam-mcq.md's extraction step (which only pulls raw questions out of a PDF with blank answers) — don't use this skill to do that extraction itself, and don't use it to touch any file outside one subject's DAWRAT/ folder.
 ---
 
 # دورات answer-and-group
@@ -81,6 +81,67 @@ Write `subjects/<year-N>/<subject-id>/DAWRAT/exams.md`. This has to parse with `
 
 1. **Always include a difficulty in parentheses on the heading line**: `### السؤال N (سهل|متوسط|صعب)` — not bare `### السؤال N`. Without it, the question number never gets extracted (defaults to `?` for every single question), which isn't just cosmetic — every question ends up sharing the same DOM id and collides. The value must be the difficulty you decided in Step 3 — never hard-code `متوسط` for every question.
 2. **Never put option markers inside a fenced code block** (e.g. `// أ) ...` as a comment inside ```` ```java ```` ). The parser only recognizes `أ) ب) ج) د)` markers *outside* code fences — anything inside a fence is treated as part of the question's stem, not as options, so the question ends up with zero real options. If the source material has this shape (each option IS a code variant), put the shared/representative code in the question's stem as its own fenced block, then write short single-line options below it using inline single-backtick code spans (`` `new String[]{...}` ``) to name what's different about each variant — don't try to fence multi-line code per option.
+
+### Mermaid diagrams for diagram-based MCQs
+
+Past exams often include a figure (class diagram, sequence, flowchart, use case, activity graph, hierarchy, …) and then ask about it. Extraction usually loses the image and leaves a text stub like "انظر المخطط" / "based on the following diagram" with no drawable figure. **Recreate that figure as a live ` ```mermaid ` fence** so the student can actually see what the question is about.
+
+**When to add Mermaid**
+- The stem (or a shared-stimulus group) depends on a diagram/figure that isn't already drawable text or a code fence.
+- The lecture's matching section already has a Mermaid/`diagram` figure for the same idea — mirror that structure (don't invent a conflicting topology).
+- Optionally inside `**التعليل:**` when a small diagram makes the *why* clearer (e.g. the critical path you just reasoned about) — keep it short.
+
+**When not to**
+- Pure definition/recall questions with no figure.
+- Tables or comparison matrices that are clearer as a GFM pipe table (see §7 in `templates/mermaid-template.md`).
+- Don't use ` ```diagram ` (YAML SCHEMA diagrams) inside DAWRAT MCQs — use **` ```mermaid ` only**. The MCQ renderer turns `mermaid` fences into live diagrams; `diagram` fences are for lecture detail blocks, not exam cards.
+
+**How to write it** — follow `templates/mermaid-template.md` (and the short cheat-sheet at the bottom of that file). Put the fence in the **stem**, *before* the `أ) ب) ج) د)` options (or in the shared stimulus of a Case-2 group, once, above the sub-questions):
+
+````markdown
+**المصدر:** [نمط <year> — <semester>]
+### السؤال N (متوسط)
+بالاعتماد على المخطط التالي، ما العلاقة بين `WeatherStation` و`Instrument`؟
+
+```mermaid
+classDiagram
+    class WeatherStation {
+        +reportWeather()
+    }
+    class Instrument {
+        +get()
+    }
+    WeatherStation "1" --> "*" Instrument
+```
+
+أ) واحد-لواحد
+ب) واحد-لمتعدد
+ج) متعدد-لمتعدد
+د) لا علاقة
+**الإجابة الصحيحة: ب**
+**التعليل:**
+…
+````
+
+Pick the Mermaid diagram **type** that matches what the exam figure was:
+
+| Exam figure | Mermaid form (from `templates/mermaid-template.md`) |
+|---|---|
+| UML class / associations | `classDiagram` |
+| Layered architecture / components | `graph TB` + `subgraph` |
+| Use case / actor↔system | `graph LR` with labeled arrows |
+| Sequence / message order | `sequenceDiagram` |
+| Process / decision flow | `graph TD` flowchart |
+| Hierarchy / taxonomy / WBS | `graph TD` tree |
+| Cycle / sprint / lifecycle loop | `graph TB` with a back-edge |
+
+Rules specific to MCQ Mermaid:
+- **Clarity over completeness** — only the nodes/edges the question needs; drop decorative attributes that don't affect the answer.
+- **Same terminology as the options/stem** — if the question says `Activity Graph`, label nodes that way; don't rename to a textbook synonym.
+- **Never put `أ) ب) ج) د)` markers inside the Mermaid fence** (same fence rule as code).
+- **One fence per figure.** Shared-stimulus groups: draw the diagram once in the group stimulus, then ask sub-questions underneath — don't paste the same Mermaid into every sub-question.
+- If the extraction left a prose description of the figure ("classes A and B with a 1..\* link…") and no image, prefer turning that description into Mermaid over leaving the prose alone.
+- If you truly cannot reconstruct the figure (garbled/missing labels), leave the answer as `TODO` and say so in `**التعليل:**` — don't invent a diagram that would change what the question is testing.
 
 Template:
 

@@ -2,7 +2,7 @@ import { esc } from '../core/escape.js';
 import { inlineMd } from '../core/inline-md.js';
 import { ms } from '../core/icons.js';
 import { renderBlocks } from '../blocks/index.js';
-import { calloutHtml } from '../blocks/handlers.js';
+import { calloutHtml, renderMermaid } from '../blocks/handlers.js';
 import { mcqSectionAnchor, normalizeMcqSection } from '../core/slug.js';
 
 function diffBadgeClass(d) {
@@ -48,10 +48,46 @@ function extractTadhkira(explain) {
   return { body, tadhkira: tadhkiraLines.join('\n').trim() };
 }
 
-/** Renders MCQ rationale: paragraph breaks preserved, optional تذكرة callout. */
+/** Split text on fenced blocks; render ```mermaid via Mermaid, other fences as <pre>. */
+function renderFencedSegments(text, { plainClass, wrapClass } = {}) {
+  if (!text.includes('```')) {
+    return null;
+  }
+  let html = wrapClass ? `<div class="${wrapClass}">` : '<div>';
+  const parts = text.split(/```(\w*)\n?([\s\S]*?)```/g);
+  for (let i = 0; i < parts.length; i += 3) {
+    const plain = parts[i];
+    if (plain && plain.trim()) {
+      const paras = plain
+        .split(/\n{2,}/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p class="${plainClass}">${inlineMd(p).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+      html += paras;
+    }
+    const lang = parts[i + 1] !== undefined ? String(parts[i + 1] || '').toLowerCase() : undefined;
+    const code = parts[i + 1] !== undefined ? parts[i + 2] : undefined;
+    if (code !== undefined && code.trim()) {
+      if (lang === 'mermaid') {
+        html += `<div class="mb-md">${renderMermaid({ code: code.trim() })}</div>`;
+      } else {
+        html += `<pre class="bg-surface-container-high dark:bg-[#0d0f1a] rounded-lg p-md mb-md overflow-x-auto font-code-sm text-code-sm"><code>${esc(code.trim())}</code></pre>`;
+      }
+    }
+  }
+  return html + '</div>';
+}
+
+/** Renders MCQ rationale: paragraph breaks preserved, optional تذكرة callout.
+ * Also renders ```mermaid fences inside the rationale (teaching diagrams). */
 function renderMcqExplain(explain) {
   const { body, tadhkira } = extractTadhkira(explain || '');
-  const paras = body
+  const fenced = renderFencedSegments(body, {
+    plainClass: 'mb-sm last:mb-0',
+    wrapClass: '',
+  });
+  const paras = fenced || body
     .split(/\n{2,}/)
     .map(p => p.trim())
     .filter(Boolean)
@@ -64,25 +100,16 @@ function renderMcqExplain(explain) {
 }
 
 /** Renders an MCQ question stem — plain text via inlineMd, or (for a shared
- * code/paragraph stimulus feeding several questions) text + fenced code
- * segments, code rendered as a real <pre> block instead of collapsed inline. */
+ * code/paragraph/diagram stimulus feeding several questions) text + fenced
+ * segments. ```mermaid becomes a live Mermaid diagram; other fences stay <pre>. */
 function renderQuestionStem(text) {
   if (!text.includes('```')) {
     return `<p class="font-headline-sm text-headline-sm mb-lg">${inlineMd(text)}</p>`;
   }
-  let html = '<div class="mb-lg">';
-  const parts = text.split(/```(\w*)\n?([\s\S]*?)```/g);
-  for (let i = 0; i < parts.length; i += 3) {
-    const plain = parts[i];
-    if (plain && plain.trim()) {
-      html += `<p class="font-headline-sm text-headline-sm mb-md">${inlineMd(plain.trim())}</p>`;
-    }
-    const code = parts[i + 1] !== undefined ? parts[i + 2] : undefined;
-    if (code !== undefined && code.trim()) {
-      html += `<pre class="bg-surface-container-high dark:bg-[#0d0f1a] rounded-lg p-md mb-md overflow-x-auto font-code-sm text-code-sm"><code>${esc(code.trim())}</code></pre>`;
-    }
-  }
-  return html + '</div>';
+  return renderFencedSegments(text, {
+    plainClass: 'font-headline-sm text-headline-sm mb-md',
+    wrapClass: 'mb-lg',
+  });
 }
 
 /** A small pill next to the difficulty badge, shown only when the question

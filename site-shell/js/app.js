@@ -439,7 +439,7 @@ function loadReviewView(index, anchorHash) {
   else if (needsRender) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function showDawratNoticePopup(notice) {
+function showDawratNoticePopup(notice, title = 'تنبيه') {
   if (!notice) return;
   let modal = document.getElementById('dawratNoticeModal');
   if (!modal) {
@@ -451,7 +451,7 @@ function showDawratNoticePopup(notice) {
       <div class="lecture-notes-modal__backdrop" data-close-dawrat-notice></div>
       <div class="lecture-notes-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="dawratNoticeTitle">
         <div class="lecture-notes-modal__head">
-          <h2 id="dawratNoticeTitle" class="font-headline-sm text-headline-sm text-on-surface">تنبيه: الملف غير جاهز بعد</h2>
+          <h2 id="dawratNoticeTitle" class="font-headline-sm text-headline-sm text-on-surface">تنبيه</h2>
           <button type="button" class="lecture-notes-modal__close" data-close-dawrat-notice aria-label="إغلاق">
             <span class="material-symbols-outlined">close</span>
           </button>
@@ -473,6 +473,8 @@ function showDawratNoticePopup(notice) {
       }
     });
   }
+  const titleEl = document.getElementById('dawratNoticeTitle');
+  if (titleEl) titleEl.textContent = title;
   const body = document.getElementById('dawratNoticeBody');
   if (body) body.textContent = notice;
   modal.classList.remove('hidden');
@@ -502,7 +504,7 @@ function loadExamView(index, anchorHash) {
     document.getElementById('mobileTocCourseSub').textContent = item.exam.tag || '';
     document.getElementById('mobileTocMatIcon').textContent = item.matIcon || 'history_edu';
 
-    if (notice) showDawratNoticePopup(notice);
+    if (notice) showDawratNoticePopup(notice, 'تنبيه: الملف غير جاهز بعد');
   } else {
     buildSidebar(item.toc);
     showView('lecture');
@@ -1572,6 +1574,9 @@ async function loadLectureView(idx, hashPart) {
       lectureHtmlCache.set(cacheKey, html);
     }
     mountLectureHtml(item, html);
+
+    const lectureNotice = item.fileMeta?.notice || '';
+    if (lectureNotice) showDawratNoticePopup(lectureNotice, 'ملاحظة');
   } else {
     buildSidebar(item.toc);
     updateSidebarProgressTarget();

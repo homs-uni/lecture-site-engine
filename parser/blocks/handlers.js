@@ -133,6 +133,93 @@ export function createDefaultBlockHandlers() {
       },
     },
 
+    // Compact nested MCQ under a ### section (notes / summary). Not a ## MCQ part.
+    // See templates/block-mini-mcq.md.
+    {
+      id: 'mini-mcq',
+      priority: 93,
+      test: (ctx) => /^####\s*(?:تحقق سريع|سؤال سريع)\s*:?\s*$/i.test(ctx.trimmed),
+      parse: (ctx) => {
+        const arabicKey = ctx.config.arabicKey || {};
+        let i = ctx.i + 1;
+        const bodyLines = [];
+        while (i < ctx.lines.length) {
+          const L = ctx.lines[i];
+          if (/^#{1,4} /.test(L) || /^---+\s*$/.test(L)) break;
+          bodyLines.push(L);
+          i++;
+        }
+        const body = bodyLines.join('\n').trim();
+
+        let source = '';
+        const srcM = body.match(/^\*\*المصدر:\*\*\s*(.+)$/m);
+        if (srcM) source = srcM[1].trim().replace(/^\[|\]$/g, '');
+
+        const answerRe = /الإجابة(?:\s+الصحيحة)?[:\s*]*([أابجدهabcde])/i;
+        const answerM = body.match(answerRe);
+        let correct = answerM
+          ? (arabicKey[answerM[1].toLowerCase()] || answerM[1].toLowerCase())
+          : '';
+
+        let explain = '';
+        const whyM = body.match(/\*\*لماذا\?\*\*\s*([\s\S]+?)(?=\n#{1,4} |\n---|\Z)/);
+        if (whyM) {
+          explain = whyM[1].trim();
+        } else {
+          // Prefer the short > blockquote after the answer line
+          const afterAns = answerM
+            ? body.slice(body.indexOf(answerM[0]) + answerM[0].length)
+            : '';
+          const bqLines = [];
+          for (const line of afterAns.split('\n')) {
+            if (/^>\s?/.test(line)) bqLines.push(line.replace(/^>\s?/, ''));
+            else if (bqLines.length && !line.trim()) break;
+            else if (bqLines.length) break;
+          }
+          explain = bqLines.join('\n').trim();
+        }
+
+        const optStartRe = /^[-*]?\s*([أ-ي])[)\.]\s*(.*)$/;
+        const options = [];
+        const qLines = [];
+        let inOpts = false;
+        for (const raw of body.split('\n')) {
+          const t = raw.trim();
+          if (/^\*\*المصدر:\*\*/.test(t)) continue;
+          if (answerRe.test(t) || /^\*\*الإجابة/.test(t)) break;
+          if (/^\*\*لماذا\?/.test(t)) break;
+          const om = t.match(optStartRe);
+          if (om) {
+            inOpts = true;
+            const key = arabicKey[om[1].toLowerCase()] || om[1].toLowerCase();
+            options.push({ key, text: om[2].trim() });
+            continue;
+          }
+          if (inOpts) {
+            if (!t) continue;
+            if (options.length && !t.startsWith('**') && !/^>/.test(t)) {
+              options[options.length - 1].text += ` ${t}`;
+            }
+            continue;
+          }
+          if (t && !/^>/.test(t)) qLines.push(t);
+        }
+
+        const question = qLines.join(' ').replace(/\*\*السؤال:\*\*\s*/g, '').trim();
+        return {
+          block: {
+            type: 'mini-mcq',
+            question,
+            options,
+            correct,
+            explain,
+            source,
+          },
+          nextIndex: i,
+        };
+      },
+    },
+
     {
       id: 'h4-callout',
       priority: 90,

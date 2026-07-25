@@ -49,6 +49,25 @@
 
 ---
 
+### block-mini-mcq.md
+
+Nested quick-check MCQ inside a `###` section (notes / summary / detail).
+**Not** a full `## … MCQ` part — the paragraph stays primary; the question is a compact check underneath.
+
+#### تحقق سريع:
+[نص السؤال]
+أ) ...
+ب) ...
+ج) ...
+د) ...
+**الإجابة: ب**
+> [تعليل قصير]
+
+Alias heading: `#### سؤال سريع:`. Optional first line: `**المصدر:** […]`.
+See `templates/block-mini-mcq.md`.
+
+---
+
 ### block-callouts.md
 
 #### مهم للامتحان ⚠️:

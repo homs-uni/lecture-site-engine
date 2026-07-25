@@ -4382,6 +4382,119 @@ body.laser-pointer-enabled button {
   color: var(--dm-text);
 }
 
+/* Nested mini-MCQ — compact check under a ### paragraph (not a full MCQ part) */
+.mini-mcq {
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--color-outline-variant) 85%, transparent);
+  border-inline-start: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--color-surface-container-low) 70%, transparent);
+  box-shadow: none;
+}
+.mini-mcq__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-on-surface-variant);
+  text-transform: none;
+}
+.mini-mcq__source {
+  margin-inline-start: auto;
+  font-weight: 500;
+  opacity: 0.75;
+  font-size: 0.7rem;
+}
+.mini-mcq__question {
+  margin: 0 0 0.65rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--color-on-surface);
+}
+.mini-mcq__options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+}
+.mini-mcq__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: right;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 0.55rem;
+  background: var(--color-surface-container-lowest);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.mini-mcq__opt:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  background: var(--color-surface-container-low);
+}
+.mini-mcq__key {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--color-secondary-fixed);
+  color: var(--color-secondary);
+}
+.mini-mcq__feedback {
+  min-height: 0;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.mini-mcq__explain {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border-inline-start: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-on-surface-variant);
+}
+.mini-mcq__reset {
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--color-outline-variant);
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+}
+.dark .mini-mcq {
+  background: color-mix(in srgb, var(--dm-elevated) 80%, transparent);
+  border-color: var(--dm-border);
+}
+.dark .mini-mcq__opt {
+  background: var(--dm-elevated);
+  border-color: var(--dm-border);
+  color: var(--dm-text);
+}
+.dark .mini-mcq__question { color: var(--dm-text); }
+.dark .mini-mcq__explain {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--dm-elevated-2));
+  color: var(--dm-text-muted);
+}
+
 .qa-card {
   border: 1px solid var(--color-outline-variant); border-radius: 0.875rem; overflow: hidden;
   background: var(--color-surface-container-lowest);
