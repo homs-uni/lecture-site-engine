@@ -1,8 +1,11 @@
 (function () {
   const WORKER_URL = 'https://n8n-production-b7424.up.railway.app/webhook/chat'
 
-  // Conversation history: [{role: 'user'|'assistant', content: '...'}]
+  // Session ID based on page URL — same lecture = same session, new lecture = new session
+  const sessionId = 'sess_' + btoa(window.location.pathname).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)
+
   var conversationHistory = []
+  var isFirstMessage = true
   var lectureTextCache = null
 
   function cssVar(name, fallback) {
@@ -40,14 +43,11 @@
         overflow: hidden;
       }
       #ai-chat-box.open { display: flex; }
-
-      /* Resize handle — bottom-right corner */
       #ai-resize-handle {
         position: absolute; bottom: 0; right: 0;
         width: 18px; height: 18px; cursor: se-resize; z-index: 10;
         background: linear-gradient(135deg, transparent 50%, ${border} 50%);
       }
-
       #ai-chat-header {
         background: ${primary}; color: ${onPrimary};
         padding: 12px 16px; font-weight: 600; font-size: 14px;
@@ -87,8 +87,7 @@
         background: #f5f5f5; border-radius: 6px;
         padding: 6px 10px; margin: 6px 0;
         font-family: 'Courier New', monospace; font-size: 12px;
-        color: #333; overflow-x: auto; display: block;
-        white-space: pre;
+        color: #333; overflow-x: auto; display: block; white-space: pre;
       }
       .ai-msg .math-inline {
         font-family: 'Courier New', monospace;
@@ -114,21 +113,16 @@
     document.head.appendChild(style)
   }
 
-  // Clean up math: $...$ and $$...$$ → styled spans/blocks
   function renderMath(text) {
-    // Block math $$...$$
     text = text.replace(/\$\$([\s\S]+?)\$\$/g, function(_, m) {
       return '<span class="math-block">' + m.trim() + '</span>'
     })
-    // Inline math $...$
     text = text.replace(/\$([^\$\n]+?)\$/g, function(_, m) {
       return '<span class="math-inline">' + m.trim() + '</span>'
     })
-    // LaTeX-style \rightarrow etc → readable arrows
     text = text.replace(/\\rightarrow/g, '→')
     text = text.replace(/\\leftarrow/g, '←')
     text = text.replace(/\\Rightarrow/g, '⇒')
-    text = text.replace(/\\Leftarrow/g, '⇐')
     text = text.replace(/\\times/g, '×')
     text = text.replace(/\\cdot/g, '·')
     text = text.replace(/\\leq/g, '≤')
@@ -136,48 +130,27 @@
     text = text.replace(/\\neq/g, '≠')
     text = text.replace(/\\approx/g, '≈')
     text = text.replace(/\\sum/g, 'Σ')
-    text = text.replace(/\\prod/g, 'Π')
     text = text.replace(/\\infty/g, '∞')
     text = text.replace(/\\alpha/g, 'α')
     text = text.replace(/\\beta/g, 'β')
-    text = text.replace(/\\gamma/g, 'γ')
-    text = text.replace(/\\delta/g, 'δ')
     text = text.replace(/\\sigma/g, 'σ')
     text = text.replace(/\\mu/g, 'μ')
-    text = text.replace(/\\lambda/g, 'λ')
     text = text.replace(/\\theta/g, 'θ')
     text = text.replace(/\\pi/g, 'π')
     return text
   }
 
   function markdownToHtml(text) {
-    // Normalize escaped newlines
     text = text.replace(/\\n/g, '\n')
-
-    // Escape HTML (but not inside math we already processed)
-    text = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-
-    // Apply math rendering AFTER html escape
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     text = renderMath(text)
-
-    // Bold **text**
     text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic *text*
     text = text.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
-
-    // Bullet list lines
     text = text.replace(/^[ \t]*[\*\-] (.+)$/gm, '<li>$1</li>')
-    // Numbered list lines
     text = text.replace(/^[ \t]*\d+\. (.+)$/gm, '<li>$1</li>')
-    // Wrap consecutive <li> in <ul>
     text = text.replace(/(<li>[\s\S]*?<\/li>)(\n<li>[\s\S]*?<\/li>)*/g, function(m) {
       return '<ul>' + m + '</ul>'
     })
-
-    // Paragraphs from double newlines
     var parts = text.split(/\n{2,}/)
     text = parts.map(function(p) {
       p = p.trim()
@@ -185,7 +158,6 @@
       if (/^<(ul|ol|li|h[1-6])/.test(p)) return p
       return '<p>' + p.replace(/\n/g, '<br>') + '</p>'
     }).join('')
-
     return text
   }
 
@@ -220,33 +192,21 @@
 
   function makeDraggable(el, handle) {
     var ox = 0, oy = 0, sx = 0, sy = 0
-    handle.addEventListener('mousedown', startDrag)
-
-    function startDrag(e) {
+    handle.addEventListener('mousedown', function(e) {
       if (e.target.id === 'ai-chat-close') return
       e.preventDefault()
       var rect = el.getBoundingClientRect()
-      // Convert current position to right/bottom offsets relative to viewport
-      sx = e.clientX
-      sy = e.clientY
-      ox = rect.left
-      oy = rect.top
+      sx = e.clientX; sy = e.clientY
+      ox = rect.left; oy = rect.top
       document.addEventListener('mousemove', onDrag)
       document.addEventListener('mouseup', stopDrag)
-    }
-
+    })
     function onDrag(e) {
-      var dx = e.clientX - sx
-      var dy = e.clientY - sy
-      var newLeft = ox + dx
-      var newTop  = oy + dy
-      // Convert to right/bottom
-      var newRight  = window.innerWidth  - newLeft - el.offsetWidth
-      var newBottom = window.innerHeight - newTop  - el.offsetHeight
+      var newRight  = window.innerWidth  - (ox + (e.clientX - sx)) - el.offsetWidth
+      var newBottom = window.innerHeight - (oy + (e.clientY - sy)) - el.offsetHeight
       el.style.right  = Math.max(0, newRight)  + 'px'
       el.style.bottom = Math.max(0, newBottom) + 'px'
     }
-
     function stopDrag() {
       document.removeEventListener('mousemove', onDrag)
       document.removeEventListener('mouseup', stopDrag)
@@ -257,28 +217,21 @@
     var startX, startY, startW, startH
     handle.addEventListener('mousedown', function(e) {
       e.preventDefault()
-      startX = e.clientX
-      startY = e.clientY
-      startW = el.offsetWidth
-      startH = el.offsetHeight
+      startX = e.clientX; startY = e.clientY
+      startW = el.offsetWidth; startH = el.offsetHeight
       document.addEventListener('mousemove', onResize)
       document.addEventListener('mouseup', stopResize)
     })
-
     function onResize(e) {
-      var newW = startW + (e.clientX - startX)
-      var newH = startH + (e.clientY - startY)
-      el.style.width  = Math.max(260, newW) + 'px'
-      el.style.height = Math.max(250, newH) + 'px'
+      el.style.width  = Math.max(260, startW + (e.clientX - startX)) + 'px'
+      el.style.height = Math.max(250, startH + (e.clientY - startY)) + 'px'
     }
-
     function stopResize() {
       document.removeEventListener('mousemove', onResize)
       document.removeEventListener('mouseup', stopResize)
     }
   }
 
-  // Also make the floating button draggable
   function makeButtonDraggable(btn) {
     var dragged = false, sx, sy, ox, oy
     btn.addEventListener('mousedown', function(e) {
@@ -293,9 +246,8 @@
       var dx = e.clientX - sx, dy = e.clientY - sy
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
         dragged = true
-        var newLeft = ox + dx, newTop = oy + dy
-        btn.style.right  = Math.max(0, window.innerWidth  - newLeft - btn.offsetWidth)  + 'px'
-        btn.style.bottom = Math.max(0, window.innerHeight - newTop  - btn.offsetHeight) + 'px'
+        btn.style.right  = Math.max(0, window.innerWidth  - ox - dx - btn.offsetWidth)  + 'px'
+        btn.style.bottom = Math.max(0, window.innerHeight - oy - dy - btn.offsetHeight) + 'px'
         btn.style.left = 'auto'; btn.style.top = 'auto'
       }
     }
@@ -323,22 +275,29 @@
     if (!question) return
     input.value = ''
     addMsg(messages, question, 'user', false)
-
-    // Build history for this request
     conversationHistory.push({ role: 'user', content: question })
 
     var thinking = addMsg(messages, 'Thinking...', 'ai', false)
     thinking.classList.add('thinking')
 
-    // Send: lecture text (first time only via history), full history, current question
+    // Build payload
+    var payload = {
+      sessionId: sessionId,
+      question: question,
+      history: conversationHistory.slice(0, -1) // all previous turns
+    }
+
+    // Only send lecture text on first message
+    if (isFirstMessage) {
+      payload.lectureText = getLectureText()
+      payload.isFirstMessage = true
+      isFirstMessage = false
+    }
+
     fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        question: question,
-        lectureText: getLectureText(),
-        history: conversationHistory.slice(0, -1) // all previous turns
-      })
+      body: JSON.stringify(payload)
     })
     .then(function(res) { return res.text() })
     .then(function(text) {
@@ -347,16 +306,13 @@
         var data = JSON.parse(text)
         text = data.answer || text
       } catch(e) {}
-      var html = markdownToHtml(text)
-      thinking.innerHTML = html
+      thinking.innerHTML = markdownToHtml(text)
       messages.scrollTop = messages.scrollHeight
-      // Save assistant reply to history
       conversationHistory.push({ role: 'assistant', content: text })
     })
     .catch(function() {
       thinking.classList.remove('thinking')
       thinking.textContent = 'Something went wrong. Please try again.'
-      // Remove the failed user message from history
       conversationHistory.pop()
     })
   }
@@ -380,7 +336,6 @@
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQuestion(messages, input) }
     })
-
     makeDraggable(box, header)
     makeResizable(box, resizer)
     makeButtonDraggable(btn)
