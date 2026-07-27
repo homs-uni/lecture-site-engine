@@ -250,16 +250,22 @@ function buildPartSubsections(part) {
         });
       }
       if (byLecture.length) {
-        const lectureOrder = (text) => {
-          const m = text.match(/المحاضرة\s+(\d+)(?:\s*\(جزء\s+(\d+)\))?/);
-          if (!m) return [999, 0];
-          return [Number(m[1]), Number(m[2] || 0)];
-        };
-        byLecture.sort((a, b) => {
-          const [an, ap] = lectureOrder(a.text);
-          const [bn, bp] = lectureOrder(b.text);
-          return an - bn || ap - bp || a.text.localeCompare(b.text, 'ar');
-        });
+        // Only re-sort when sections are lecture-labeled ("المحاضرة N").
+        // Pattern/source banks (e.g. "## نمط 2023-2024 — …") must keep
+        // first-seen order — localeCompare would scramble them vs the page.
+        const hasLectureLabels = byLecture.some(s => /المحاضرة\s+\d+/.test(s.text));
+        if (hasLectureLabels) {
+          const lectureOrder = (text) => {
+            const m = text.match(/المحاضرة\s+(\d+)(?:\s*\(جزء\s+(\d+)\))?/);
+            if (!m) return [999, 0];
+            return [Number(m[1]), Number(m[2] || 0)];
+          };
+          byLecture.sort((a, b) => {
+            const [an, ap] = lectureOrder(a.text);
+            const [bn, bp] = lectureOrder(b.text);
+            return an - bn || ap - bp || a.text.localeCompare(b.text, 'ar');
+          });
+        }
         return byLecture;
       }
 

@@ -62,7 +62,7 @@ const LECTURE_TITLES = loadLectureTitles();
 
 function resolveLecture(tagBody) {
   const t = (tagBody || '').trim();
-  if (/^الكل\b/.test(t) || /^عام\b/.test(t)) return CATCH_ALL;
+  if (!t || /^الكل\b/.test(t) || /^عام\b/.test(t) || /^أسئلة عامة/.test(t)) return CATCH_ALL;
   if (/^\d+\s*\/\s*\d+/.test(t)) return CATCH_ALL;
   if (/\d+\s*—[^/\n]*\/\s*\d+\s*—/.test(t)) return CATCH_ALL;
   const m = t.match(/^(\d+)\s*—/);
@@ -70,9 +70,19 @@ function resolveLecture(tagBody) {
   return CATCH_ALL;
 }
 
+function parseLectureTagLine(line) {
+  // **[محاضرة الكل: أسئلة عامة]**  OR  **[محاضرة: 3 — Title]**
+  const allM = line.match(/^\*\*\[محاضرة\s*الكل:\s*([^\]]*)\]\*\*/);
+  if (allM) return CATCH_ALL;
+  const numM = line.match(/^\*\*\[محاضرة:\s*([^\]]+)\]\*\*/);
+  if (numM) return resolveLecture(numM[1]);
+  return null;
+}
+
 function stripTrailingSep(text) {
   return text
     .replace(/(?:\n|^)---\s*$/gm, '')
+    .replace(/(?:\n|^)##\s*دورة[^\n]*\s*$/gm, '')
     .trim();
 }
 
@@ -80,6 +90,25 @@ function sectionHeading(lecture) {
   if (lecture === CATCH_ALL) return '## المحاضرة الكل: أسئلة عامة';
   const title = LECTURE_TITLES[lecture] || `محاضرة ${lecture}`;
   return `## المحاضرة ${lecture}: ${title}`;
+}
+
+const LAT_TO_AR = { a: 'أ', b: 'ب', c: 'ج', d: 'د', e: 'ه', f: 'و' };
+
+function arabicizeOptionsAndAnswer(text) {
+  // A) / A. / A:  → أ) / أ. / أ:
+  let out = text.replace(
+    /^([-*]?\s*)([A-Fa-f])([).:]\s*)/gm,
+    (_, pre, letter, sep) => `${pre}${LAT_TO_AR[letter.toLowerCase()]}${sep}`,
+  );
+  out = out.replace(
+    /(\*\*الإجابة الصحيحة:\s*)([A-Fa-f])(\*\*)/g,
+    (_, pre, letter, post) => `${pre}${LAT_TO_AR[letter.toLowerCase()]}${post}`,
+  );
+  out = out.replace(
+    /(الإجابة الصحيحة:\s*)([A-Fa-f])(?!\w)/g,
+    (_, pre, letter) => `${pre}${LAT_TO_AR[letter.toLowerCase()]}`,
+  );
+  return out;
 }
 
 /**
@@ -99,24 +128,49 @@ function parseChunk(raw) {
   const source = sourceM[1].trim();
   let rest = raw.slice(sourceM[0].length).trim();
 
-  // ### السؤال … **[محاضرة: …]**
-  const hm = rest.match(
-    /^### السؤال\s+([\d.]+)(?:[–-]([\d.]+))?\s*\(([^)]+)\)\s*\*\*\[محاضرة:\s*([^\]]+)\]\*\*\s*\n?/,
+  // Format A (programming-2): ### السؤال … **[محاضرة: …]** on the SAME line
+  let hm = rest.match(
+    /^### السؤال\s+(X|[\d.]+)(?:[–-](X|[\d.]+))?\s*\(([^)]+)\)\s*\*\*\[محاضرة(?:\s*الكل:\s*([^\]]*)|:\s*([^\]]+))\]\*\*\s*\n?/,
   );
-  if (!hm) {
-    console.warn('Unrecognized heading in chunk:', rest.slice(0, 120).replace(/\n/g, ' '));
-    return null;
+  let startNum;
+  let endNum;
+  let parenLabel;
+  let lecture;
+
+  if (hm) {
+    startNum = hm[1];
+    endNum = hm[2] || null;
+    parenLabel = hm[3].trim();
+    lecture = hm[4] != null ? CATCH_ALL : resolveLecture(hm[5]);
+    rest = stripTrailingSep(rest.slice(hm[0].length));
+  } else {
+    // Format B (algorithms / SE2 draft): ### السؤال X (diff)\n**[محاضرة: …]**
+    hm = rest.match(
+      /^### السؤال\s+(X|[\d.]+)(?:[–-](X|[\d.]+))?\s*\(([^)]+)\)\s*\n?/,
+    );
+    if (!hm) {
+      console.warn('Unrecognized heading in chunk:', rest.slice(0, 140).replace(/\n/g, ' '));
+      return null;
+    }
+    startNum = hm[1];
+    endNum = hm[2] || null;
+    parenLabel = hm[3].trim();
+    rest = rest.slice(hm[0].length).replace(/^\s*\n?/, '');
+    const tagLine = rest.match(/^\*\*\[محاضرة[^\]]*\]\*\*\s*\n?/);
+    if (!tagLine) {
+      console.warn('Missing lecture tag after heading:', rest.slice(0, 100).replace(/\n/g, ' '));
+      return null;
+    }
+    lecture = parseLectureTagLine(tagLine[0].trim());
+    if (lecture == null) {
+      console.warn('Bad lecture tag:', tagLine[0]);
+      return null;
+    }
+    rest = stripTrailingSep(rest.slice(tagLine[0].length));
   }
 
-  const startNum = hm[1];
-  const endNum = hm[2] || null;
-  const parenLabel = hm[3].trim();
-  const lecture = resolveLecture(hm[4]);
-  rest = stripTrailingSep(rest.slice(hm[0].length));
-
-  const isGroup = endNum != null || /مجموعة/.test(parenLabel);
+  const isGroup = (endNum != null && endNum !== 'X') || /مجموعة/.test(parenLabel);
   if (isGroup) {
-    // Prefer bold sub-markers with optional difficulty: **السؤال N (diff):** or **السؤال N:**
     const subRe = /^\*\*السؤال\s+[\d.]+\s*(?:\([^)]*\))?:\*\*/m;
     const firstSub = rest.search(subRe);
     if (firstSub < 0) {
@@ -158,7 +212,6 @@ function parseChunk(raw) {
     };
   }
 
-  // Standalone — parenLabel is difficulty
   return {
     kind: 'question',
     lecture,
@@ -172,7 +225,7 @@ function renderQuestion(q, num) {
   return [
     `**المصدر:** ${q.source}`,
     `### السؤال ${num} (${q.difficulty})`,
-    q.body,
+    arabicizeOptionsAndAnswer(q.body),
   ].join('\n');
 }
 
@@ -186,8 +239,7 @@ function renderGroup(g, startNum) {
     '',
   ];
   g.subs.forEach((sub, i) => {
-    // Case-2 inner form: **السؤال N:** (no difficulty in marker — difficulty lived on draft sub-heading)
-    lines.push(`**السؤال ${startNum + i}:** ${sub.body}`);
+    lines.push(`**السؤال ${startNum + i}:** ${arabicizeOptionsAndAnswer(sub.body)}`);
     lines.push('');
   });
   return { text: lines.join('\n').replace(/\n{3,}/g, '\n\n').trim(), count: g.subs.length };
