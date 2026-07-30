@@ -1,0 +1,41 @@
+name: Analytics export (weekly)
+
+# Pulls PostHog study events into a workflow artifact for backup.
+# Requires secrets: POSTHOG_PERSONAL_API_KEY, POSTHOG_PROJECT_ID
+# Optional: POSTHOG_HOST (defaults to https://eu.posthog.com)
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Export last 30 days
+        env:
+          POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
+          POSTHOG_PROJECT_ID: ${{ secrets.POSTHOG_PROJECT_ID }}
+          POSTHOG_HOST: ${{ secrets.POSTHOG_HOST }}
+        run: |
+          export POSTHOG_HOST="${POSTHOG_HOST:-https://eu.posthog.com}"
+          node analytics/export.mjs --days 30 --format json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics-export-${{ github.run_id }}
+          path: analytics/exports/
+          retention-days: 90

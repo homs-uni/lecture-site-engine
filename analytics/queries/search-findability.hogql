@@ -1,0 +1,12 @@
+-- Search findability: zero-result rate by subject
+SELECT
+  properties.subject AS subject,
+  count() AS searches,
+  countIf(toBool(properties.has_results) = false OR properties.has_results = 'false' OR properties.has_results = 0) AS zero_results,
+  round(100.0 * zero_results / searches, 1) AS zero_result_pct,
+  avg(toFloat(properties.result_count)) AS avg_results
+FROM events
+WHERE event = 'search_performed'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject
+ORDER BY searches DESC

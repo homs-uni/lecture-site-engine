@@ -57,7 +57,7 @@ export function calloutHtml(cls, label, content) {
     },
   };
   const m = map[cls] || map['callout-note'];
-  return `<div class="${m.wrap} p-lg rounded-xl flex items-start gap-lg mb-lg box-animate box-hover">
+  return `<div class="${cls} ${m.wrap} p-lg rounded-xl flex items-start gap-lg mb-lg box-animate box-hover">
     ${ms(m.icon, m.filled, 'text-3xl shrink-0')}
     <div class="flex-1">
       <h5 class="font-headline-sm text-headline-sm mb-xs">${esc(label)}</h5>
@@ -74,7 +74,7 @@ function diagramSpecNoteHtml() {
   );
 }
 
-function renderMermaid(block) {
+export function renderMermaid(block) {
   const title = esc(block.title || 'مخطط');
   const code = esc(block.code || '');
   return `<div class="mermaid-container box-animate box-hover">
@@ -617,6 +617,33 @@ export function createDefaultBlockHandlers(extraHandlers = []) {
         </div>
       </div>
     </article>` },
+  { id: 'mini-mcq', match: b => b.type === 'mini-mcq', render: b => {
+    const opts = (b.options || []).map(opt =>
+      `<button type="button" class="mcq-opt mini-mcq__opt" data-key="${esc(opt.key)}" data-correct="${esc(b.correct || '')}">
+        <span class="mini-mcq__key">${esc(String(opt.key || '').toUpperCase())}</span>
+        <span class="opt-text">${inlineMd(opt.text || '')}</span>
+      </button>`).join('');
+    const source = b.source
+      ? `<span class="mini-mcq__source">${esc(b.source)}</span>`
+      : '';
+    const explain = b.explain
+      ? `<div class="mcq-explain mini-mcq__explain hidden">
+          <div class="mini-mcq__explain-body">${inlineMd(b.explain)}</div>
+        </div>`
+      : `<div class="mcq-explain mini-mcq__explain hidden"></div>`;
+    return `<aside class="mini-mcq mcq-card" data-correct="${esc(b.correct || '')}" data-mini-mcq>
+      <div class="mini-mcq__label">
+        ${ms('quiz', false, 'text-sm')}
+        <span>تحقق سريع</span>
+        ${source}
+      </div>
+      <p class="mini-mcq__question">${inlineMd(b.question || '')}</p>
+      <div class="mini-mcq__options">${opts}</div>
+      <div class="mcq-feedback mini-mcq__feedback" aria-live="polite"></div>
+      ${explain}
+      <button type="button" data-mcq-reset class="mcq-reset-btn mini-mcq__reset hidden" aria-label="إعادة تعيين">إعادة</button>
+    </aside>`;
+  } },
   { id: 'core-idea', match: b => b.type === 'core-idea', render: renderCoreIdea },
   { id: 'analogy', match: b => b.type === 'analogy', render: renderAnalogy },
   { id: 'equation', match: b => b.type === 'equation', render: renderEquation },

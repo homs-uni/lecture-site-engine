@@ -1,0 +1,13 @@
+-- Compare DAWRAT vs lectures vs notes usage
+SELECT
+  properties.content_type AS content_type,
+  count() AS sessions,
+  avg(toFloat(properties.active_seconds)) AS avg_focus_sec,
+  avg(toFloat(properties.max_scroll_pct)) AS avg_max_scroll,
+  uniq(properties.subject) AS subjects,
+  uniq(properties.content_id) AS unique_items
+FROM events
+WHERE event = 'study_session_end'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY content_type
+ORDER BY sessions DESC

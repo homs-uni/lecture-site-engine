@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "subjectName": "برمجة 2 — ملاحظات",
+    "subjectNameEn": "Programming 2 Notes",
+    "year": "2025-2026",
+    "academicYear": 1,
+    "theme": "amber-default",
+    "enabledLectures": true,
+    "department": "القسم"
+  },
+  "title": "ملخصات وأسئلة سريعة — برمجة 2",
+  "subtitle": "بنوك أسئلة MCQ للمراجعة",
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١–٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٣"
+    },
+    {
+      "path": "par4.md",
+      "num": 4,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٥–٦"
+    },
+    {
+      "path": "par7.md",
+      "num": 7,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٧–٨"
+    }
+  ]
+}

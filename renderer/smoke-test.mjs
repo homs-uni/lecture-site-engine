@@ -11,6 +11,13 @@ const blocks = [
   { type: 'analogy', title: '💡 التشبيه:', content: 'مثل الصندوق\n**وجه الشبه:** X = Y' },
   { type: 'algorithm', steps: [{ num: '1', step: 'ابدأ', tool: 'IDE', detail: 'افتح المشروع' }] },
   { type: 'equation', title: '📐 المعادلة: Work', latex: 'W = \\sum_i t_i', displayMode: true, explanation: 'مجموع أزمنة المهام' },
+  {
+    type: 'mini-mcq',
+    question: 'ما الناتج؟',
+    options: [{ key: 'a', text: '1' }, { key: 'b', text: '2' }],
+    correct: 'b',
+    explain: 'لأن 1+1=2',
+  },
   { type: 'unknown-xyz', text: 'should warn' },
 ];
 
@@ -18,6 +25,7 @@ const html = renderBlocks(blocks, 'test-p1', 'detail');
 if (!html.includes('analogy-card')) throw new Error('missing analogy-card');
 if (!html.includes('algorithm-flow')) throw new Error('missing algorithm-flow');
 if (!html.includes('equation-block')) throw new Error('missing equation-block');
+if (!html.includes('mini-mcq')) throw new Error('missing mini-mcq');
 if (!html.includes('unknown-block')) throw new Error('missing unknown fallback');
 if (!html.includes('<strong>world</strong>')) throw new Error('missing inline md');
 

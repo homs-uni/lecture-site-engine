@@ -1,94 +1,188 @@
-# Contributing lecture content
+# المساهمة في المشروع (Contributing)
 
-## What you can change
+هالملف يوضّح **كل أنواع المساهمة**: محتوى، محرك، وتحليل بيانات.  
+قبل ما تبدأ، افهم المنطق العام من [`README.md`](README.md) (تخزين GitHub → build → `dist/` → عرض بالمتصفح).
 
-Contributors should **only** edit files under:
+**قاعدة ذهبية:** أي تغيير على الكود أو المحتوى يمر عبر **Pull Request إلى `main`**.  
+ما في دفع مباشر على `main` / `dev` (الفروع محمية).
 
-```
-subjects/year-{1-5}/{subject-id}/lectures/*.md
-```
+---
 
-Do **not** edit `lectures/manifest.json` `files` by hand — CI and `npm run validate` auto-sync entries from `par*.md` (icons, badges for `parN-secM.md`).
+## 1) اختر نوع مساهمتك
 
-Do **not** modify `parser/`, `renderer/`, `site-shell/`, or `build/` unless you are a maintainer.
+| النوع | لمن | شو بتعدّل عادةً | ممنوع عادةً |
+|-------|-----|-----------------|-------------|
+| **أ) محتوى محاضرات** | طلاب / كتّاب مواد | `subjects/year-N/.../lectures/*.md` (و`reviews/` إن لزم) | `parser/`, `renderer/`, `site-shell/`, `build/` |
+| **ب) محرك الموقع** | مشرفون / مطوّرون | `parser/`, `renderer/`, `site-shell/`, `build/`, `themes/` | تخريب محتوى المواد بدون سبب |
+| **ج) تحليل بيانات** | فريق الـ analytics | استعلامات/تقارير + أحياناً أحداث في `analytics.js` | مفاتيح PostHog الشخصية داخل الريبو |
+| **د) توثيق / أدوات** | الجميع | `README`, `CONTRIBUTING`, `analytics/TEAM-GUIDE`, صفحات contrib | أسرار وtokens |
 
-## Add or update a lecture
+---
 
-1. Copy `subjects/_template/` to `subjects/year-N/your-subject/` (maintainer may do this once).
-2. Generate `custom_prompt.md` from `meta-prompt.md` + `subject-brief.yaml`.
-3. Use AI to produce `lectures/parN.md` following `SCHEMA.md`.
-4. Open a Pull Request to `main` — **Validate lectures** auto-syncs `manifest.json` from your new files.
+## 2) مساهمة المحتوى (الأكثر شيوعاً)
 
-**الطريقة الأسهل:** افتح [/contrib/](https://shahd-abbara.github.io/lecture-site-engine/contrib/) → اختر المادة → **Fork ورفع المحاضرة** (زر واحد) → Pull Request إلى `main`. **لا تحتاج صلاحية Collaborator** على مستودع public.
+### وين الملفات
 
-**لا تعدّل `main` ولا `dev` مباشرة** — الفرعان محميان؛ أي تغيير عبر PR فقط.
-
-## صلاحيات المساهمين (للمشرف)
-
-1. المستودع **Public**.
-2. **Branch protection** على `main` **و** `dev` (PR مطلوب + CI).
-3. المساهمون **لا يحتاجون** Collaborator — Fork + PR من [/contrib/](https://shahd-abbara.github.io/lecture-site-engine/contrib/).
-4. الـ PR دائماً يستهدف **`main`** — بعد الدمج يُنشر الموقع تلقائياً.
-
-## CI on Pull Request
-
-Workflow **Validate lectures** runs automatically:
-
-- `npm test` — engine smoke test
-- Validates every **changed subject** (`npm run validate`)
-
-If validation fails, the PR check is red — **do not merge** until fixed.
-
-## After merge
-
-Workflow **Deploy GitHub Pages** runs on `main`:
-
-- Restores previous `dist/` from cache
-- Builds changed subjects and any subject missing from `dist/`
-- Generates `dist/index.html` (hub page)
-- Deploys to GitHub Pages
-
-## Local commands
-
-```bash
-npm run validate -- --subject year-3/my-subject
-npm run build -- --subject year-3/my-subject
-cd dist/year-3/my-subject && python3 -m http.server 8080
+```text
+subjects/year-{1-5}/{subject-id}/lectures/par*.md
 ```
 
-## manifest.json
+- سمِّ الملفات `par1.md`, `par2.md`, أو `par1-sec1.md` للأجزاء.
+- اتبع [`SCHEMA.md`](SCHEMA.md) (عناوين الأجزاء، جداول، MCQ…).
+- **لا تعدّل يدوياً** مصفوفة `files` داخل `lectures/manifest.json` — الـ validate/build/CI بيزامنها من أسماء `par*.md`.
 
-Keep `settings`, `title`, `subtitle`, and optional `lectureIcons` / `lectureMatIcons` in `lectures/manifest.json`. The `files` array is **auto-generated** when you run validate, build, or open a PR:
+### الطريقة الأسهل (موصى بها)
 
-| Filename | Auto entry |
-| --- | --- |
-| `par1.md` | `num: 1`, icon from `lectureIcons[0]` — **N** = رقم المحاضرة |
-| `par1-sec1.md`, `par1-sec2.md` | same `num: 1`, badge `المحاضرة ١ — جزء ١` — **M** = رقم الجزء |
+1. افتح [/contrib/](https://shahd-abbara.github.io/lecture-site-engine/contrib/)
+2. اختر المادة → محاضرة جديدة أو رفع ملف
+3. احفظ → ينفتح Pull Request إلى `main`
+4. انتظر ✅ **Validate lectures** → اطلب الدمج
 
-Example after sync for split lectures:
+ما تحتاج صلاحية Collaborator على المستودع العام — Fork + PR يكفي.
 
-```json
-"files": [
-  { "path": "par1-sec1.md", "num": 1, "icon": "🔒", "matIcon": "lock", "badge": "المحاضرة ١ — جزء ١" },
-  { "path": "par1-sec2.md", "num": 1, "icon": "⚙️", "matIcon": "settings", "badge": "المحاضرة ١ — جزء ٢" }
-]
-```
+### يدوياً عبر GitHub / محلياً
 
-Icons cycle through `lectureIcons` / `lectureMatIcons` in file order. Override badges or icons by editing `manifest.json` after the first sync if needed.
+1. فرع جديد من `main`
+2. عدّل أو أضف `parN.md`
+3. (اختياري محلياً) `npm run validate -- --subject year-N/subject-id`
+4. PR → نفس فحص الـ CI
 
-### settings
+### بعد الدمج
 
-Each subject must have `lectures/manifest.json` with:
+Workflow **Deploy GitHub Pages** على `main`:
+
+- يبني المواد المتغيّرة / الناقصة إلى `dist/`
+- يحدّث فهرس المواد
+- ينشر الموقع
+
+يعني: تعديل Markdown على GitHub → البناء يحدّث JSON داخل `dist/` → الموقع يتحدّث.
+
+### إعدادات المادة (`manifest.json` → `settings`)
+
+المشرف يضبط مرة واحدة على الأقل:
 
 ```json
 "settings": {
   "subjectName": "اسم المادة",
   "subjectNameEn": "English name",
   "year": "2025-2026",
-  "academicYear": 3,
+  "academicYear": 4,
   "theme": "amber-default",
-  "department": "القسم"
+  "department": "القسم",
+  "enabledLectures": true
 }
 ```
 
-Themes: see `themes/themes.json`.
+بدون `"enabledLectures": true` المادة ما بتظهر على صفحة الفهرس.
+
+تزامن أسماء الملفات:
+
+| الملف | المعنى |
+|-------|--------|
+| `par1.md` | محاضرة ١ |
+| `par1-sec2.md` | محاضرة ١ — جزء ٢ (badge تلقائي) |
+
+---
+
+## 3) مساهمة المحرك / الواجهة (مشرفون)
+
+عدّل فقط إذا فاهم أثر البناء والنشر:
+
+| مجلد | الدور |
+|------|--------|
+| `parser/` | يفهم Markdown ويطلّع بنية المحاضرة |
+| `renderer/` | يحوّل البنية/JSON لـ HTML تفاعلي (على الـ client بعد النسخ لـ `dist`) |
+| `site-shell/` | هيكل الصفحة، `app.js`, بحث، اختبارات، analytics |
+| `build/` | validate، cli، deploy، توليد الفهرس و`dist/` |
+| `themes/` | ألوان المواد |
+
+### قبل الـ PR
+
+```bash
+npm test
+node build/cli.mjs --subject year-N/some-subject
+# افحص محلياً من dist/...
+```
+
+اشرح بالـ PR: **ليش** التغيير + كيف اختبرته.  
+تجنّب خلط PR ضخم «محتوى + محرك» — افصلهم.
+
+---
+
+## 4) مساهمة تحليل البيانات
+
+الدليل الكامل للفريق: [`analytics/TEAM-GUIDE.md`](analytics/TEAM-GUIDE.md)
+
+باختصار:
+
+1. افهم الأحداث من [`analytics/README.md`](analytics/README.md)
+2. حلّل على PostHog (Live events / Insights / HogQL)
+3. المخرج: تقرير سؤال→نتائج→توصيات (± ملف `.hogql` أو PR لحدث تتبع ناقص)
+
+إذا بدك حدث جديد:
+
+- عرّفه في `site-shell/js/analytics.js`
+- اربطه من `app.js` / `exam.js` / interactivity
+- حدّث README + query إن لزم
+- **لا تضع** مفاتيح `phx_` في الملفات المعتمدة
+
+---
+
+## 5) دورة الـ Pull Request (لكل الأنواع)
+
+```text
+فرع من main → تعديل → PR إلى main
+         → Validate lectures (اختبار + تحقق محتوى إن تغيّر)
+         → مراجعة / دمج
+         → Deploy يحدّث dist/ وينشر Pages
+```
+
+### على الـ PR
+
+- عنوان واضح (مثلاً: `Add databases-2 par8` أو `Fix MCQ analytics props`)
+- وصف قصير: شو تغيّر ولماذا
+- إذا فشل الـ validate: **لا تدمج** — صلّح وأعد الدفع
+
+### أوامر محلية مفيدة
+
+```bash
+npm run validate -- --subject year-4/my-subject
+node build/cli.mjs --subject year-4/my-subject
+npm run dev -- --subject year-4/my-subject
+```
+
+تنبيه: مع أوامر `npm run` حط `--` قبل `--subject`.  
+مع `node build/cli.mjs` ما في داعي للـ `--` الفاصل.
+
+---
+
+## 6) شو ما تعمل
+
+- تعديل `manifest.json` → `files` يدوياً كعادة يومية (السنك التلقائي بيكفي)
+- رفع أسرار (PostHog personal key، OAuth secrets) للكود
+- كسر تنسيق SCHEMA بشكل متعمد بدون ما الـ validate يمر
+- دمج PR والـ CI أحمر
+
+---
+
+## 7) صلاحيات وبيئة النشر (للمشرف)
+
+1. المستودع Public
+2. حماية فرع `main` (و`dev` إن وُجد): PR إلزامي + فحص Validate
+3. Pages Source = GitHub Actions
+4. المساهمون العاديون: Fork + [/contrib/](https://shahd-abbara.github.io/lecture-site-engine/contrib/) بدون Collaborator
+5. أسرار التحليل (اختياري): `POSTHOG_KEY`, `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`
+
+Netlify sandbox: يدوي فقط عبر workflow مخصص — مو نشر الإنتاج الأساسي.
+
+---
+
+## 8) روابط سريعة
+
+| الرابط | الغرض |
+|--------|--------|
+| [README.md](README.md) | المنطق العام للمشروع |
+| [SCHEMA.md](SCHEMA.md) | تنسيق المحاضرات |
+| [analytics/TEAM-GUIDE.md](analytics/TEAM-GUIDE.md) | فريق تحليل البيانات |
+| [/contrib/](https://shahd-abbara.github.io/lecture-site-engine/contrib/) | رفع محاضرة بسهولة |
+| [AGENTS.md](AGENTS.md) | أوامر وملاحظات تقنية مختصرة |

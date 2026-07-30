@@ -1,670 +1,1197 @@
-# المحاضرة 10 — مشروع تعلم الآلة: التنبؤ بالناجين من تايتانيك
-
-> **المادة:** البرمجة المتقدمة 2 (القسم النظري) | **الموضوع:** `Machine Learning Project` — تحليل بيانات تايتانيك وبناء نموذج تنبؤي | **الدكتور:** م. رجب
-
----
-
-## 📌 خريطة التكامل (أين تقع هذه المحاضرة في الدورة؟)
-
-| المرحلة | الأدوات | المخرجات |
-| --- | --- | --- |
-| 1 — استيراد البيانات | `pandas`, `numpy` | `DataFrame` جاهز للتحليل |
-| 2 — استكشاف البيانات (EDA) | `df.describe()`, `df.isnull()` | فهم البنية والقيم المفقودة |
-| 3 — التحليل والتصوير | `seaborn`, `matplotlib` | مخططات تكشف العلاقات |
-| 4 — هندسة الميزات | `lambda`, `pd.cut()`, `LabelEncoder` | بيانات جاهزة للنمذجة |
-| 5 — النمذجة والتقييم ← **أنت هنا** | `sklearn`, `LogisticRegression`, `SVC`, `KNN` | دقة التنبؤ لكل نموذج |
-
-> **نوع هذه المحاضرة:** `Machine Learning` تطبيقي كامل — من البيانات الخام إلى نموذج تنبؤي مقيَّم.
+# المحاضرة 10 — Machine Learning Project (مشروع تعلم الآلة - Titanic)
+> **المادة:** البرمجة المتقدمة 2 (القسم النظري) | **الموضوع:** مشروع كامل لتحليل بيانات Titanic وبناء نماذج تصنيف | **الدكتور:** Mohanad Rajab
 
 ---
 
-## الجزء الأول: الشرح التفصيلي
+## الجزء الأول: ملخص منظم (اقرأ قبل المحاضرة!)
+
+### 📍 عن هذه المحاضرة
+> هذه المحاضرة هي مشروع متكامل من الصفر إلى النهاية — تأخذ بيانات حقيقية (`Titanic`), تحللها، تهندس ميزاتها، ثم تبني نماذج `Machine Learning` للتنبؤ بمن نجا ومن لم ينجُ.
+
+### 🎯 ستتعلم
+- **قراءة وتقسيم البيانات** — كيف تفصل بيانات التدريب عن الاختبار وتفهم بنية `DataFrame`
+- **تحليل البيانات (EDA)** — كيف تفهم العلاقات بين المتغيرات باستخدام `describe()`, `groupby()`, والرسوم البيانية
+- **هندسة الميزات (Feature Engineering)** — كيف تحوّل بيانات خام (نصوص، قيم مفقودة، أعداد) إلى أرقام يفهمها النموذج
+- **نشر النماذج (Model Deployment)** — كيف تجرّب عدة خوارزميات (`LogisticRegression`, `SVC`, `KNN`, `DecisionTree`) وتقارن دقتها
+- **Pivot Tables والارتباط (Correlation)** — كيف تستخلص أنماطاً من البيانات بدون رسوم
+
+### 📚 المتطلبات السابقة
+- **`pandas` و `DataFrames`** — تحتاج تعرف `.head()`, `.describe()`, `.groupby()`, `.isnull()` لأن كل التحليل يعتمد عليها
+- **`matplotlib` و `seaborn`** — تحتاجهم لرسم الـ `barplot` و `violinplot` و `heatmap`
+- **`sklearn` أساسيات** — تحتاج تفهم `.fit()` و `.predict()` و `.score()` لأن كل النماذج تتبع نفس الواجهة
+
+### 💡 الأفكار الرئيسية
+
+المشروع ده فيه قصة واضحة — تخيّل إنك عندك بيانات 1309 راكب على سفينة غرقت، وعايز تفهم: مين اللي نجا ومين اللي ما نجاش؟ وهل تقدر تتنبأ بالنجاة بناءً على معلومات زي الجنس والعمر والدرجة؟
+
+الخطوة الأولى دائماً هي فهم شكل البيانات — الـ `dataset` عنده 12 عمود: `PassengerId`, `Survived`, `Pclass`, `Name`, `Sex`, `Age`, `SibSp`, `Parch`, `Ticket`, `Fare`, `Cabin`, `Embarked`. البيانات الكاملة 1309 صف، بس نقسّمها: 891 للتدريب (`titanic_train`) و 418 للاختبار (`titanic_test`).
+
+بعدين تجي مرحلة التحليل (الـ EDA — `Exploratory Data Analysis`). هنا تكتشف أشياء مثيرة جداً: النساء بيجوا بنسبة نجاة 74% مقابل 19% للرجال. ركاب الدرجة الأولى نجوا بنسبة 63% مقابل 24% للدرجة الثالثة. ده مش بس مثير للاهتمام تاريخياً — ده مفيد جداً للنموذج!
+
+والحاجة الثانية اللي لازم تفهمها هي `Feature Engineering` — لأن البيانات الخام مش جاهزة للنموذج. عندك `Cabin` فيها 687 قيمة ناقصة من 891، وعندك `Age` فيها 177 ناقصة، وعندك `Ticket` نصوص غريبة زي `"STON/O2. 3101282"`. لازم تحوّل كل ده لأرقام — ازاي؟ بتستخرج `Title` من الاسم (`Mr`, `Mrs`, `Miss`...)، وبتقسّم العمر لشرائح (`AgeBand`)، وبتحسب حجم العيلة (`FamilySize = SibSp + Parch + 1`).
+
+في النهاية بتجرّب نماذج مختلفة. النتائج بتقول إن `DecisionTree` وصل لـ 100% على التدريب (ده علامة `overfitting`!), و `SVC` وصل لـ 94.95%, و `LogisticRegression` وصل لـ 80.58%. الحكاية مش إيهو الأعلى على التدريب — الحكاية إيهو الأكثر تعميماً على بيانات جديدة.
+
+### 🔗 كيف تتصل هذه المحاضرة بالمحاضرات الأخرى؟
+- **السابقة:** المحاضرات السابقة علّمتك `pandas`, `seaborn`, وأساسيات `sklearn` ← الآن نطبّق كل ده في مشروع حقيقي متكامل
+- **القادمة:** هذه المحاضرة تُعدّك لمفاهيم أعمق في `hyperparameter tuning`, `cross-validation`, و `ensemble methods`
+
+### ⚠️ الأخطاء الشائعة الواجب تجنبها
+
+#### الفهم الخاطئ ❌:
+`DecisionTree` حقق 100% دقة على التدريب، إذن هو أفضل نموذج
+
+#### الفهم الصحيح ✅:
+100% على التدريب = `overfitting` — النموذج حفظ البيانات ولم يتعلّم. الأفضل دائماً هو النموذج اللي يؤدي أداء جيداً على **بيانات لم يرها من قبل** (test data).
+
+#### الفهم الخاطئ ❌:
+`clf.score(X_train, y_train)` بتقيس دقة النموذج على بيانات الاختبار
+
+#### الفهم الصحيح ✅:
+`clf.score(X_train, y_train)` بتقيس الدقة على **بيانات التدريب نفسها** — للحصول على دقة حقيقية استخدم `X_test` و `y_test` (لو عندك labels للـ test).
+
+#### الفهم الخاطئ ❌:
+تملأ القيم المفقودة في `Age` بالصفر لأنه أبسط
+
+#### الفهم الصحيح ✅:
+تملأها بقيم عشوائية في نطاق `[mean - std, mean + std]` — ده بيحافظ على التوزيع الإحصائي للبيانات ومش بيشوّه النموذج.
+
+### لما تحتاج هذا في الامتحان
+الامتحان ممكن يسألك عن: اكتب كود `groupby` لحساب نسبة النجاة حسب الجنس، اشرح لماذا نملأ `Age` بقيم عشوائية، ما الفرق بين `pd.cut()` و `pd.qcut()`، لماذا `DecisionTree` 100% مشكلة، اكتب كود تدريب نموذج `SVC` وقياس دقته. ركّز على `Feature Engineering` و `Model Deployment` — هما قلب المحاضرة.
+
+---
+
+## الجزء الثاني: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
+
+---
 
 ### 1. مقدمة المشروع (Introduction)
 
-#### النص الأصلي يقول:
-> "We are going to go through the popular Titanic dataset and try to predict whether a person survived the shipwreck. You can get this dataset from Kaggle. The Goal: Predict whether a passenger survived or not. 0 for not surviving, 1 for surviving."
+<!-- @render: {type: "prose-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "none"} -->
 
-#### الشرح المبسّط:
-مشروع `Titanic` هو أشهر مشروع تمهيدي في `Machine Learning`. يحتوي الـ `dataset` على معلومات عن ركاب السفينة (العمر، الجنس، الدرجة، السعر…) والمهمة هي: هل نجا هذا الراكب أم لا؟
-
-**لماذا؟** لأن مسألة التنبؤ بقيمة ثنائية (نعم/لا — 0/1) تُسمى `Binary Classification`، وهي أبسط أنواع `Supervised Learning`.
-
-💡 **التشبيه:**
-> تخيّل أن عندك قاعدة بيانات لمرضى المستشفى، وتريد أن تتنبأ: هل سيتعافى المريض أم لا؟ هذا بالضبط نفس المنطق.
-> **وجه الشبه:** راكب التايتانيك = المريض، نجا/لم ينجُ = تعافى/توفي.
-
-#### مهم للامتحان ⚠️:
-> قيمة `0` تعني **لم ينجُ** وقيمة `1` تعني **نجا**. هذا هو العمود المستهدف (`target variable`).
+#### 💡 الفكرة الأساسية
+**`Titanic` هو أشهر `dataset` في عالم `Machine Learning` — الهدف هو التنبؤ إذا كان الراكب نجا أم لا (تصنيف ثنائي: 0 = لم ينجُ، 1 = نجا).**
 
 ---
 
-### 2. تقسيم البيانات: `titanic_train` و `titanic_test`
+#### 📖 الشرح
 
-#### النص الأصلي يقول:
-> الجدول الأول `Titanic_train` يحتوي `891 x 12` والجدول الثاني `titanic_test` يحتوي `418 x 12`.
+مشروع `Titanic` هو `classification problem` — يعني النموذج لازم يخرج إجابة من اتنين: إما 0 (لم ينجُ) أو 1 (نجا). مش رقم مستمر زي السعر أو الدرجة — ده تصنيف محدد.
 
-#### الشرح المبسّط:
-في `Machine Learning`، نقسم البيانات دائماً إلى مجموعتين:
-- **`Training set`**: البيانات التي يتعلم منها النموذج (891 صفاً).
-- **`Test set`**: البيانات التي نختبر عليها دقة النموذج (418 صفاً).
+البيانات متاحة على `Kaggle` — منصة المسابقات في تعلم الآلة. الـ `dataset` الكامل فيه 1309 راكب، ومقسّم مسبقاً لـ `train` (891 راكب فيهم عمود `Survived` معروف) و `test` (418 راكب مش عارفين نجوا ولا لا — ده اللي نتنبأ به).
 
-**لماذا؟** إذا اختبرنا النموذج على نفس البيانات التي تعلّم منها، ستكون دقته مصطنعة. نريد أن نعرف كيف يؤدي على بيانات **لم يرها من قبل**.
+#### 💡 التشبيه:
+> فكّر في الموضوع كأنك طبيب بيشخّص مرضى — عندك بيانات تاريخية عن مرضى قدامك (عمر، ضغط، أعراض) وتعرف مين اتعافى ومين لا. بتتعلّم من التاريخ وبعدين تشخّص حالات جديدة.
+> **وجه الشبه:** المرضى القدامى = `titanic_train`، المرضى الجدد = `titanic_test`، التشخيص = قيمة `Survived`
 
-💡 **التشبيه:**
-> `Training set` = دراسة الكتاب المقرر. `Test set` = امتحان أسئلة لم تراها من قبل. الهدف هو قدرة التعميم، لا الحفظ.
-> **وجه الشبه:** النموذج = الطالب، `Training set` = مادة الدراسة، `Test set` = ورقة الامتحان.
+#### 🎯 الملخص السريع
+- المشروع = `binary classification` (0 أو 1)
+- البيانات من `Kaggle`
+- 891 للتدريب + 418 للاختبار
 
-#### 💻 الكود: استيراد البيانات وعرضها
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-#### ما هذا الكود؟
-> يقرأ ملف `CSV` الخاص بالتدريب والاختبار ويعرض أول 15 صفاً.
+**النص الأصلي يقول:**
+> We are going to go through the popular Titanic dataset and try to predict whether a person survived the shipwreck. You can get this dataset from Kaggle. The Goal: Predict whether a passenger survived or not. 0 for not surviving, 1 for surviving.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الهدف، مصدر البيانات، ترميز 0/1
+- ℹ️ إضافة من الدليل: تشبيه الطبيب، توضيح Binary Classification
+
+</details>
+
+---
+
+### 2. قراءة البيانات وتقسيمها
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_1"} -->
+
+#### 💡 الفكرة الأساسية
+**البيانات الكاملة (1309 صف) مقسّمة لملفين: `titanic_train.csv` (891 صف) و `titanic_test.csv` (418 صف).**
+
+---
+
+#### 💻 الكود: قراءة البيانات وعرضها
 
 ```python
-import pandas as pd         # import pandas for data manipulation
-import numpy as np          # import numpy for numerical operations
-import matplotlib.pyplot as plt   # import matplotlib for plotting
-import seaborn as sns       # import seaborn for statistical visualization
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Read the full combined dataset
+# Load full dataset (both train+test merged)
 tt = pd.read_csv('d:/datasets/titanic.csv')
-tt  # display the DataFrame
+tt  # display full dataframe
 
-# Read separate train and test datasets
+# Load train and test separately
 titanic_train = pd.read_csv('d:/datasets/titanic_train.csv')
-print(titanic_train.shape)           # print shape (rows, columns)
-titanic_train.head(15)               # show first 15 rows
+print(titanic_train.shape)       # shows (891, 12)
+titanic_train.head(15)           # show first 15 rows
 
 titanic_test = pd.read_csv('d:/datasets/titanic_test.csv')
-print(titanic_test.shape)            # print shape (rows, columns)
-titanic_test.tail(10)                # show last 10 rows
+print(titanic_test.shape)        # shows (418, 12)
+titanic_test.tail(10)            # show last 10 rows
 ```
 
-#### شرح كل سطر:
-1. `import pandas as pd` → تحميل مكتبة `pandas` بالاسم المختصر `pd` — لأنها ستُستخدم كثيراً.
-2. `import numpy as np` → تحميل `numpy` للعمليات الرياضية على المصفوفات.
-3. `import matplotlib.pyplot as plt` → تحميل `matplotlib` لرسم المخططات.
-4. `import seaborn as sns` → تحميل `seaborn` للمخططات الإحصائية الجميلة.
-5. `tt = pd.read_csv(...)` → قراءة ملف `CSV` وتخزينه كـ `DataFrame`.
-6. `titanic_train.shape` → يُرجع `(891, 12)` — 891 صفاً و12 عموداً.
-7. `.head(15)` → عرض أول 15 صفاً فقط للاستطلاع.
-8. `.tail(10)` → عرض آخر 10 صفوف.
-
-**المكتبات المطلوبة (Imports):**
-> `pandas`, `numpy`, `matplotlib.pyplot`, `seaborn`
-
-**الناتج المتوقع (لقطة الشاشة):**
-> جدول يحتوي أعمدة: `PassengerId`, `Survived`, `Pclass`, `Name`, `Sex`, `Age`, `SibSp`, `Parch`, `Ticket`, `Fare`, `Cabin`, `Embarked`
+#### ملاحظات الأسطر المهمة:
+- `pd.read_csv(path)` → يقرأ ملف `CSV` ويحوّله لـ `DataFrame` — الطريقة الأساسية لتحميل البيانات
+- `.shape` → يرجع `tuple` من `(rows, columns)` — مهم جداً لتأكيد حجم البيانات
+- `.head(15)` → أول 15 صف فقط — بيساعدك تفهم شكل البيانات بسرعة
+- `.tail(10)` → آخر 10 صفوف — مفيد لتأكيد آخر الصفوف
 
 ---
 
-### 3. استكشاف البيانات (Titanic Data Analysis)
+#### 📊 المخطط: بنية الأعمدة الـ 12
 
-#### 3.1 وصف البيانات الإحصائي باستخدام `describe()`
+#### ما هذا المخطط؟
+> يوضّح 12 عمود الـ `dataset` وأنواعها وهل فيها قيم مفقودة أم لا.
 
-#### النص الأصلي يقول:
-> `tt.describe()` — يُظهر إحصاءات للأعمدة الرقمية. `tt.describe(include=['O'])` — يُظهر إحصاءات للأعمدة النصية.
+| # | العمود | النوع | الوصف | قيم مفقودة في Train |
+|---|--------|-------|-------|---------------------|
+| 0 | `PassengerId` | `int64` | رقم تعريفي للراكب | لا |
+| 1 | `Survived` | `int64` | 0=لم ينجُ، 1=نجا | لا |
+| 2 | `Pclass` | `int64` | درجة التذكرة (1,2,3) | لا |
+| 3 | `Name` | `object` | اسم الراكب كاملاً | لا |
+| 4 | `Sex` | `object` | `male` أو `female` | لا |
+| 5 | `Age` | `float64` | العمر | **177 ناقصة** |
+| 6 | `SibSp` | `int64` | عدد الأشقاء/الزوج على السفينة | لا |
+| 7 | `Parch` | `int64` | عدد الآباء/الأطفال على السفينة | لا |
+| 8 | `Ticket` | `object` | رقم التذكرة | لا |
+| 9 | `Fare` | `float64` | سعر التذكرة | لا |
+| 10 | `Cabin` | `object` | رقم الكابينة | **687 ناقصة** |
+| 11 | `Embarked` | `object` | ميناء الصعود (S/C/Q) | **2 ناقصة** |
 
-#### الشرح المبسّط:
-`DataFrame.describe()` يعطيك ملخصاً إحصائياً بلمسة واحدة: عدد القيم، المتوسط، الانحراف المعياري، القيم الدنيا والعليا، والربيعيات.
+---
 
-#### 📐 المعادلة: الانحراف المعياري (Standard Deviation)
-
-$$
-\sigma = \sqrt{\frac{\sum (x - \bar{x})^2}{n-1}}
-$$
-
-**الشرح:**
-> - `σ` = الانحراف المعياري (`std`) — قياس تشتّت البيانات حول المتوسط.
-> - `x` = كل قيمة فردية في البيانات.
-> - `x̄` = المتوسط الحسابي (`mean`).
-> - `n` = عدد القيم.
-> - نقسم على `(n-1)` وليس `n` لأننا نحسب من **عينة** وليس المجتمع الكامل (تصحيح بيسل).
-
-#### 📐 المعادلة: الربيعيات (Quartiles)
-
-**الشرح من المحاضرة:**
-> يجب ترتيب البيانات أولاً قبل حساب الربيعيات.
-> - `Q1` (الربيعي الأول) = `(1+446)/2` → وسيط = 223.5
-> - `Q2` (الوسيط — الربيعي الثاني) = `(1+891)/2` → وسيط = 446
-> - `Q3` (الربيعي الثالث) = `(446+891)/2` → وسيط = 668.5
-
-#### 💻 الكود: وصف البيانات
-
-#### ما هذا الكود؟
-> يستعرض إحصاءات وصفية للأعمدة الرقمية والنصية، ويحسب القيم المفقودة.
+#### 💻 الكود: فحص القيم المفقودة
 
 ```python
-# Descriptive statistics for numeric columns
-tt.describe()
-
-# Descriptive statistics for object (text) columns
-tt.describe(include=['O'])
-
-# Sum of all values per column (to inspect data totals)
-titanic_train.sum()
-
-# Count missing (null) values per column
+# Check null values in training data
 titanic_train.isnull().sum()
 ```
 
-#### شرح كل سطر:
-1. `tt.describe()` → يُرجع: `count`, `mean`, `std`, `min`, `25%`, `50%`, `75%`, `max` لكل عمود رقمي.
-2. `tt.describe(include=['O'])` → يُرجع: `count`, `unique`, `top`, `freq` للأعمدة النصية (`object`).
-3. `titanic_train.sum()` → يجمع القيم — مفيد للكشف عن التسلسل وإجمالي الناجين.
-4. `.isnull().sum()` → يعدّ القيم المفقودة في كل عمود — ضروري قبل أي معالجة.
+**الناتج:**
+```
+PassengerId      0
+Survived         0
+Pclass           0
+Name             0
+Sex              0
+Age            177   ← مشكلة كبيرة
+SibSp            0
+Parch            0
+Ticket           0
+Fare             0
+Cabin          687   ← معظمها ناقص!
+Embarked         2
+```
 
-**الناتج المتوقع:**
-> - `Age` → 177 قيمة مفقودة في `train`.
-> - `Cabin` → 687 قيمة مفقودة في `train`.
-> - `Embarked` → 2 قيمتان مفقودتان في `train`.
+#### ملاحظة:
+> `Cabin` فيها 687 قيمة ناقصة من 891 — يعني 77% ناقصة! مش ممكن نستخدمها مباشرة. `Feature Engineering` هو الحل.
 
-#### مهم للامتحان ⚠️:
-> القيم المفقودة في `Age` و`Cabin` تحتاج معالجة قبل التدريب. تجاهلها يؤثر سلباً على النموذج.
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** لماذا `Age` فيها قيم مفقودة بينما `Pclass` لا؟
+> **لماذا هذا مهم؟** لأن القيم المفقودة في عمود مهم كالعمر تؤثر على دقة النموذج — لازم تعرف كيف تتعامل معها قبل التدريب.
+
+#### 🎯 الملخص السريع
+- `titanic_train`: 891 × 12
+- `titanic_test`: 418 × 12
+- `Age`: 177 ناقصة، `Cabin`: 687 ناقصة، `Embarked`: 2 ناقصة
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Dividing the Dataset to titanic_train (891 x 12) and titanic_test (418 x 12). titanic_train.isnull().sum() → Age: 177, Cabin: 687, Embarked: 2
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: التقسيم، القيم المفقودة لكل عمود
+- ℹ️ إضافة من الدليل: جدول تفصيلي لكل عمود، لماذا Cabin مشكلة
+
+</details>
 
 ---
 
-### 4. العلاقة بين الميزات والبقاء (Relationship between Features and Survival)
+### 3. تحليل البيانات الإحصائي
 
-#### النص الأصلي يقول:
-> "In this section, we analyze relationship between different features with respect to Survival. We see how different feature values show different survival chance."
+<!-- @render: {type: "equation-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_2"} -->
 
-#### الشرح المبسّط:
-قبل بناء النموذج، نحتاج أن نفهم: هل يؤثر الجنس على احتمالية النجاة؟ هل تؤثر درجة السفر؟ هذا يسمى `Exploratory Data Analysis (EDA)`.
+#### 💡 الفكرة الأساسية
+**دالة `describe()` تعطيك ملخصاً إحصائياً شاملاً — `count`, `mean`, `std`, `min`, percentiles, `max` — لكل عمود رقمي.**
 
-#### 4.1 درجة التذكرة (`Pclass`) مقابل البقاء
+---
 
-#### النص الأصلي يقول:
-> الناتج: من الدرجة الأولى `Pclass=1`: نجا 136 من 216 = 62.96%. الدرجة الثانية: 87/184 = 47.28%. الدرجة الثالثة: 119/491 = 24.23%.
-
-**الشرطة القصيرة في المخطط تعني أن البيانات مستقرة ودقيقة** (انحراف معياري منخفض حول المتوسط).
-
-#### 💻 الكود: تحليل `Pclass` مقابل البقاء
-
-#### ما هذا الكود؟
-> يحسب عدد الناجين وغير الناجين ثم يرسم `barplot` لمقارنة الدرجات.
+#### 💻 الكود: الإحصاء الوصفي
 
 ```python
-# Count survived and not survived passengers
-survived = titanic_train[titanic_train['Survived'] == 1]          # filter survived
-not_survived = titanic_train[titanic_train['Survived'] == 0]      # filter not survived
+titanic_train.describe()          # numeric columns
+titanic_train.describe(include=['O'])  # object (text) columns
+```
+
+**ناتج `describe()` للأعمدة الرقمية (train):**
+
+| | `PassengerId` | `Survived` | `Pclass` | `Age` | `SibSp` | `Parch` | `Fare` |
+|--|--|--|--|--|--|--|--|
+| count | 891 | 891 | 891 | 714 | 891 | 891 | 891 |
+| mean | 446 | 0.38 | 2.31 | 29.7 | 0.52 | 0.38 | 32.2 |
+| std | 257.35 | 0.49 | 0.84 | 14.53 | 1.10 | 0.81 | 49.69 |
+| min | 1 | 0 | 1 | 0.42 | 0 | 0 | 0 |
+| 25% | 223.5 | 0 | 2 | 20.1 | 0 | 0 | 7.91 |
+| 50% | 446 | 0 | 3 | 28 | 0 | 0 | 14.45 |
+| 75% | 668.5 | 1 | 3 | 38 | 1 | 0 | 31.0 |
+| max | 891 | 1 | 3 | 80 | 8 | 6 | 512.33 |
+
+---
+
+#### 📐 الصيغة: الانحراف المعياري (Standard Deviation)
+
+$$
+\sigma = \sqrt{\frac{\sum(x - \bar{x})^2}{n-1}}
+$$
+
+**الشرح:**
+> $\bar{x}$ = المتوسط (mean)
+> $x$ = كل قيمة فردية
+> $n$ = عدد القيم
+> $n-1$ بدل $n$ لأن ده الـ `sample std` مش الـ `population std`
+
+#### 💡 التشبيه:
+> الانحراف المعياري كأنه المسافة المتوسطة بين الطلاب وعلامة الفصل — إذا كل الطلاب حصلوا على نفس العلامة تقريباً، الـ `std` صغير (عمود مستقر). إذا كان فيه طلاب فاشلين وناجحين، الـ `std` كبير.
+> **وجه الشبه:** `Fare` فيها `std` = 49.69 بينما `min` = 0 و `max` = 512 — ده يقول إن أسعار التذاكر كانت متباينة جداً!
+
+---
+
+#### 📖 الشرح: القراءة الذكية لـ describe()
+
+**معنى `mean = 0.38` في `Survived`:** نسبة من نجوا = 38.4% (لأن `Survived` هو 0 أو 1، فالمتوسط = النسبة المئوية).
+
+**معنى الـ Quartiles:**
+الـ Quartiles بتحتاج البيانات تكون مرتّبة. لو عندنا 891 قيمة:
+- `Q1 (25%)`: الوسيط بين أول قيمة وآخر قيمة في النصف الأول = `(1+446)/2 = 223.5`
+- `Q2 (50%)`: الوسيط الكلي = `(1+891)/2 = 446`
+- `Q3 (75%)`: الوسيط بين `Q2` و آخر قيمة = `(446+891)/2 = 668.5`
+
+**ناتج `describe(include=['O'])` للأعمدة النصية (train):**
+
+| | `Name` | `Sex` | `Ticket` | `Cabin` | `Embarked` |
+|--|--|--|--|--|--|
+| count | 891 | 891 | 891 | 204 | 889 |
+| unique | 891 | 2 | 681 | 147 | 3 |
+| top | Hickman... | male | 1601 | B96 B98 | S |
+| freq | 1 | 577 | 7 | 4 | 644 |
+
+**الملاحظات:**
+- `Sex`: فقط 2 قيم فريدة، الأكثر تكراراً `male` (577 من 891)
+- `Embarked`: 3 قيم (`S`, `C`, `Q`)، الأغلبية صعدوا من `S` (Southampton) = 644
+- `Cabin`: 204 فقط غير ناقصة من 891، 147 قيمة فريدة
+
+#### 🎯 الملخص السريع
+- `describe()` = إحصاء رقمي سريع
+- `mean` في `Survived` = نسبة النجاة
+- `std` = مقياس التشتّت
+- `describe(include=['O'])` = للأعمدة النصية
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> titanic_test.describe() — shows count, mean, std, min, 25%, 50%, 75%, max for each numeric column. For quartile must be sorted: Quartile-1 (1+446)/2 median=223.5, Quartile-2 (1+891)/2 median=446, Quartile-3 (446+891) median=668.5
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل الإحصاءات، شرح الـ Quartiles رياضياً، صيغة std
+- ℹ️ إضافة من الدليل: تشبيه الطلاب، تفسير mean في Survived
+
+</details>
+
+---
+
+### 4. تحليل العلاقة بين الميزات والنجاة
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_3"} -->
+
+#### 📍 أين نحن الآن؟
+انتهينا من الإحصاء الوصفي — الآن نبحث في **لماذا** نجا بعض الركاب وليس غيرهم.
+
+#### 💡 الفكرة الأساسية
+**`EDA` (Exploratory Data Analysis) تكشف الأنماط الخفية — الجنس، الدرجة، والعمر كلها تؤثر على النجاة.**
+
+---
+
+### 4.1. النجاة الإجمالية
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود: حساب نسب النجاة
+
+```python
+survived = titanic_train[titanic_train['Survived'] == 1]       # survived passengers
+not_survived = titanic_train[titanic_train['Survived'] == 0]   # not survived
 
 # Print counts and percentages
 print("Survived: %i (%.1f%%)" % (len(survived), float(len(survived))/len(titanic_train)*100.0))
 print("Not Survived: %i (%.1f%%)" % (len(not_survived), float(len(not_survived))/len(titanic_train)*100.0))
 print("Total: %i" % len(titanic_train))
-
-# Count passengers per class
-titanic_train.Pclass.value_counts()
-
-# Count survived per class using groupby
-titanic_train.groupby('Pclass').Survived.value_counts()
-
-# Bar plot: Pclass vs Survival rate
-sns.barplot(x='Pclass', y='Survived', data=titanic_train)
 ```
 
-#### شرح كل سطر:
-1. `titanic_train[titanic_train['Survived'] == 1]` → `Boolean Indexing` — يصفّي الصفوف حيث `Survived = 1`.
-2. `float(len(survived))/len(titanic_train)*100.0` → حساب النسبة المئوية للناجين.
-3. `.value_counts()` → يعدّ تكرار كل قيمة في العمود.
-4. `.groupby('Pclass').Survived.value_counts()` → تجميع حسب `Pclass` ثم عدّ الناجين وغير الناجين.
-5. `sns.barplot(x='Pclass', y='Survived', data=titanic_train)` → يرسم متوسط `Survived` لكل `Pclass` مع فترة ثقة.
-
-**الناتج المتوقع:**
-> - Survived: 342 (38.4%)
-> - Not Survived: 549 (61.6%)
-> - Total: 891
-
-#### 🖼️ وصف الشاشة: مخطط `Pclass` مقابل البقاء (صفحة 15)
-
-> **الصفحة/الشريحة:** 15
-> **ملاحظة:** لا يمكن عرض لقطة الشاشة في الموقع — الوصف التالي يغطي كل عنصر.
-
-| العنصر | الموقع | الوظيفة |
-| --- | --- | --- |
-| المحور X | أسفل المخطط | `Pclass` (1, 2, 3) |
-| المحور Y | يمين المخطط | `Survived` (0.0 → 0.7) |
-| الأعمدة | ثلاثة ألوان | أزرق (1)، برتقالي (2)، أخضر (3) |
-| الشريط العمودي | أعلى كل عمود | يمثّل فترة الثقة (`confidence interval`) |
-
-**خطوات العمل:**
-1. العمود الأول (أزرق): يصل إلى 0.63 — الدرجة الأولى أعلى نجاة.
-2. العمود الثاني (برتقالي): يصل إلى 0.47 — الدرجة الثانية متوسطة.
-3. العمود الثالث (أخضر): يصل إلى 0.24 — الدرجة الثالثة أقل نجاة.
-
-#### 4.2 الجنس (`Sex`) مقابل البقاء
-
-#### النص الأصلي يقول:
-> "Females have better survival chance. Because survived is (0,1), mean calculates percentage of survived in each group."
-> نتيجة: female = 0.742 (74.2%)، male = 0.188 (18.8%)
-
-#### الشرح المبسّط:
-عندما نحسب `mean()` لعمود يحتوي فقط `0` و `1`، فإن الناتج يساوي **نسبة الـ 1** مباشرة. هذا يعني: إذا كانت `mean = 0.742`، فـ 74.2% من الإناث نجَوْن.
-
-**لماذا؟** لأن `mean = (عدد الـ 1) / (إجمالي القيم)`.
-
-💡 **التشبيه:**
-> إذا عندك قائمة فيها أصفار وواحدات، ومتوسطها 0.7 — هذا يعني 70% من القيم كانت "1" (نجحت). الوسط الحسابي هنا = نسبة مئوية.
-> **وجه الشبه:** `mean(Survived)` = `survival rate`.
-
-#### 💻 الكود: تحليل الجنس مقابل البقاء
-
-```python
-# Count survived/not survived by sex
-titanic_train.groupby('Sex').Survived.value_counts()
-
-# Calculate mean survival rate by sex (since Survived is 0/1, mean = percentage)
-titanic_train[['Sex', 'Survived']].groupby(['Sex'], as_index=False).mean()
-
-# Bar plot: Sex vs Survival rate
-sns.barplot(x='Sex', y='Survived', data=titanic_train)
+**الناتج:**
+```
+Survived: 342 (38.4%)
+Not Survived: 549 (61.6%)
+Total: 891
 ```
 
-#### شرح كل سطر:
-1. `.groupby('Sex').Survived.value_counts()` → يعرض عدد الناجين وغير الناجين لكل جنس.
-2. `.groupby(['Sex'], as_index=False).mean()` → يحسب متوسط `Survived` لكل جنس = نسبة البقاء.
-3. `as_index=False` → يجعل عمود التجميع `Sex` عموداً عادياً بدل أن يصبح `index`.
-
-#### 4.3 `Pclass` و`Sex` و`Embarked` مقابل البقاء (`catplot`)
-
-#### النص الأصلي يقول:
-> الاستنتاجات: تقريباً جميع الإناث من الدرجتين 1 و2 نجَوْن. الإناث اللواتي توفّين كنّ معظمهن من الدرجة 3. الذكور من الدرجة 1 لديهم فرصة نجاة أعلى قليلاً من الدرجتين 2 و3.
-
-#### 💻 الكود: `catplot` لتحليل متعدد الأبعاد
-
-```python
-# Scatter catplot: Embarked vs Age, colored by Survived
-sns.catplot(x="Embarked", y="Age", hue="Survived", data=titanic_train)
-
-# Scatter catplot: Pclass vs Age, colored by Survived
-sns.catplot(x="Pclass", y="Age", hue="Survived", data=titanic_train)
-
-# Scatter catplot: Sex vs Age, colored by Survived
-sns.catplot(x="Sex", y="Age", hue="Survived", data=titanic_train)
-
-# Grouped bar plot: Pclass + Sex + Embarked vs Survived
-sns.catplot(x='Pclass', y='Survived', hue='Sex',
-            col='Embarked', kind='bar', data=titanic_train)
-```
-
-#### شرح كل سطر:
-1. `hue="Survived"` → يلوّن النقاط بلونين: 0 = أزرق (توفّي) و 1 = برتقالي (نجا).
-2. `col='Embarked'` → يُنشئ مخططاً منفصلاً لكل قيمة `Embarked` (S, C, Q).
-3. `kind='bar'` → يستخدم الأعمدة (بدلاً من النقاط الافتراضية).
-
-#### 4.4 ميناء الصعود (`Embarked`) مقابل البقاء
-
-#### النص الأصلي يقول:
-> C = 0.553، Q = 0.389، S = 0.336
-
-#### الشرح المبسّط:
-الركاب الذين صعدوا من ميناء `C` (شيربورغ - فرنسا) كان لديهم أعلى معدل نجاة. السبب المحتمل أن معظمهم كانوا من الدرجة الأولى.
-
-#### 4.5 مرافقة الأهل (`Parch`) مقابل البقاء
-
-#### النص الأصلي يقول:
-> Parch = 3 حقق أعلى معدل نجاة (0.6). Parch = 4 و 6 = صفر.
-
-**الشرح المبسّط:**
-`Parch` = عدد الآباء والأطفال على متن السفينة. من وجد معه 1-3 أفراد كان لديه فرصة نجاة أعلى. العائلات الكبيرة جداً (4+) كان من الصعب عليها التنسيق للإخلاء.
-
-#### 4.6 العمر (`Age`) مقابل البقاء — `violinplot`
-
-#### النص الأصلي يقول:
-> من مخطط الكمان (`violinplot`) لـ `Pclass`:
-> - الدرجة 1 تحتوي أقل عدداً من الأطفال مقارنة بالدرجتين 2 و3.
-> - الدرجة 1 تحتوي كبار سن أكثر.
-> - تقريباً جميع أطفال الدرجة 2 (0-10) نجَوْن.
-> - معظم أطفال الدرجة 3 نجَوْن.
-> من مخطط الكمان لـ `Sex`:
-> - معظم أطفال الذكور (0-14) نجَوْن.
-> - الإناث بين 18-40 لديهن فرصة نجاة أعلى.
-
-#### 💻 الكود: `violinplot` للعمر
-
-```python
-# Create figure with 3 subplots side by side
-fig = plt.figure(figsize=(15, 5))
-ax1 = fig.add_subplot(131)  # first subplot
-ax2 = fig.add_subplot(132)  # second subplot
-ax3 = fig.add_subplot(133)  # third subplot
-
-# Violin plot: Embarked vs Age grouped by Survived
-sns.violinplot(x="Embarked", y="Age", hue="Survived",
-               data=titanic_train, split=True, ax=ax1)
-
-# Violin plot: Pclass vs Age grouped by Survived
-sns.violinplot(x="Pclass", y="Age", hue="Survived",
-               data=titanic_train, split=True, ax=ax2)
-
-# Violin plot: Sex vs Age grouped by Survived
-sns.violinplot(x="Sex", y="Age", hue="Survived",
-               data=titanic_train, split=True, ax=ax3)
-```
-
-#### شرح كل سطر:
-1. `plt.figure(figsize=(15,5))` → ينشئ لوحة بعرض 15 وارتفاع 5 بوصة.
-2. `fig.add_subplot(131)` → 1 صف، 3 أعمدة، المخطط الأول (131 = Row1, Col3, Plot1).
-3. `split=True` → يقسم مخطط الكمان إلى نصفين: نصف للناجين ونصف للمتوفّين.
-4. `ax=ax1` → يرسم في المحور الأول.
+#### ملاحظة:
+> 61.6% لم ينجوا — البيانات **غير متوازنة** (imbalanced). ده ممكن يأثر على النماذج.
 
 ---
 
-### 5. معامل الارتباط (Pearson Correlation Coefficient)
+### 4.2. الدرجة (Pclass) مقابل النجاة
 
-#### النص الأصلي يقول:
-> معادلة Pearson مع مثال عددي: x= [4,15,8,8,6], y=[3,10,6,7,4]. الناتج: r ≈ 0.97
+<!-- @render: {type: "code-first", coverage: "100%"} -->
 
-#### 📐 المعادلة: معامل بيرسون للارتباط
+#### 💡 الفكرة الأساسية
+**ركاب الدرجة الأولى نجوا بنسبة أعلى بكثير من الدرجة الثالثة — الثروة كانت عاملاً في النجاة.**
+
+#### 💻 الكود
+
+```python
+# Count passengers per class
+titanic_train.Pclass.value_counts()
+# 3: 491, 1: 216, 2: 184
+
+# Survival counts by class
+titanic_train.groupby('Pclass').Survived.value_counts()
+# Pclass 1: Survived=136, Not=80
+# Pclass 2: Not=97, Survived=87
+# Pclass 3: Not=372, Survived=119
+
+# Survival rate bar chart
+sns.barplot(x='Pclass', y='Survived', data=titanic_train)
+```
+
+#### 🔍 تتبع التنفيذ: حساب نسب النجاة يدوياً
+
+**المدخل:** بيانات `Pclass` و `Survived`
+
+| الدرجة | ناجون | إجمالي | نسبة النجاة |
+|--------|-------|---------|------------|
+| 1 | 136 | 216 | **63.0%** |
+| 2 | 87 | 184 | **47.3%** |
+| 3 | 119 | 491 | **24.2%** |
+
+**النتيجة:** الدرجة الأولى = ضعف احتمال النجاة مقارنة بالثالثة
+
+#### ملاحظة:
+> الشرطة السوداء فوق كل بار في `sns.barplot` = **Confidence Interval (CI)**. شرطة قصيرة = البيانات مستقرة وثقة عالية، شرطة طويلة = تباين كبير وثقة منخفضة.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> 136/216=62.96, 87/184=47.28, 119/491=24.23 — الشرطة قصيرة - البيانات مستقرة ودقيقة. Higher class passengers have better survival chance.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الأرقام، الحسابات، معنى الشرطة
+- ℹ️ إضافة من الدليل: جدول النسب، شرح CI بالتفصيل
+
+</details>
+
+---
+
+### 4.3. الجنس (Sex) مقابل النجاة
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**النساء نجوا بنسبة 74% مقابل 19% للرجال — قاعدة "النساء والأطفال أولاً" تطبّقت فعلاً!**
+
+#### 💻 الكود
+
+```python
+# Survival counts by sex
+titanic_train.groupby('Sex').Survived.value_counts()
+# female: Survived=233, Not=81
+# male: Not=468, Survived=109
+
+# Calculate survival RATE (mean works because Survived is 0/1)
+titanic_train[['Sex', 'Survived']].groupby(['Sex'], as_index=False).mean()
+# female: 0.742038
+# male: 0.188908
+
+sns.barplot(x='Sex', y='Survived', data=titanic_train)
+```
+
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** لماذا نستخدم `.mean()` لحساب نسبة النجاة بدلاً من `.count()`؟
+> **لماذا هذا مهم؟** لأن `Survived` قيمه إما 0 أو 1 — المتوسط = مجموع القيم ÷ العدد = عدد الناجين ÷ الإجمالي = النسبة المئوية تلقائياً!
+
+#### 💡 التشبيه:
+> تخيّل إن عندك 10 طلاب، 7 نجحوا (1) و 3 رسبوا (0). المتوسط = (7×1 + 3×0) ÷ 10 = 0.7 = 70%. نفس الفكرة بالضبط.
+> **وجه الشبه:** الـ `mean()` على عمود 0/1 = نسبة الـ 1s دائماً.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Females have better survival chance. female: Survived=0.742038, male: 0.188908. Because survived is (0,1), mean calculates percentage of survived in each group.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الأرقام، سبب استخدام mean، الرسم البياني
+- ℹ️ إضافة من الدليل: مثال الطلاب، التشبيه
+
+</details>
+
+---
+
+### 4.4. Pclass, Sex & Embarked مع العمر — الـ catplot
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**`sns.catplot()` يرسم نقاط فردية لكل راكب مصنّفة حسب النجاة، يكشف أنماطاً أعمق من الـ `barplot`.**
+
+#### 💻 الكود
+
+```python
+# Embarked vs Age vs Survived (scatter by survival color)
+sns.catplot(x="Embarked", y="Age", hue="Survived", data=titanic_train)
+
+# Pclass vs Age vs Survived
+sns.catplot(x="Pclass", y="Age", hue="Survived", data=titanic_train)
+
+# Sex vs Age vs Survived
+sns.catplot(x="Sex", y="Age", hue="Survived", data=titanic_train)
+
+# Complex 4-variable catplot
+sns.catplot(x='Pclass', y='Survived', hue='Sex', col='Embarked', kind='bar', data=titanic_train)
+```
+
+#### ملاحظات الأسطر المهمة:
+- `hue="Survived"` → يلوّن النقاط بناءً على قيمة `Survived` (0=أزرق، 1=برتقالي)
+- `col='Embarked'` → يقسّم الرسم لـ 3 مخططات جانباً لبعض (واحد لكل ميناء)
+- `kind='bar'` → يحوّل الـ `catplot` لـ `barplot` بدل `stripplot`
+
+#### 🖼️ وصف الشاشة: ما تراه في الـ catplot المركّب
+> **الشريحة:** رسم catplot رباعي المتغيرات
+> يُظهر 3 مخططات أفقية (S, C, Q) — في كل منها: 3 مجموعات للـ `Pclass` (1,2,3) × عمودين لكل مجموعة (ذكور = أزرق، إناث = برتقالي). يتضح أن الإناث في كل الدرجات ومن كل المواني نجوا بنسبة أعلى بكثير.
+
+**الاستنتاجات من الـ catplot:**
+- تقريباً **كل الإناث من Pclass 1 و 2 نجوا**
+- الإناث اللي ماتوا كانت معظمهم من **Pclass 3**
+- الذكور من Pclass 1 لديهم نسبة نجاة **أعلى قليلاً فقط** من Pclass 2 و 3
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Almost all females from Pclass 1 and 2 survived. Females dying were mostly from 3rd Pclass. Males from Pclass 1 only have slightly higher survival chance than Pclass 2 and 3.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل الاستنتاجات، شرح hue و col و kind
+
+</details>
+
+---
+
+### 4.5. ميناء الصعود (Embarked) مقابل النجاة
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود
+
+```python
+titanic_train[['Embarked', 'Survived']].groupby(['Embarked'], as_index=False).mean()
+# C (Cherbourg): 0.553571
+# Q (Queenstown): 0.389610
+# S (Southampton): 0.336957
+
+sns.barplot(x='Embarked', y='Survived', data=titanic_train)
+```
+
+**الاستنتاج:** من `C` (شيربورغ) عنده أعلى نسبة نجاة (55%) — ربما لأن ركاب شيربورغ كانوا أكثر في الدرجة الأولى.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Embarked vs. Survived — C: 0.553571, Q: 0.389610, S: 0.336957
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: القيم والاستنتاج
+
+</details>
+
+---
+
+### 4.6. Parch مقابل النجاة
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود
+
+```python
+titanic_train[['Parch', 'Survived']].groupby(['Parch'], as_index=False).mean()
+# Parch=0: 0.344, 1: 0.551, 2: 0.500, 3: 0.600, 4: 0.000, 5: 0.200, 6: 0.000
+
+sns.barplot(x='Parch', y='Survived', ci=None, data=titanic_train)
+```
+
+**الاستنتاج:** من كان معه 1-3 آباء/أطفال كان لديه فرصة أفضل للنجاة. من كان لوحده (Parch=0) أو العائلات الكبيرة جداً (4,6) كانوا أسوأ حظاً.
+
+---
+
+### 4.7. العمر (Age) مقابل النجاة — Violin Plot
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**`violinplot` يجمع بين `boxplot` و `KDE` (توزيع الكثافة) — يُظهر توزيع العمر للناجين مقابل غير الناجين.**
+
+#### 💻 الكود
+
+```python
+fig = plt.figure(figsize=(15,5))
+ax1 = fig.add_subplot(131)   # 1 row, 3 cols, position 1
+ax2 = fig.add_subplot(132)   # position 2
+ax3 = fig.add_subplot(133)   # position 3
+
+# Three violin plots side by side
+sns.violinplot(x="Embarked", y="Age", hue="Survived", data=titanic_train, split=True, ax=ax1)
+sns.violinplot(x="Pclass", y="Age", hue="Survived", data=titanic_train, split=True, ax=ax2)
+sns.violinplot(x="Sex", y="Age", hue="Survived", data=titanic_train, split=True, ax=ax3)
+```
+
+#### ملاحظات الأسطر المهمة:
+- `fig.add_subplot(131)` → الرقم `131` = 1 صف، 3 أعمدة، الموضع 1
+- `split=True` → يقسم الـ violin لنصفين (ناجو/لم ينجوا) في نفس الشكل
+- `hue="Survived"` → يلوّن كل نصف بلون مختلف
+
+**الاستنتاجات من Violin Plot (من المحاضرة):**
+
+**من Pclass:**
+- الدرجة الأولى فيها **أطفال أقل** مقارنة بالدرجتين الثانية والثالثة
+- الدرجة الأولى فيها **كبار سن أكثر**
+- تقريباً **كل أطفال Pclass 2 (0-10 سنوات) نجوا**
+- معظم أطفال Pclass 3 نجوا
+- **الصغار في Pclass 1** نجوا أكثر من الكبار
+
+**من Sex:**
+- معظم **الأطفال الذكور (0-14 سنة)** نجوا
+- **الإناث من 18-40 سنة** لديهن فرصة نجاة أفضل
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> From Pclass violinplot: 1st Pclass has very few children compared to other two. 1st has more old people. Almost all children (0-10) of 2nd Pclass survived. Most children of 3rd Pclass survived. Younger people of 1st Pclass survived vs older ones. From Sex: Most male children (0-14) survived. Females 18-40 have better survival chance.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل الاستنتاجات، شرح الكود بالتفصيل
+
+</details>
+
+---
+
+### 4.8. خريطة الحرارة والارتباط (Heatmap & Correlation)
+
+<!-- @render: {type: "equation-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**معامل ارتباط `Pearson` يقيس قوة العلاقة الخطية بين متغيرين — قيمته بين -1 و 1.**
+
+---
+
+#### 📐 الصيغة: Pearson Correlation Coefficient
 
 $$
 r = \frac{n(\sum xy) - (\sum x)(\sum y)}{\sqrt{[n\sum x^2 - (\sum x)^2][n\sum y^2 - (\sum y)^2]}}
 $$
 
 **الشرح:**
-> - `r` = معامل الارتباط — يقيس العلاقة الخطية بين متغيّرَين.
-> - `n` = عدد القيم = 5 في المثال.
-> - `Σxy` = مجموع حاصل ضرب كل قيمتين متقابلتين = 290.
-> - `Σx`, `Σy` = مجموع X ومجموع Y = 41، 30.
-> - `Σx²`, `Σy²` = مجموع مربعات X وY.
+> $n$ = عدد القيم
+> $x, y$ = المتغيران
+> $r$ = معامل الارتباط (بين -1 و 1)
 
-**نطاق المعامل:**
+**تفسير القيم:**
 | النطاق | التفسير |
-| --- | --- |
-| `0.0 – 0.39` | ارتباط ضعيف |
-| `0.40 – 0.69` | ارتباط متوسط |
-| `0.70 – 1.0` | ارتباط قوي |
-| قيمة سالبة | ارتباط عكسي |
+|--------|---------|
+| 0 – 0.39 | ارتباط ضعيف |
+| 0.40 – 0.69 | ارتباط متوسط |
+| 0.70 – 1.0 | ارتباط قوي |
+| قيم سالبة | ارتباط عكسي |
 
-**حساب المثال خطوة بخطوة:**
+---
 
+#### 💻 الكود: Heatmap
+
+```python
+# Simple heatmap — numeric cols only
+df_num = titanic_train[['Age', 'SibSp', 'Parch', 'Fare']]
+sns.heatmap(df_num.corr())
+
+# Full annotated heatmap
+plt.figure(figsize=(15,6))
+sns.heatmap(titanic_train.drop('PassengerId', axis=1).corr(),
+            vmax=0.6,
+            square=True,
+            annot=True)    # show numbers inside cells
+```
+
+#### ملاحظات الأسطر المهمة:
+- `.corr()` → تحسب مصفوفة الارتباط بين كل الأعمدة الرقمية تلقائياً
+- `annot=True` → يكتب قيمة الارتباط داخل كل خلية
+- `vmax=0.6` → يضبط الحد الأقصى لسلّم الألوان (مفيد للإبراز)
+- `drop('PassengerId', axis=1)` → يحذف `PassengerId` لأنه مجرد رقم تعريفي بلا معنى إحصائي
+
+**نتائج الارتباط مع `Survived`:**
+
+| العمود | الارتباط مع Survived | التفسير |
+|--------|---------------------|---------|
+| `Pclass` | -0.34 | كلما ارتفعت الدرجة (3=الأسوأ)، قلّت فرصة النجاة |
+| `Fare` | +0.26 | كلما زاد السعر، زادت فرصة النجاة |
+| `Age` | -0.077 | ارتباط ضعيف جداً |
+| `SibSp` | -0.035 | ضعيف جداً |
+| `Parch` | +0.082 | ضعيف |
+
+---
+
+#### 🔍 مثال حساب r يدوياً (من المحاضرة)
+
+**البيانات:**
 | x | y | x² | y² | xy |
-| --- | --- | --- | --- | --- |
+|---|---|----|----|----|
 | 4 | 3 | 16 | 9 | 12 |
 | 15 | 10 | 225 | 100 | 150 |
 | 8 | 6 | 64 | 36 | 48 |
 | 8 | 7 | 64 | 49 | 56 |
 | 6 | 4 | 36 | 16 | 24 |
-| **Σ=41** | **Σ=30** | **Σ=405** | **Σ=210** | **Σ=290** |
+| **41** | **30** | **405** | **210** | **290** |
 
-```text
-n = 5
-Numerator   = 5*290 - 41*30 = 1450 - 1230 = 220
-Denominator = sqrt((5*405 - 1681) * (5*210 - 900))
-            = sqrt((2025-1681) * (1050-900))
-            = sqrt(344 * 150)
-            ≈ sqrt(51600) ≈ 227
-r = 220 / 227 ≈ 0.97  → Strong positive correlation
-```
+**الحساب:**
+$$n = 5$$
+$$n(\sum xy) - (\sum x)(\sum y) = 5 \times 290 - 41 \times 30 = 1450 - 1230 = 220$$
+$$\sqrt{[5 \times 405 - 1681][5 \times 210 - 900]} = \sqrt{344 \times 150} = \sqrt{51600} \approx 227$$
+$$r = \frac{220}{227} \approx 0.97 \quad \text{(ارتباط قوي جداً!)}$$
 
-#### 💻 الكود: `heatmap` للارتباط
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** من الـ heatmap، `SibSp` و `Parch` عندهم ارتباط = 0.41 مع بعض. ماذا يعني هذا؟
+> **لماذا هذا مهم؟** يعني من عنده إخوة غالباً عنده أهل معه على السفينة — ده منطقي. لكن ارتباطهم مع `Survived` ضعيف، فمش مفيدين للنموذج بقدر `Sex` و `Pclass`.
 
-#### ما هذا الكود؟
-> يرسم خريطة حرارية (`heatmap`) تُظهر معامل ارتباط كل زوج من الأعمدة الرقمية.
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-```python
-# Select numeric columns only
-df_num = titanic_train[['Age', 'SibSp', 'Parch', 'Fare']]
+**النص الأصلي يقول:**
+> Pearson correlation coefficient [-1,1]: [0-0.39, 0.40-0.69, 0.70-1.0]. Heatmap example: Survived vs Pclass=-0.34, Age=-0.077, SibSp=-0.035, Parch=0.082, Fare=0.26. Manual calculation example with r=0.97.
 
-# Draw simple correlation heatmap
-sns.heatmap(df_num.corr())
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الصيغة، التفسير، الكود، الحساب اليدوي
+- ℹ️ إضافة من الدليل: جدول التفسير، ملاحظات الكود
 
-# Draw annotated heatmap (with actual correlation values shown)
-plt.figure(figsize=(15, 6))
-sns.heatmap(titanic_train.drop('PassengerId', axis=1).corr(),
-            vmax=0.6,        # limit color scale max
-            square=True,     # make cells square
-            annot=True)      # show correlation values in cells
-```
-
-#### شرح كل سطر:
-1. `df_num = titanic_train[['Age','SibSp','Parch','Fare']]` → اختيار أربعة أعمدة رقمية فقط.
-2. `df_num.corr()` → يحسب مصفوفة الارتباط — كل خلية = `r` بين عمودين.
-3. `drop('PassengerId', axis=1)` → حذف `PassengerId` لأنه رقم تعريف لا معنى إحصائياً له.
-4. `vmax=0.6` → أقصى قيمة للسلّم اللوني 0.6 (لإبراز الفروق).
-5. `annot=True` → يكتب قيمة `r` داخل كل خلية.
-
-**الناتج المتوقع:**
-> - `Survived` و `Fare`: ارتباط موجب = **0.26** (ضعيف إلى متوسط).
-> - `Survived` و `Pclass`: ارتباط سالب = **-0.34** (كلما ارتفعت الدرجة رقماً، انخفض البقاء).
-> - `SibSp` و `Parch`: ارتباط = **0.41** (متوسط إيجابي — من يسافر مع إخوة يسافر مع أهل).
-
-#### الدرس المستفاد:
-> ارتباط سالب بين `Pclass` و `Survived` يعني: كلما كان رقم الدرجة **أعلى** (3 > 1)، كانت احتمالية النجاة **أقل**. الدرجة الأولى في التايتانيك = الأغنى.
+</details>
 
 ---
 
-### 6. جداول المحاور (`Pivot Tables`)
+### 5. Pivot Tables (جداول المحاور)
 
-#### النص الأصلي يقول:
-> "The inference we can draw from this table is:
-> 1. The average age of survivors is 28, so young people tend to survive more.
-> 2. People who paid higher fare rates were more likely to survive — the rich survived.
-> 3. If you have parents, you had a higher chance of surviving.
-> 4. If you are a child and have siblings, you have less of a chance of surviving."
+<!-- @render: {type: "code-first", coverage: "100%"} -->
 
-#### 💻 الكود: جداول المحاور
+#### 📍 أين نحن الآن؟
+بعد الرسوم البيانية — الآن نستخرج نفس الأنماط بشكل جدولي رقمي مع `pd.pivot_table()`.
+
+#### 💡 الفكرة الأساسية
+**`pivot_table` يلخّص البيانات كجداول متقاطعة — مثالي لمقارنة متغيرات متعددة في وقت واحد.**
+
+---
+
+#### 💻 الكود: Pivot Tables متنوعة
 
 ```python
-# Pivot table: mean Age, Fare, Parch, SibSp grouped by Survived
-pd.pivot_table(titanic_train, index="Survived",
+# Mean of Age, Fare, Parch, SibSp grouped by Survived
+pd.pivot_table(titanic_train,
+               index="Survived",
                values=["Age", "SibSp", "Parch", "Fare"])
-
-# Pivot table: count tickets by Pclass for each Survived value
-print(pd.pivot_table(titanic_train, index="Survived",
-                     columns="Pclass", values="Ticket", aggfunc="count"))
-
-# Pivot table: count tickets by Sex for each Survived value
-print(pd.pivot_table(titanic_train, index="Survived",
-                     columns="Sex", values="Ticket", aggfunc="count"))
-
-# Pivot table: count tickets by Embarked for each Survived value
-print(pd.pivot_table(titanic_train, index="Survived",
-                     columns="Embarked", values="Ticket", aggfunc="count"))
 ```
 
-#### شرح كل سطر:
-1. `index="Survived"` → يجعل `Survived` (0/1) صفوف الجدول.
-2. `values=["Age","SibSp","Parch","Fare"]` → يحسب متوسط هذه القيم لكل مجموعة.
-3. `columns="Pclass"` → يجعل `Pclass` أعمدة الجدول.
-4. `aggfunc="count"` → يعدّ القيم بدلاً من حساب المتوسط.
+**الناتج:**
 
-**الناتج المتوقع:**
-```text
-Survived | Age       | Fare      | Parch    | SibSp
-0        | 30.626179 | 22.117887 | 0.329690 | 0.553734
-1        | 28.343690 | 48.395408 | 0.464912 | 0.473684
+| Survived | Age | Fare | Parch | SibSp |
+|----------|-----|------|-------|-------|
+| 0 | 30.63 | 22.12 | 0.33 | 0.55 |
+| 1 | 28.34 | 48.40 | 0.46 | 0.47 |
+
+**الاستنتاجات الأربعة من المحاضرة:**
+1. **Age:** متوسط عمر الناجين 28 — الأصغر سناً بقوا أفضل
+2. **Fare:** الناجون دفعوا أكثر من ضعف السعر (48 مقابل 22) — الأغنياء نجوا أكثر
+3. **Parch:** من كان معه آباء/أطفال نجا أكثر — ربما الآباء أنقذوا أطفالهم أولاً
+4. **SibSp:** من كان طفلاً مع إخوة كانت فرصته أقل
+
+```python
+# Count per Pclass and Survived
+print(pd.pivot_table(titanic_train,
+                     index="Survived",
+                     columns="Pclass",
+                     values="Ticket",
+                     aggfunc="count"))
+# Survived 0: Pclass1=80, Pclass2=97, Pclass3=372
+# Survived 1: Pclass1=136, Pclass2=87, Pclass3=119
+
+# Count per Sex and Survived
+print(pd.pivot_table(titanic_train,
+                     index="Survived",
+                     columns="Sex",
+                     values="Ticket",
+                     aggfunc="count"))
+# Survived 0: female=81, male=468
+# Survived 1: female=233, male=109
+
+# Count per Embarked and Survived
+print(pd.pivot_table(titanic_train,
+                     index="Survived",
+                     columns="Embarked",
+                     values="Ticket",
+                     aggfunc="count"))
+# Survived 0: C=75, Q=47, S=427
+# Survived 1: C=93, Q=30, S=217
 ```
 
-**الاستنتاجات المنطقية:**
-| الميزة | الناجون | غير الناجين | الاستنتاج |
-| --- | --- | --- | --- |
-| `Age` (متوسط) | 28.3 | 30.6 | الأصغر سناً نجوا أكثر |
-| `Fare` (متوسط) | 48.4 | 22.1 | الأكثر دفعاً (أغنى) نجوا أكثر |
-| `Parch` (متوسط) | 0.46 | 0.33 | من معهم أطفال/آباء نجوا أكثر |
-| `SibSp` (متوسط) | 0.47 | 0.55 | من معهم إخوة كثيرون نجوا أقل |
+**الاستنتاجات (من المحاضرة):**
+1. **Pclass:** ركاب الدرجة الأولى نجوا بنسبة كبيرة رغم أنهم أقل عدداً — الأغنياء نجوا
+2. **Sex:** معظم النساء نجوا، معظم الرجال ماتوا — "المرأة والأطفال أولاً" تطبّقت فعلاً
+3. **Embarked:** شيربورغ (C) عنده أعلى نسبة نجاة — يبدو غير مهم جداً
+
+#### ⚙️ الخطوات السريعة: بناء Pivot Table
+
+```algorithm
+1 | حدّد الـ index | index="Survived" | الصفوف تمثل قيم Survived (0 و 1)
+2 | حدّد الأعمدة | columns="Pclass" | كل Pclass يصبح عمود
+3 | حدّد القيمة | values="Ticket" | ما الذي تريد حسابه
+4 | حدّد الدالة | aggfunc="count" | count=عدد، mean=متوسط
+5 | اقرأ النتائج | -- | اقارن الصفوف 0 vs 1
+```
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> pd.pivot_table — avg age of survivors is 28, people who paid higher fare rates were more likely to survive (double), parents saved kids (Parch), children with siblings had less chance. Pclass confirms rich survived. Sex: women and children first. Embarked: Cherbourg had higher chance.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الكود الكامل، كل الاستنتاجات الأربعة
+
+</details>
 
 ---
 
-### 7. هندسة الميزات (`Feature Engineering`)
+### 6. هندسة الميزات (Feature Engineering)
 
-#### النص الأصلي يقول:
-> "We saw that our ticket and cabin data don't really make sense to us, so we have to simplify some of this data with feature engineering."
-> الأهداف:
-> 1. حذف القيم المفقودة من `Embarked`.
-> 2. تضمين البيانات ذات الصلة فقط.
-> 3. تحويل البيانات الفئوية رقمياً.
-> 4. تعبئة القيم المفقودة في `Age` و `Fare`.
-> 5. تطبيع عمود `Fare`.
-> 6. تحجيم البيانات بين 0 و1 باستخدام `Standard Scaler`.
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
 
-#### 7.1 تحويل عمود `Cabin` — `Transformers`
+#### 📍 أين نحن الآن؟
+بعد الفهم والتحليل — الآن نحوّل البيانات الخام لشكل يفهمه النموذج.
 
-#### 💻 الكود: استخراج معلومات من `Cabin`
+#### ⬅️ الربط مع السابق
+في القسم السابق اكتشفنا أن `Ticket` و `Cabin` صعب استخدامهم مباشرة — الآن نهندس ميزات منهم.
+
+#### 💡 الفكرة الأساسية
+**`Feature Engineering` = تحويل بيانات خام (نصوص، قيم ناقصة، أرقام خام) إلى ميزات رقمية مفيدة للنموذج.**
+
+---
+
+#### ⚙️ الخطوات السريعة: خطوات Feature Engineering في المحاضرة
+
+```algorithm
+1 | حذف الـ nulls في Embarked | .dropna() | يحذف 2 صفوف فقط
+2 | استخراج cabin_multiple | lambda + len(split) | عدد الكابينات لكل راكب
+3 | استخراج cabin_adv | lambda + str[0] | الحرف الأول من رقم الكابينة
+4 | استخراج numeric_ticket | lambda + isnumeric() | هل التذكرة رقمية (0 أو 1)
+5 | استخراج ticket_letters | lambda + join + lower | الحروف في رقم التذكرة
+6 | استخراج name_title | lambda + split(',')[1].split('.')[0].strip() | اللقب (Mr, Mrs...)
+7 | استخراج Title | str.extract regex | تنقية الألقاب ودمجها
+8 | تحويل Title لأرقام | map({Mr:1, Miss:2, Mrs:3, Master:4, Other:5}) | أرقام للنموذج
+9 | تحويل Sex لأرقام | map({female:1, male:0}) | إزالة النصوص
+10 | ملء Embarked الناقص | fillna('S') | S = الأكثر شيوعاً
+11 | تحويل Embarked لأرقام | map({S:0, C:1, Q:2}) | أرقام للنموذج
+12 | ملء Age الناقص | random in [mean±std] | يحافظ على التوزيع
+13 | تصنيف Age لشرائح | pd.cut(5 bins) → 0,1,2,3,4 | AgeBand
+14 | ملء Fare الناقص | fillna(median) | القيمة المتوسطة
+15 | تصنيف Fare لشرائح | pd.qcut(4 bins) → 0,1,2,3 | FareBand
+16 | حساب FamilySize | SibSp + Parch + 1 | حجم العيلة
+17 | حساب IsAlone | FamilySize==1 → 1, else 0 | هل مسافر لوحده؟
+18 | حذف الأعمدة الزائدة | drop() | إزالة Name, Ticket, Cabin, AgeBand, FareBand...
+```
+
+---
+
+### 6.1. تحويلات الـ Cabin
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود: cabin_multiple — عدد الكابينات
 
 ```python
-# Print sample Cabin values to understand format
-print(titanic_train.Cabin[0])    # nan (missing)
-print(titanic_train.Cabin[1])    # C85 (single cabin)
-print(titanic_train.Cabin[27])   # C23 C25 C27 (multiple cabins)
+# Print sample cabin values
+print(titanic_train.Cabin[0])    # nan
+print(titanic_train.Cabin[1])    # C85
+print(titanic_train.Cabin[27])   # C23 C25 C27  ← multiple!
+print(titanic_train.Cabin[75])   # F G73
+print(titanic_train.Cabin[311])  # B57 B59 B63 B66
 
-# Create new feature: number of cabins assigned to each passenger
+# Count number of cabins (0 if null, else count spaces+1)
 titanic_train['cabin_multiple'] = titanic_train.Cabin.apply(
-    lambda x: 0 if pd.isna(x) else len(x.split(' ')))
-# Explanation: if NaN → 0, else count space-separated cabin codes
-
-# Show distribution of cabin_multiple
+    lambda x: 0 if pd.isna(x) else len(x.split(' '))
+)
 titanic_train['cabin_multiple'].value_counts()
-
-# Create new feature: first letter of cabin (deck indicator)
-titanic_train['cabin_adv'] = titanic_train.Cabin.apply(
-    lambda x: str(x)[0])
-# Explanation: take first character of Cabin string
+# 0: 687 (null → 0)
+# 1: 180 (single cabin)
+# 2: 16, 3: 6, 4: 2
 ```
 
-#### شرح كل سطر:
-1. `pd.isna(x)` → يتحقق إذا كانت القيمة `NaN` — يُرجع `True` إذا كانت مفقودة.
-2. `x.split(' ')` → يقسّم النص على المسافات — `"C23 C25 C27"` يصبح قائمة من 3 عناصر.
-3. `len(...)` → يعدّ كبائن متعددة: `C23 C25 C27` → 3 كبائن.
-4. `str(x)[0]` → يحوّل إلى نص ثم يأخذ الحرف الأول — يُعطي حرف السطح (`deck letter`).
+#### ملاحظات الأسطر المهمة:
+- `pd.isna(x)` → يرجع `True` إذا كانت القيمة ناقصة (`NaN`)
+- `x.split(' ')` → يقسم النص عند كل مسافة — `"C23 C25 C27".split(' ')` = `['C23', 'C25', 'C27']`
+- `len(...)` → طول القائمة = عدد الكابينات
 
-#### 7.2 استخراج معلومات من `Ticket`
+---
+
+#### 💻 الكود: cabin_adv — الحرف الأول من الكابينة
 
 ```python
-# Check if ticket is purely numeric (1=yes, 0=no)
+# Extract first character of cabin (deck letter)
+titanic_train['cabin_adv'] = titanic_train.Cabin.apply(lambda x: str(x)[0])
+titanic_train['cabin_adv'].value_counts()
+# n (nan→'n'): 687, C: 59, B: 47, D: 33, E: 32, A: 15, F: 13, G: 4, T: 1
+```
+
+#### ملاحظة:
+> `str(nan)[0]` = `'n'` — الحرف الأول من كلمة `'nan'` هو `'n'`! لذلك 687 راكب بدون كابينة معروفة يصبحون `'n'`.
+
+#### 🔄 قبل / بعد: تحويل Cabin
+
+**قبل:**
+```python
+titanic_train.Cabin[27]
+# C23 C25 C27
+```
+
+**بعد:**
+```python
+titanic_train.cabin_multiple[27]  # 3 (three cabins)
+titanic_train.cabin_adv[27]       # 'C' (deck C)
+```
+
+**ماذا تغيّر؟** حوّلنا نص غير منظّم لعددين رقميين يستطيع النموذج فهمهما.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Transformers — cabin_multiple: 0 if pd.isna(x) else len(x.split(' ')). cabin_adv: str(x)[0]. Pivot table shows cabin_multiple vs Survived.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الكودين، الأرقام، الاستنتاج
+
+</details>
+
+---
+
+### 6.2. تحويلات الـ Ticket
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود: numeric_ticket و ticket_letters
+
+```python
+# Is the ticket purely numeric? (1=yes, 0=no)
 titanic_train['numeric_ticket'] = titanic_train.Ticket.apply(
-    lambda x: 1 if x.isnumeric() else 0)
+    lambda x: 1 if x.isnumeric() else 0
+)
 
-# Extract letters from ticket (prefix before last number)
+# Extract letter prefix from ticket (lowercase, no dots/slashes)
 titanic_train['ticket_letters'] = titanic_train.Ticket.apply(
-    lambda x: ''.join(x.split(' ')[:-1])
-              .replace('.', '').replace('/', '')
-              .lower() if len(x.split(' ')[:-1]) > 0 else 0)
+    lambda x: ''.join(x.split(' ')[:-1])        # join all parts except last
+              .replace('.', '')                  # remove dots
+              .replace('/', '')                  # remove slashes
+              .lower()                           # lowercase
+              if len(x.split(' ')[:-1]) > 0      # only if has prefix
+              else 0                             # else 0
+)
 ```
 
-#### 7.3 استخراج اللقب (`Title`) من الاسم
+#### ملاحظات الأسطر المهمة:
+- `x.isnumeric()` → `True` فقط إذا كل الحروف أرقام — `"113803".isnumeric()` = `True`، `"A/5 21171".isnumeric()` = `False`
+- `x.split(' ')[:-1]` → كل الكلمات ما عدا الأخيرة — `"A/5 21171".split(' ')` = `['A/5', '21171']`، `[:-1]` = `['A/5']`
+- `.replace('.','').replace('/','')` → تنظيف الرموز من `"STON/O2."` → `"STONO2"`
 
-#### النص الأصلي يقول:
-> يستخدم `regex` لاستخراج اللقب من الاسم ثم يجمّع الألقاب النادرة تحت "Other".
-> النتيجة: `Master` = 0.575، `Miss` = 0.702، `Mr` = 0.156، `Mrs` = 0.793، `Other` = 0.347
+**نتيجة على بعض القيم:**
 
-#### 💻 الكود: استخراج ومعالجة `Title`
+| `Ticket` الأصلية | `numeric_ticket` | `ticket_letters` |
+|-----------------|-----------------|-----------------|
+| `A/5 21171` | 0 | `a5` |
+| `PC 17599` | 0 | `pc` |
+| `STON/O2. 3101282` | 0 | `stono2` |
+| `113803` | 1 | 0 |
+| `373450` | 1 | 0 |
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> numeric_ticket = lambda x: 1 if x.isnumeric() else 0. ticket_letters = join all parts except last, remove dots/slashes, lowercase.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الكود كاملاً، التفسير، جدول الأمثلة
+
+</details>
+
+---
+
+### 6.3. استخراج اللقب من الاسم (Title)
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**اسم الراكب يحتوي على لقب (`Mr`, `Mrs`, `Miss`, `Master`) — هذا اللقب مفيد جداً لأنه يحدد الجنس والعمر تقريباً.**
+
+#### 💻 الكود: الطريقة الأولى (name_title بسيطة)
 
 ```python
-# Combine both datasets for consistent transformation
+# Extract title from name — name format: "Last, Title. First"
+titanic_train['name_title'] = titanic_train.Name.apply(
+    lambda x: x.split(',')[1]    # get part after comma
+               .split('.')[0]    # get part before first dot
+               .strip()          # remove spaces
+)
+titanic_train['name_title'].value_counts()
+# Mr: 517, Miss: 182, Mrs: 125, Master: 40, Dr: 7, Rev: 6, ...
+```
+
+#### 💻 الكود: الطريقة المتقدمة (Title مع regex)
+
+```python
+# Combine train and test for consistent processing
 titanic_combined_data = [titanic_train, titanic_test]
 
 for dataset in titanic_combined_data:
-    # Extract title using regex (word followed by a dot)
+    # Extract title using regex — matches word(s) followed by a dot
     dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.')
 
 for dataset in titanic_combined_data:
-    # Replace rare titles with 'Other'
+    # Group rare titles into 'Other'
     dataset['Title'] = dataset['Title'].replace(
-        ['Lady', 'Countess', 'Capt', 'Col', 'Don',
-         'Dr', 'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Other')
-    # Unify female titles
-    dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
+        ['Lady', 'Countess', 'Capt', 'Col', 'Don', 'Dr',
+         'Major', 'Rev', 'Sir', 'Jonkheer', 'Dona'], 'Other'
+    )
+    # Standardize equivalent titles
+    dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')  # French for Miss
     dataset['Title'] = dataset['Title'].replace('Ms', 'Miss')
-    dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')
-
-# Check survival rate by title
-titanic_train[['Title', 'Survived']].groupby(
-    ['Title'], as_index=False).mean()
+    dataset['Title'] = dataset['Title'].replace('Mme', 'Mrs')    # French for Mrs
 ```
 
-#### 7.4 تحويل المتغيّرات الفئوية إلى أرقام
+#### ملاحظات الأسطر المهمة:
+- `str.extract(' ([A-Za-z]+)\.')` → `regex`: ابحث عن مسافة ثم حروف ثم نقطة — يستخرج الكلمة بين المسافة والنقطة
+- `[A-Za-z]+` → مجموعة أي حروف إنجليزية (كبيرة أو صغيرة) واحدة أو أكثر
+- المجموعة `(..)` تعني الجزء الذي نريد استخراجه
+- `'Mlle' → 'Miss'` لأن `Mlle` هو `Mademoiselle` بالفرنسية = نفس `Miss`
+
+**نسب النجاة حسب اللقب:**
+
+| Title | نسبة النجاة |
+|-------|------------|
+| Mrs | 79.4% |
+| Miss | 70.3% |
+| Master | 57.5% |
+| Other | 34.8% |
+| Mr | 15.7% |
+
+#### 💻 الكود: تحويل Title لأرقام
 
 ```python
-# Map Title to numbers: Mr=1, Miss=2, Mrs=3, Master=4, Other=5
+# Map title strings to numbers
 title_mapping = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Other": 5}
 
 for dataset in titanic_combined_data:
-    dataset['Title'] = dataset['Title'].map(title_mapping)   # apply mapping
-    dataset['Title'] = dataset['Title'].fillna(0)            # fill unmapped with 0
+    dataset['Title'] = dataset['Title'].map(title_mapping)
+    dataset['Title'] = dataset['Title'].fillna(0)   # fill unmapped with 0
+```
 
-# Map Sex: female=1, male=0
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> name_title = lambda x: x.split(',')[1].split('.')[0].strip(). Full Title extraction with regex and grouping rare titles. Survival by title: Master=0.575, Miss=0.703, Mr=0.157, Mrs=0.794, Other=0.348. Map to {Mr:1, Miss:2, Mrs:3, Master:4, Other:5}.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كلا الطريقتين، الـ regex، الأرقام، جدول النجاة
+
+</details>
+
+---
+
+### 6.4. تحويل الجنس والميناء لأرقام
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود
+
+```python
+# Convert Sex to numeric: female=1, male=0
 for dataset in titanic_combined_data:
     dataset['Sex'] = dataset['Sex'].map({'female': 1, 'male': 0}).astype(int)
 
-# Fill missing Embarked with most common value 'S'
+# Check Embarked values
+titanic_train.Embarked.unique()   # ['S', 'C', 'Q', nan]
+titanic_train.Embarked.value_counts()   # S: 644, C: 168, Q: 77
+
+# Fill missing Embarked with most common (S)
 for dataset in titanic_combined_data:
     dataset['Embarked'] = dataset['Embarked'].fillna('S')
 
-# Map Embarked to numbers: S=0, C=1, Q=2
+# Convert Embarked to numeric
 for dataset in titanic_combined_data:
-    dataset['Embarked'] = dataset['Embarked'].map(
-        {'S': 0, 'C': 1, 'Q': 2}).astype(int)
+    dataset['Embarked'] = dataset['Embarked'].map({'S': 0, 'C': 1, 'Q': 2}).astype(int)
 ```
 
-#### شرح كل سطر:
-1. `title_mapping = {...}` → قاموس يربط النصوص بأرقام.
-2. `.map(title_mapping)` → يطبّق القاموس على العمود — كل قيمة نصية تصبح رقماً.
-3. `.fillna(0)` → يملأ القيم التي لم توجد في القاموس بالقيمة 0.
-4. `dataset['Embarked'].fillna('S')` → يملأ القيم المفقودة بـ `'S'` لأنها الأكثر شيوعاً (644 راكب).
+#### ملاحظات الأسطر المهمة:
+- `.map({'female': 1, 'male': 0})` → يبدّل كل نص بالرقم المقابل
+- `.astype(int)` → يضمن أن النوع `int64` وليس `float`
+- `fillna('S')` → يملأ الـ 2 قيم الناقصة بـ `S` (الأكثر شيوعاً = 644 راكب)
+- الترميز: `S=0`, `C=1`, `Q=2` (ترتيب تعسفي — ما في أفضلية)
 
-#### 7.5 معالجة القيم المفقودة في `Age`
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-#### النص الأصلي يقول:
-> يملأ القيم المفقودة بأعداد عشوائية بين `(mean - std)` و `(mean + std)`.
+**النص الأصلي يقول:**
+> Sex map {female:1, male:0}. Embarked unique: S, C, Q, nan. value_counts: S=644, C=168, Q=77. fillna('S'). map {S:0, C:1, Q:2}.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل التحويلات، سبب S للملء
+
+</details>
+
+---
+
+### 6.5. ملء القيم المفقودة في العمر (Age)
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**بدلاً من ملء 177 قيمة ناقصة بالمتوسط (يشوّه التوزيع)، نملأها بأرقام عشوائية في نطاق [mean - std, mean + std].**
+
+#### 💻 الكود
 
 ```python
 import sys
 
 for dataset in titanic_combined_data:
-    age_avg = dataset['Age'].mean()          # calculate mean age
-    age_std = dataset['Age'].std()           # calculate std of age
-    age_null_count = dataset['Age'].isnull().sum()  # count missing values
+    age_avg = dataset['Age'].mean()             # average age
+    age_std = dataset['Age'].std()              # standard deviation
+    age_null_count = dataset['Age'].isnull().sum()  # how many missing
 
-    # Generate random integers within 1 std from the mean
+    # Generate random integers in [mean-std, mean+std]
     age_null_random_list = np.random.randint(
-        age_avg - age_std, age_avg + age_std, size=age_null_count)
-
-    # Fill missing values with random values
+        age_avg - age_std,       # lower bound ≈ 15
+        age_avg + age_std,       # upper bound ≈ 45
+        size=age_null_count      # number of values needed
+    )
+    # Fill missing values
     dataset['Age'][np.isnan(dataset['Age'])] = age_null_random_list
+    dataset['Age'] = dataset['Age'].astype(int)  # convert to integer
 
-    # Convert to integer
-    dataset['Age'] = dataset['Age'].astype(int)
-
-print(age_avg)          # ≈ 30.27
-print(age_null_count)   # 86 (in test set)
+print(age_avg)         # 30.27
+print(age_null_count)  # 86 (in test) or 177 (in train)
 ```
 
-#### شرح كل سطر:
-1. `age_avg - age_std` إلى `age_avg + age_std` → نطاق معقول للعمر (لا نريد قيم متطرفة).
-2. `np.random.randint(low, high, size=n)` → يولّد `n` عدداً صحيحاً عشوائياً في النطاق.
-3. `np.isnan(...)` → يجد مواقع `NaN` لاستبدالها.
+#### ملاحظات الأسطر المهمة:
+- `np.random.randint(low, high, size)` → يولّد `size` عدد من الأعداد الصحيحة العشوائية بين `low` و `high`
+- `np.isnan(dataset['Age'])` → `mask` بوليانية — `True` حيث يوجد `NaN`
+- `dataset['Age'][mask] = list` → يضع القيم العشوائية محل الـ `NaN` فقط
 
-**الفهم الخاطئ ❌:** تملأ القيم المفقودة دائماً بالمتوسط.
-**الفهم الصحيح ✅:** تملأها بقيم عشوائية قريبة من المتوسط للحفاظ على التوزيع الطبيعي.
+#### مهم للامتحان ⚠️:
+> لماذا نملأ بقيم عشوائية في [mean±std] بدل المتوسط فقط؟ لأن ملء كل القيم الناقصة بالمتوسط يخلق **"spike" مصطنع** عند المتوسط في التوزيع — يشوّه إحصاءات البيانات. القيم العشوائية في النطاق تحافظ على التوزيع الطبيعي.
 
-#### 7.6 تحويل `Age` و`Fare` إلى فئات (`Bands`)
+---
+
+### 6.6. تصنيف العمر والسعر لشرائح (AgeBand & FareBand)
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**بدلاً من العمر كرقم مستمر (0-80)، نقسّمه لـ 5 شرائح (0,1,2,3,4) — ده بيقلّل الضوضاء ويساعد النموذج.**
+
+#### 💻 الكود: AgeBand
 
 ```python
-# Divide Age into 5 equal bins and check survival rate per bin
+# Cut Age into 5 equal-width bins
 titanic_train['AgeBand'] = pd.cut(titanic_train['Age'], 5)
-print(titanic_train[['AgeBand', 'Survived']].groupby(
-    ['AgeBand'], as_index=False).mean())
 
-# Map age groups to ordinal numbers
+# Show survival rate by age band
+print(titanic_train[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index=False).mean())
+# (-0.08, 16.0]:  0.526  → age 0-16
+# (16.0, 32.0]:   0.352  → age 16-32
+# (32.0, 48.0]:   0.372  → age 32-48
+# (48.0, 64.0]:   0.435  → age 48-64
+# (64.0, 80.0]:   0.091  → age 64-80
+
+# Map bands to integers 0-4
 for dataset in titanic_combined_data:
-    dataset.loc[dataset['Age'] <= 16, 'Age'] = 0          # children
-    dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 1  # young adults
-    dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 2  # adults
-    dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3  # middle-aged
-    dataset.loc[dataset['Age'] > 64, 'Age'] = 4            # seniors
+    dataset.loc[dataset['Age'] <= 16, 'Age'] = 0
+    dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 1
+    dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 2
+    dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3
+    dataset.loc[dataset['Age'] > 64, 'Age'] = 4
+```
 
+#### ملاحظات الأسطر المهمة:
+- `pd.cut(col, 5)` → يقسم إلى 5 فترات **متساوية العرض** (كل فترة 16 سنة تقريباً)
+- `dataset.loc[condition, 'Age'] = value` → يضع القيمة فقط حيث الشرط = `True`
+- الشرط المركب: `(dataset['Age'] > 16) & (dataset['Age'] <= 32)` → الـ `&` للـ "AND" بين شرطين
+
+**الفرق بين pd.cut و pd.qcut:**
+
+| المعيار | `pd.cut()` | `pd.qcut()` |
+|---------|-----------|------------|
+| التقسيم | فترات متساوية العرض | فترات متساوية العدد |
+| مناسب لـ | توزيع منتظم | توزيع متحيز |
+| مثال | Ages: 0-16, 16-32, 32-48 | كل ربع يحوي 25% من البيانات |
+
+---
+
+#### 💻 الكود: FareBand
+
+```python
 # Fill missing Fare with median
 for dataset in titanic_combined_data:
     dataset['Fare'] = dataset['Fare'].fillna(titanic_train['Fare'].median())
 
-# Divide Fare into 4 quantile-based bins
+# Cut Fare into 4 equal-count bins (quantile)
 titanic_train['FareBand'] = pd.qcut(titanic_train['Fare'], 4)
-print(titanic_train[['FareBand', 'Survived']].groupby(
-    ['FareBand'], as_index=False).mean())
 
-# Map fare groups to ordinal numbers
+print(titanic_train[['FareBand', 'Survived']].groupby(['FareBand'], as_index=False).mean())
+# (-0.001, 7.91]:  0.197  → cheapest fares
+# (7.91, 14.454]:  0.304
+# (14.454, 31.0]:  0.455
+# (31.0, 512.329]: 0.581  → most expensive → highest survival!
+
+# Map to integers 0-3
 for dataset in titanic_combined_data:
     dataset.loc[dataset['Fare'] <= 7.91, 'Fare'] = 0
     dataset.loc[(dataset['Fare'] > 7.91) & (dataset['Fare'] <= 14.454), 'Fare'] = 1
@@ -673,1395 +1200,835 @@ for dataset in titanic_combined_data:
     dataset['Fare'] = dataset['Fare'].astype(int)
 ```
 
-#### شرح كل سطر:
-1. `pd.cut(..., 5)` → يقسّم النطاق إلى 5 فئات **متساوية الحجم** (بالمدى، لا العدد).
-2. `pd.qcut(..., 4)` → يقسّم إلى 4 فئات **متساوية العدد** (كل ربعيل نفس العدد من الركاب).
-3. `dataset.loc[condition, 'Age'] = value` → يضع قيمة في الصفوف التي تحقق الشرط.
+#### ملاحظة:
+> لماذا `pd.qcut` للـ `Fare` بدل `pd.cut`؟ لأن `Fare` موزّع بشكل منحرف جداً (معظم الركاب دفعوا سعراً رخيصاً وقليل دفعوا أسعاراً عالية جداً) — `pd.qcut` يضمن أن كل ربع يحوي نفس عدد الركاب تقريباً.
 
-#### 7.7 ميزة حجم العائلة (`FamilySize`) و (`IsAlone`)
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> pd.cut(titanic_train['Age'], 5) → 5 bins. map to 0-4 with dataset.loc. Fare: fillna(median), pd.qcut(4 bins), map to 0-3.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كلا الكودين، الفرق pd.cut/pd.qcut، جداول النتائج
+
+</details>
+
+---
+
+### 6.7. حجم العيلة (FamilySize) و هل مسافر لوحده (IsAlone)
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💡 الفكرة الأساسية
+**`FamilySize = SibSp + Parch + 1` (1 للراكب نفسه) — ميزة مشتقة تجمع معلومتين في واحدة.**
+
+#### 💻 الكود
 
 ```python
-# Create FamilySize = SibSp + Parch + 1 (including the passenger)
 for dataset in titanic_combined_data:
-    dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
+    dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1  # +1 for self
 
-# Create IsAlone feature: 1 if alone, 0 if with family
+# Survival rate by family size
+print(titanic_train[['FamilySize', 'Survived']].groupby(['FamilySize'], as_index=False).mean())
+# 1 (alone):   0.304
+# 2:           0.553
+# 3:           0.578
+# 4:           0.724  ← best!
+# 5:           0.200
+# 6:           0.136
+# 7:           0.333
+# 8:           0.000
+# 11:          0.000
+
 for dataset in titanic_combined_data:
-    dataset['IsAlone'] = 0                                        # default: not alone
-    dataset.loc[dataset['FamilySize'] == 1, 'IsAlone'] = 1       # alone if family size = 1
+    dataset['IsAlone'] = 0                                              # default: not alone
+    dataset.loc[dataset['FamilySize'] == 1, 'IsAlone'] = 1             # alone if family=1
 
-# Check survival rate by IsAlone
-print(titanic_train[['IsAlone', 'Survived']].groupby(
-    ['IsAlone'], as_index=False).mean())
+# Survival by IsAlone
+print(titanic_train[['IsAlone', 'Survived']].groupby(['IsAlone'], as_index=False).mean())
+# Not Alone (0): 0.506
+# Alone (1):     0.304
 ```
 
-**الناتج:** `IsAlone=0` (مع عائلة) → معدل نجاة = 0.505، `IsAlone=1` (وحيد) → 0.303.
+#### ملاحظات الأسطر المهمة:
+- `+1` في `FamilySize` = نحسب الراكب نفسه ضمن عيلته
+- العيلات المثالية = حجم 4 (72% نجاة) — كبيرة كفاية للمساعدة، صغيرة كفاية للتنسيق
+- العيلات الكبيرة جداً (8, 11) = 0% نجاة! صعب تنسيق كل ده في حالة طوارئ
 
-#### 7.8 حذف الأعمدة غير الضرورية والتجهيز النهائي
+#### 💡 التشبيه:
+> مسافر لوحده زي شخص بيواجه كارثة بدون أهل — مش عنده أحد يساعده أو يحميه. العيلات الصغيرة (2-4) كانت الأفضل لأن الأب مثلاً يقدر يحمي أطفاله ويوصّلهم للقوارب بسرعة.
+> **وجه الشبه:** `IsAlone = 1` = الراكب المنفرد الذي ليس له من يهتم به
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> FamilySize = SibSp + Parch + 1. Survival rates: 1=0.304, 2=0.553, 3=0.578, 4=0.724, etc. IsAlone=0 if FamilySize!=1 else 1. Not Alone: 0.506, Alone: 0.304.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: الكود، الأرقام، التفسير
+
+</details>
+
+---
+
+### 6.8. حذف الأعمدة غير الضرورية وتحضير X, y
+
+<!-- @render: {type: "code-first", coverage: "100%"} -->
+
+#### 💻 الكود: حذف الميزات غير المفيدة
 
 ```python
-# Drop features that won't be used in the model
+# Drop raw features that are now encoded or irrelevant
 features_drop1 = ['Name', 'SibSp', 'Parch', 'Ticket', 'Cabin', 'FamilySize']
-features_drop2 = ['cabin_multiple', 'cabin_adv', 'numeric_ticket',
-                  'ticket_letters', 'name_title']
+features_drop2 = ['cabin_multiple', 'cabin_adv', 'numeric_ticket', 'ticket_letters', 'name_title']
 
 titanic_train = titanic_train.drop(features_drop1, axis=1)
 titanic_train = titanic_train.drop(features_drop2, axis=1)
+
 titanic_test = titanic_test.drop(features_drop1, axis=1)
 
 # Drop temporary band columns
 titanic_train = titanic_train.drop(['AgeBand', 'FareBand'], axis=1)
 
-# Preview cleaned dataset
 titanic_train.head()
+# PassengerId | Survived | Pclass | Sex | Age | Fare | Embarked | Title | IsAlone
+#      1      |     0    |   3    |  0  |  1  |  0   |    0     |   1   |   0
 ```
 
-**الناتج المتوقع بعد التنظيف:**
-
-| PassengerId | Survived | Pclass | Sex | Age | Fare | Embarked | Title | IsAlone |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 0 | 3 | 0 | 1 | 0 | 0 | 1 | 0 |
-| 2 | 1 | 1 | 1 | 2 | 3 | 1 | 3 | 0 |
-
-#### 7.9 تجهيز `X_train` و `y_train` و `X_test`
+#### 💻 الكود: تحضير X و y للتدريب
 
 ```python
-# Separate features (X) from target (y)
-X_train = titanic_train.drop('Survived', axis=1)   # features only
-y_train = titanic_train['Survived']                  # target only
+# Split features and target
+X_train = titanic_train.drop('Survived', axis=1)   # all columns except target
+y_train = titanic_train['Survived']                  # target column only
 
-X_test = titanic_test.drop("Survived", axis=1).copy()   # test features
+X_test = titanic_test.drop("Survived", axis=1).copy()  # test features
 
-# Verify shapes
-X_train.shape, y_train.shape, X_test.shape
-# Result: ((891, 8), (891,), (418, 8))
+print(X_train.shape, y_train.shape, X_test.shape)
+# ((891, 8), (891,), (418, 8))
+```
+
+#### ملاحظات الأسطر المهمة:
+- `drop('Survived', axis=1)` → `axis=1` يعني عمود (لا صف) — يحذف عمود `Survived` من الأعمدة
+- `y_train = titanic_train['Survived']` → الـ target فقط (ما نريد التنبؤ به)
+- `.copy()` → ضروري لـ `X_test` لتجنب `SettingWithCopyWarning`
+
+**الشكل النهائي للبيانات:**
+
+| | `PassengerId` | `Pclass` | `Sex` | `Age` | `Fare` | `Embarked` | `Title` | `IsAlone` |
+|--|--|--|--|--|--|--|--|--|
+| كل قيمة | رقم | 1,2,3 | 0,1 | 0,1,2,3,4 | 0,1,2,3 | 0,1,2 | 1,2,3,4,5 | 0,1 |
+| نوع | `int64` | `int64` | `int32` | `int32` | `int32` | `int32` | `int64` | `int64` |
+
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** لماذا نحذف `FamilySize` رغم أننا حسبناها؟
+> **لماذا هذا مهم؟** لأنها تحتوي نفس المعلومات الموجودة في `SibSp` + `Parch` + `IsAlone` — أخذنا منها `IsAlone` الذي هو أفضل تمثيل، وحذفنا `SibSp` و `Parch` و `FamilySize` لتجنب الـ redundancy.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> features_drop1=['Name','SibSp','Parch','Ticket','Cabin','FamilySize'], features_drop2=[...]. X_train=(891,8), y_train=(891,), X_test=(418,8).
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل الكود، الجدول النهائي، سبب الحذف
+
+</details>
+
+---
+
+### 7. نشر النماذج (Model Deployment)
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+
+#### 📍 أين نحن الآن؟
+بعد تحضير البيانات — الآن نُدرّب عدة نماذج ونقارن دقتها.
+
+#### ⬅️ الربط مع السابق
+`X_train`, `y_train`, `X_test` جاهزة — كل النماذج تستخدم نفس الواجهة: `.fit()` للتدريب، `.predict()` للتنبؤ، `.score()` للدقة.
+
+#### 💡 الفكرة الأساسية
+**كل نماذج `sklearn` تتبع نفس الـ API — فقط الخوارزمية تختلف، بقية الكود ثابت.**
+
+---
+
+#### 📊 المخطط: دورة تدريب النموذج
+
+#### ما هذا المخطط؟
+> يوضّح الخطوات المتكررة لكل نموذج.
+
+| # | المرحلة | الدخل | الخرج | الملاحظات |
+|---|---------|-------|-------|-----------|
+| 1 | إنشاء النموذج | params | object | `clf = ModelName()` |
+| 2 | التدريب | X_train, y_train | trained model | `clf.fit()` |
+| 3 | التنبؤ | X_test | predictions array | `clf.predict()` |
+| 4 | قياس الدقة | X_train, y_train | float (0-100) | `clf.score() * 100` |
+
+```mermaid
+flowchart TD
+    A["clf = Model()"] --> B["clf.fit(X_train, y_train)"]
+    B --> C["clf.predict(X_test)"]
+    B --> D["clf.score(X_train, y_train) * 100"]
+    C --> E["y_pred (predictions)"]
+    D --> F["accuracy %"]
 ```
 
 ---
 
-### 8. نشر النماذج (`Model Deployment`)
-
-#### النص الأصلي يقول:
-> "Here we will simply deploy the various models with default parameters and see which one yields the best result. The models: Logistic regression, K Nearest Neighbour, Support Vector classifier."
-
-#### 💻 الكود: تدريب وتقييم النماذج
-
-#### ما هذا الكود؟
-> يستورد عدة نماذج `sklearn`، يدرّب كل واحد على `X_train` و `y_train`، ثم يقيّمه على بيانات التدريب.
+#### 💻 الكود: استيراد النماذج
 
 ```python
-from sklearn.linear_model import LogisticRegression    # logistic regression
-from sklearn.svm import SVC, LinearSVC                 # support vector classifiers
-from sklearn.neighbors import KNeighborsClassifier     # k-nearest neighbors
-from sklearn.tree import DecisionTreeClassifier        # decision tree
-from sklearn.ensemble import RandomForestClassifier    # random forest
-from sklearn.naive_bayes import GaussianNB             # naive bayes
-from sklearn.linear_model import Perceptron            # perceptron
-from sklearn.linear_model import SGDClassifier         # stochastic gradient descent
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+```
 
-# --- Logistic Regression ---
-clf = LogisticRegression()               # initialize model
-clf.fit(X_train, y_train)                # train model
-y_pred_log_reg = clf.predict(X_test)    # predict on test data
-acc_log_reg = round(clf.score(X_train, y_train) * 100, 2)  # training accuracy
-print(str(acc_log_reg) + ' percent')    # 80.58 percent
+---
 
-# --- Support Vector Classifier (SVC) ---
+#### 💻 الكود: Logistic Regression
+
+```python
+clf = LogisticRegression()
+clf.fit(X_train, y_train)                                      # train
+y_pred_log_reg = clf.predict(X_test)                           # predict on test
+acc_log_reg = round(clf.score(X_train, y_train) * 100, 2)     # accuracy on TRAIN
+print(str(acc_log_reg) + ' percent')
+# 80.58 percent
+```
+
+---
+
+#### 💻 الكود: SVC و LinearSVC و KNN
+
+```python
+# SVC (Support Vector Classifier with kernel)
 clf = SVC()
 clf.fit(X_train, y_train)
 y_pred_svc = clf.predict(X_test)
 acc_svc = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_svc)  # 94.95
+print(acc_svc)   # 94.95
 
-# --- Linear SVC ---
+# LinearSVC (Linear kernel)
 clf = LinearSVC()
 clf.fit(X_train, y_train)
 y_pred_linear_svc = clf.predict(X_test)
 acc_linear_svc = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_linear_svc)  # 80.81
+print(acc_linear_svc)   # 80.81
 
-# --- K Nearest Neighbors ---
-clf = KNeighborsClassifier(n_neighbors=3)   # k=3 neighbors
+# K Nearest Neighbors
+clf = KNeighborsClassifier(n_neighbors=3)   # use 3 nearest neighbors
 clf.fit(X_train, y_train)
 y_pred_knn = clf.predict(X_test)
 acc_knn = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_knn)  # 79.57
+print(acc_knn)   # 79.57
+```
 
-# --- Decision Tree ---
+---
+
+#### 💻 الكود: Decision Tree و GaussianNB و Perceptron
+
+```python
+# Decision Tree
 clf = DecisionTreeClassifier()
 clf.fit(X_train, y_train)
 y_pred_decision_tree = clf.predict(X_test)
 acc_decision_tree = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_decision_tree)  # 100.0
+print(acc_decision_tree)   # 100.0  ← OVERFITTING!
 
-# --- Gaussian Naive Bayes ---
+# Gaussian Naive Bayes
 clf = GaussianNB()
 clf.fit(X_train, y_train)
 y_pred_gnb = clf.predict(X_test)
 acc_gnb = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_gnb)  # 77.78
+print(acc_gnb)   # 77.78
 
-# --- Perceptron ---
+# Perceptron
 clf = Perceptron(max_iter=5, tol=None)
 clf.fit(X_train, y_train)
 y_pred_perceptron = clf.predict(X_test)
 acc_perceptron = round(clf.score(X_train, y_train) * 100, 2)
-print(acc_perceptron)  # 61.95
+print(acc_perceptron)   # 61.95
 ```
 
-#### شرح كل سطر:
-1. `LogisticRegression()` → نموذج `Logistic Regression` — رغم الاسم هو للتصنيف لا الانحدار.
-2. `.fit(X_train, y_train)` → يدرّب النموذج (يتعلم الأوزان من البيانات).
-3. `.predict(X_test)` → يُطبّق النموذج على `X_test` ويُنتج تنبؤات.
-4. `.score(X_train, y_train)` → يحسب دقة النموذج على بيانات التدريب (ليس `X_test`).
-5. `round(..., 2)` → تقريب لمنزلتين عشريتين.
-6. `KNeighborsClassifier(n_neighbors=3)` → يصنّف كل نقطة بحسب أصوات أقرب 3 جيران.
-7. `DecisionTreeClassifier()` → يبني شجرة قرار — `100%` على `train` = إشارة `overfitting`.
+---
 
-#### مقارنة النماذج
+#### ⚖️ مقارنة سريعة: النماذج المُختبَرة
 
-| النموذج | دقة التدريب (%) | ملاحظة |
-| --- | --- | --- |
-| `DecisionTreeClassifier` | **100.0** | `Overfitting` — يحفظ البيانات |
-| `SVC` | **94.95** | الأعلى دقة بدون `overfitting` واضح |
-| `LinearSVC` | 80.81 | أبسط من `SVC` |
-| `LogisticRegression` | 80.58 | سريع وقابل للتفسير |
-| `KNeighborsClassifier` | 79.57 | يعتمد على k |
-| `GaussianNB` | 77.78 | مناسب لبيانات صغيرة |
-| `Perceptron` | 61.95 | الأضعف — لا يُناسب هذه المسألة |
+| النموذج | الدقة على Train | الملاحظة |
+|---------|----------------|---------|
+| `DecisionTreeClassifier` | **100.0%** | ⚠️ Overfitting |
+| `SVC` | **94.95%** | ✅ أفضل (تعقيد عالٍ، ممتاز لبيانات صغيرة) |
+| `LinearSVC` | **80.81%** | جيد |
+| `LogisticRegression` | **80.58%** | جيد وسريع |
+| `KNeighborsClassifier(3)` | **79.57%** | مقبول |
+| `GaussianNB` | **77.78%** | ضعيف نسبياً |
+| `Perceptron` | **61.95%** | الأضعف |
 
 #### مهم للامتحان ⚠️:
-> `DecisionTree` بدقة 100% على `training set` = `Overfitting`. هذا يعني النموذج حفظ البيانات ولم يتعلّم. الاختبار الحقيقي هو الدقة على `test set`.
+> `clf.score(X_train, y_train)` تقيس الدقة على **بيانات التدريب نفسها** وليس الاختبار! ده شائع جداً في الامتحانات. لو `score` على `X_train` = 100% ده `overfitting` وليس "أداء ممتاز".
 
----
+#### الفهم الخاطئ ❌:
+النموذج ذو الدقة الأعلى على التدريب هو الأفضل دائماً
 
-## الجزء الثاني: ملخص منظم
+#### الفهم الصحيح ✅:
+النموذج الأفضل هو الذي يُعمّم جيداً على بيانات لم يرها — `100%` على التدريب = `Overfitting` = النموذج حفظ البيانات ولم يتعلّم الأنماط الحقيقية
 
-### أهم التعاريف والمفاهيم
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-| المصطلح | التعريف | مثال/ملاحظة |
-| --- | --- | --- |
-| `Binary Classification` | تصنيف إلى فئتين فقط (0 أو 1) | نجا / لم ينجُ |
-| `Training set` | البيانات التي يتعلم منها النموذج | 891 راكب |
-| `Test set` | البيانات التي نختبر عليها النموذج | 418 راكب |
-| `EDA` | Exploratory Data Analysis — استكشاف البيانات بصرياً قبل النمذجة | `barplot`, `heatmap`, `violinplot` |
-| `Feature Engineering` | إنشاء أو تحويل الميزات لتحسين النموذج | `Title`, `FamilySize`, `IsAlone` |
-| `Overfitting` | النموذج يحفظ بيانات التدريب ولا يعمّم على بيانات جديدة | `DecisionTree` بدقة 100% |
-| `Pearson r` | معامل الارتباط الخطي بين متغيّرَين ∈ [-1, 1] | `SibSp` و `Parch` = 0.41 |
-| `pivot_table` | جدول محاور لتجميع وتلخيص البيانات | متوسط العمر حسب `Survived` |
-| `groupby` | تجميع الصفوف حسب قيمة عمود ثم تطبيق دالة | `groupby('Pclass').mean()` |
-| `fillna` | تعبئة القيم المفقودة (`NaN`) | `.fillna('S')` للـ `Embarked` |
-| `lambda` | دالة مجهولة قصيرة الاستخدام الفوري | `lambda x: 0 if pd.isna(x) else ...` |
-| `pd.cut` | تقسيم نطاق رقمي إلى فئات متساوية الحجم | `AgeBand` |
-| `pd.qcut` | تقسيم إلى فئات متساوية العدد (ربيعيات) | `FareBand` |
+**النص الأصلي يقول:**
+> Model Deployment: LogisticRegression=80.58, SVC=94.95, LinearSVC=80.81, KNN(3)=79.57, DecisionTree=100.0, GaussianNB=77.78, Perceptron=61.95. Various sklearn models imported and run with default parameters.
 
----
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل النماذج، الكود، جدول المقارنة، تحذير Overfitting
 
-### المكونات الرئيسية (مرجع سريع)
-
-| الأداة | الوظيفة | ملاحظة |
-| --- | --- | --- |
-| `pd.read_csv()` | قراءة ملف `CSV` إلى `DataFrame` | المسار يجب أن يكون صحيحاً |
-| `df.describe()` | إحصاءات وصفية للأعمدة الرقمية | `count`, `mean`, `std`, `min`, `max` |
-| `df.isnull().sum()` | عدّ القيم المفقودة | ضروري قبل أي معالجة |
-| `sns.barplot()` | مخطط أعمدة مع فترة ثقة | مثالي لمقارنة المتوسطات |
-| `sns.heatmap()` | خريطة حرارية للارتباط | `annot=True` لإظهار الأرقام |
-| `sns.violinplot()` | مخطط كمان يجمع `boxplot` و `KDE` | `split=True` للمقارنة |
-| `sns.catplot()` | مخطط فئوي متعدد الأبعاد | `col=` لإنشاء لوحات فرعية |
-| `.fit()` | تدريب النموذج | يتعلم من `X_train`, `y_train` |
-| `.predict()` | التنبؤ على بيانات جديدة | يُطبَّق على `X_test` |
-| `.score()` | حساب دقة النموذج | `(صحيح / إجمالي) × 100` |
-
----
-
-### جداول مقارنات سريعة
-
-| المعيار | `pd.cut()` | `pd.qcut()` |
-| --- | --- | --- |
-| أساس التقسيم | نطاق متساوٍ | عدد متساوٍ في كل فئة |
-| الاستخدام | `AgeBand` (0-80 تُقسم لـ5) | `FareBand` (4 ربيعيات) |
-| متى تختاره | عندما النطاق ذو معنى | عندما التوزيع المتوازن مهم |
-
-| المعيار | `SVC` | `LinearSVC` |
-| --- | --- | --- |
-| النواة (`kernel`) | `RBF` (غير خطي) | خطي فقط |
-| الدقة في المثال | 94.95% | 80.81% |
-| السرعة | أبطأ | أسرع |
-| متى تختاره | بيانات غير خطية | بيانات كبيرة وخطية |
-
----
-
-### قاموس المصطلحات
-
-| الفئة | المصطلحات |
-| --- | --- |
-| بيانات | `DataFrame`, `CSV`, `NaN`, `dtype`, `shape`, `index` |
-| إحصاء | `mean`, `std`, `median`, `quartile`, `Pearson r`, `correlation` |
-| تصوير | `barplot`, `heatmap`, `violinplot`, `catplot`, `FacetGrid` |
-| هندسة ميزات | `feature engineering`, `label encoding`, `binning`, `fillna`, `lambda` |
-| نمذجة | `training set`, `test set`, `fit`, `predict`, `score`, `accuracy` |
-| نماذج | `LogisticRegression`, `SVC`, `LinearSVC`, `KNN`, `DecisionTree`, `GaussianNB`, `Perceptron` |
-
----
-
-### الأخطاء الشائعة عند الطلاب ⚠️
-
-| الخطأ | التصحيح |
-| --- | --- |
-| الاعتقاد بأن `describe()` يشمل الأعمدة النصية تلقائياً | يجب إضافة `include=['O']` للأعمدة النصية |
-| تقييم النموذج على `X_train` واعتبارها الدقة الحقيقية | الدقة الحقيقية تقاس على `X_test` |
-| اعتبار `DecisionTree` بدقة 100% نتيجة ممتازة | 100% على `train` = `Overfitting` |
-| نسيان تطبيق نفس تحويلات `train` على `test` | استخدم `titanic_combined_data` وطبّق على كليهما |
-| استخدام `pd.cut` بدل `pd.qcut` عندما التوزيع متحيّز | `pd.qcut` يضمن عدداً متساوياً في كل فئة |
-| تعبئة `NaN` في `Age` بالمتوسط فقط | تعبئة عشوائية قريبة من المتوسط تحافظ على التوزيع |
-
----
-
-### خطوات وإجراءات المحاضرة
-
-#### ⚙️ الخطوات / الخوارزمية: الخط الكامل لمشروع ML على تايتانيك
-
-> هدف هذه العملية: تحويل البيانات الخام إلى نموذج تنبؤي جاهز للتقييم.
-
-```algorithm
-1  | استيراد المكتبات             | pandas, numpy, seaborn, matplotlib | تحميل أدوات التحليل والتصوير
-2  | قراءة البيانات               | pd.read_csv()                       | تحميل train (891) و test (418)
-3  | استكشاف البيانات             | .describe(), .isnull().sum()        | فهم البنية والقيم المفقودة
-4  | تصوير العلاقات               | sns.barplot, catplot, violinplot    | تحديد الميزات المؤثرة بصرياً
-5  | حساب الارتباط                | .corr(), sns.heatmap()             | قياس العلاقة الإحصائية بين الميزات
-6  | جداول المحاور                | pd.pivot_table()                   | استنتاجات عميقة من التجميع
-7  | هندسة الميزات                | lambda, str.extract, pd.cut        | إنشاء Title, cabin_multiple, FamilySize, IsAlone
-8  | تحويل فئوي لرقمي             | .map(), title_mapping              | تحويل Sex, Embarked, Title لأرقام
-9  | معالجة القيم المفقودة        | fillna, np.random.randint          | تعبئة Age و Fare و Embarked
-10 | تقسيم إلى فئات              | pd.cut(), pd.qcut(), .loc[]         | تحويل Age و Fare لفئات رقمية (0-4)
-11 | حذف الأعمدة غير الضرورية    | .drop()                            | Name, Ticket, Cabin, SibSp, Parch, FamilySize…
-12 | تجهيز X_train, y_train, X_test | .drop('Survived'), df['Survived'] | فصل الميزات عن الهدف
-13 | تدريب النماذج                | .fit(X_train, y_train)             | تطبيق Logistic, SVC, KNN, DecisionTree…
-14 | تقييم النماذج               | .score(X_train, y_train)           | مقارنة الدقة واختيار الأفضل
-```
-
-#### نقاط التنفيذ:
-- يجب دائماً تطبيق نفس التحويلات على `train` و `test` معاً.
-- لا تستخدم `X_train` في التقييم النهائي — استخدم `X_test`.
-- `Overfitting` علامته دقة عالية جداً على `train` مع انخفاض على `test`.
-
----
-
-#### ⚙️ الخطوات / الخوارزمية: حساب معامل ارتباط بيرسون يدوياً
-
-> لحساب `Pearson r` بين مجموعتين من البيانات.
-
-```algorithm
-1 | حضّر جدول القيم              | قلم وورقة / Excel | أعمدة: x, y, x², y², xy
-2 | احسب Σx, Σy, Σx², Σy², Σxy  | الجمع            | مجموع كل عمود
-3 | احسب البسط (Numerator)       | الصيغة           | n(Σxy) - (Σx)(Σy)
-4 | احسب المقام (Denominator)    | الجذر التربيعي   | sqrt([nΣx² - (Σx)²][nΣy² - (Σy)²])
-5 | قسّم البسط على المقام        | القسمة           | r = Numerator / Denominator
-6 | فسّر النتيجة                  | الجدول المرجعي   | 0-0.39 ضعيف, 0.40-0.69 متوسط, 0.70-1.0 قوي
-```
-
----
-
-### أنماط الأكواد والبنى المتكررة
-
-| النمط | البنية الأساسية | متى تستخدمه |
-| --- | --- | --- |
-| تصفية البيانات | `df[df['col'] == value]` | عزل مجموعة محددة من الصفوف |
-| حساب نسبة البقاء | `df.groupby('col')['Survived'].mean()` | نسبة الناجين لكل فئة |
-| تحويل فئوي | `df['col'].map({'A': 1, 'B': 0})` | تحويل نص لرقم |
-| تعبئة مفقود | `df['col'].fillna(df['col'].median())` | تعبئة `NaN` بالوسيط |
-| تطبيق دالة | `df['col'].apply(lambda x: ...)` | تحويل كل قيمة باستخدام دالة |
-| قطع فئات | `df.loc[df['Age'] <= 16, 'Age'] = 0` | تحويل قيم مستمرة لفئات |
-| تدريب نموذج | `clf.fit(X_train, y_train)` | كل نماذج `sklearn` |
-| تنبؤ نموذج | `y_pred = clf.predict(X_test)` | استخراج تنبؤات على بيانات جديدة |
-
----
-
-### الأفكار الرئيسية الشاملة
-
-1. **مشروع `ML` الكامل**: ليس مجرد تطبيق نموذج — 70% من الوقت في `EDA` و `Feature Engineering`.
-2. **القيم المفقودة (`Missing Values`)**: تجاهلها يكسر النموذج. يجب معالجتها بطريقة ذكية.
-3. **`Survived` كمتوسط**: بما أن القيم 0 و1، يمكن استخدام `.mean()` مباشرة لحساب نسبة البقاء.
-4. **الارتباط لا يعني السببية**: `Pclass` مرتبط بـ`Survived` لكن هذا لا يعني أن الدرجة هي السبب المباشر — السبب قد يكون الثروة أو موقع الكابينة.
-5. **`Overfitting` مقابل `Underfitting`**: `DecisionTree` بـ100% هو `Overfitting`. `Perceptron` بـ62% هو `Underfitting`.
+</details>
 
 ---
 
 ## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
 
-> **16 سؤالاً** — مستوى: متوسط/صعب. توزيع: مقارنات 20% / سيناريو كود 35% / تطبيق 30% / تتبع خوارزمية 15%.
+> **16 سؤالاً** — مستوى: medium / hard
 
-### السؤال 1 (متوسط)
-ما الفرق بين `pd.cut()` و `pd.qcut()` عند تحويل عمود `Age`؟
+---
 
-أ) `cut` يقسّم حسب عدد متساوٍ من الصفوف، `qcut` يقسّم حسب نطاق متساوٍ
-ب) `cut` يقسّم حسب نطاق متساوٍ، `qcut` يقسّم حسب عدد متساوٍ من الصفوف
-ج) كلاهما يقسّم حسب النطاق
-د) كلاهما يقسّم حسب العدد
+### السؤال 1 (medium)
+
+ما نسبة الركاب الذين نجوا في `titanic_train`؟
+
+أ) 61.6%
+ب) 38.4%
+ج) 50.0%
+د) 27.7%
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `pd.cut` يقسّم النطاق الكلي إلى أجزاء متساوية الحجم (مثل 0-16-32-48-64-80). `pd.qcut` يضمن أن كل فئة تحتوي نفس عدد العناصر تقريباً (مثل الربيعيات). (أ) عكس الصحيح. (ج) و (د) يصفان نفس الشيء بشكل خاطئ.
+
+**التعليل:**
+- ✅ **الخيار ب:** 342 من 891 = 38.4% نجوا
+- ❌ **الخيار أ:** 61.6% هي نسبة من لم ينجوا (549)
+- ❌ **الخيار ج:** 50% كانت ستعني أعداداً متساوية وهذا غير صحيح
+- ❌ **الخيار د:** رقم اعتباطي
 
 ---
 
-### السؤال 2 (متوسط)
-ما قيمة `mean()` لعمود `Survived` إذا كان 342 راكباً نجوا من أصل 891؟
+### السؤال 2 (medium)
 
-أ) 342
-ب) 549
-ج) 0.384
-د) 38.4
+لماذا نستخدم `.mean()` على عمود `Survived` لحساب نسبة النجاة؟
 
-**الإجابة الصحيحة: ج**
-**التعليل:** `mean = 342/891 ≈ 0.384`. لأن القيم 0 و1، فالمتوسط = نسبة الأحداث = 0.384. (أ) هو العدد الكلي للناجين. (ب) عدد غير الناجين. (د) النسبة × 100 وليس `mean`.
-
----
-
-### السؤال 3 (متوسط)
-ما الذي يعنيه معامل الارتباط `-0.34` بين `Pclass` و `Survived`؟
-
-أ) لا علاقة بينهما
-ب) كلما ارتفع رقم الدرجة (3>1)، ارتفع احتمال البقاء
-ج) كلما ارتفع رقم الدرجة (3>1)، انخفض احتمال البقاء
-د) الارتباط قوي وإيجابي
-
-**الإجابة الصحيحة: ج**
-**التعليل:** القيمة السالبة تعني علاقة عكسية. رقم `Pclass=3` (الأعلى رقماً) يقابله بقاء أقل. (أ) خاطئ — القيمة -0.34 تعني ارتباطاً متوسطاً عكسياً. (ب) عكس الصحيح. (د) خاطئ — السالب لا يكون إيجابياً.
-
----
-
-### السؤال 4 (صعب)
-في الكود التالي، ماذا يُنتج `titanic_train.groupby('Sex').Survived.value_counts()`؟
-
-أ) جدول يُظهر متوسط البقاء لكل جنس
-ب) جدول يُظهر عدد الناجين وغير الناجين لكل جنس
-ج) جدول يُظهر عمود `Sex` فقط
-د) `Boolean Series` يُظهر صح وخطأ
+أ) لأن `.count()` لا يعمل على هذا العمود
+ب) لأن قيم `Survived` هي 0 أو 1 فقط، والمتوسط يساوي نسبة الـ 1
+ج) لأن `mean()` أسرع من `count()`
+د) لأن المحاضرة اختارت ذلك بشكل عشوائي
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `groupby('Sex')` يقسّم البيانات على الجنس. `.Survived.value_counts()` يعدّ عدد مرات كل قيمة (0 أو 1) في `Survived` لكل مجموعة. (أ) `.mean()` يعطي المتوسط لا `.value_counts()`. (ج) و(د) غير صحيحتان.
+
+**التعليل:**
+- ✅ **الخيار ب:** مجموع (0 و 1) ÷ العدد الكلي = عدد الناجين ÷ الإجمالي = النسبة المئوية
+- ❌ **الخيار أ:** `.count()` يعمل على أي عمود لكنه يعطي العدد لا النسبة
+- ❌ **الخيار ج:** السرعة ليست السبب
+- ❌ **الخيار د:** اختيار له مبرر إحصائي
 
 ---
 
-### السؤال 5 (صعب)
-`DecisionTreeClassifier` حقق دقة 100% على `X_train`. ماذا يعني ذلك؟
+### السؤال 3 (hard)
 
-أ) النموذج ممتاز ويجب استخدامه
-ب) النموذج يعاني `Overfitting` ويحتمل أداء ضعيفاً على `X_test`
-ج) النموذج يعاني `Underfitting`
-د) الدقة على `X_test` ستكون أيضاً 100%
+ما الذي يفعله هذا الكود؟
+```python
+titanic_train['cabin_multiple'] = titanic_train.Cabin.apply(
+    lambda x: 0 if pd.isna(x) else len(x.split(' '))
+)
+```
+
+أ) يحذف صفوف الـ NaN في عمود `Cabin`
+ب) يحوّل كل قيمة في `Cabin` لعدد الكابينات المذكورة فيها (0 إذا كانت ناقصة)
+ج) يحسب عدد الأحرف في كل قيمة `Cabin`
+د) يملأ الـ NaN بصفر ثم يقسّم `Cabin` على مسافات
 
 **الإجابة الصحيحة: ب**
-**التعليل:** 100% على `training set` يعني النموذج حفظ البيانات. لن يعمل جيداً على بيانات جديدة (`overfitting`). (أ) يجب التحقق من أداء `test set`. (ج) `Underfitting` يُنتج دقة منخفضة. (د) `Overfitting` يعني الدقة ستنخفض على `test`.
+
+**التعليل:**
+- ✅ **الخيار ب:** `pd.isna(x)` = يتحقق من الـ NaN، إذا NaN يضع 0، وإلا `len(x.split(' '))` = عدد الكلمات = عدد الكابينات
+- ❌ **الخيار أ:** `.apply()` لا تحذف صفوفاً
+- ❌ **الخيار ج:** `x.split(' ')` يقسم على مسافات لا يحسب الأحرف
+- ❌ **الخيار د:** الـ NaN لا تُملأ — الشرط يضع 0 مباشرة
 
 ---
 
-### السؤال 6 (متوسط)
-ما الفائدة من استخدام `as_index=False` في `groupby()`؟
+### السؤال 4 (hard)
 
-أ) يجعل النتيجة `Series` بدلاً من `DataFrame`
-ب) يجعل عمود التجميع عموداً عادياً بدلاً من `index`
-ج) يلغي عملية التجميع
-د) يرتّب النتائج تصاعدياً
+في `Feature Engineering`، لماذا نملأ القيم المفقودة في `Age` بقيم عشوائية في `[mean - std, mean + std]` بدلاً من المتوسط فقط؟
+
+أ) لأن المتوسط أصعب حساباً
+ب) للحفاظ على التوزيع الإحصائي وتجنب "spike" مصطنع عند المتوسط
+ج) لأن القيم العشوائية دائماً أفضل من القيم الثابتة
+د) لأن `sklearn` تتطلب ذلك
 
 **الإجابة الصحيحة: ب**
-**التعليل:** افتراضياً `groupby` يجعل العمود المجمّع عليه `index`. `as_index=False` يُبقيه عموداً عادياً في `DataFrame`. (أ) عكس ذلك — بدونه تصبح النتيجة `Series`. (ج) لا يلغي شيئاً. (د) الترتيب يتم بـ `.sort_values()`.
+
+**التعليل:**
+- ✅ **الخيار ب:** ملء كل القيم المفقودة بالمتوسط يخلق تجمّعاً مصطنعاً عند نقطة واحدة يشوّه التوزيع
+- ❌ **الخيار أ:** المتوسط حسابه بسيط جداً `.mean()`
+- ❌ **الخيار ج:** القيم العشوائية ليست دائماً الأفضل — هنا هي الأنسب لهذا السياق
+- ❌ **الخيار د:** `sklearn` لا تفرض ذلك
 
 ---
 
-### السؤال 7 (صعب)
-ما قيمة `r` إذا كان `n=5`, `Σxy=290`, `Σx=41`, `Σy=30`, `Σx²=405`, `Σy²=210`؟
+### السؤال 5 (medium)
 
-أ) 0.5
-ب) 0.7
-ج) 0.97
-د) 1.0
+ما الفرق بين `pd.cut()` و `pd.qcut()`؟
 
-**الإجابة الصحيحة: ج**
-**التعليل:** Numerator = 5×290 - 41×30 = 220. Denominator = sqrt((5×405-1681)×(5×210-900)) = sqrt(344×150) ≈ 227. r = 220/227 ≈ 0.97. (أ) و(ب) قيم خاطئة. (د) الارتباط التام نادر جداً.
-
----
-
-### السؤال 8 (متوسط)
-لماذا تُستخدم `titanic_combined_data = [titanic_train, titanic_test]`؟
-
-أ) لدمج البيانات في جدول واحد
-ب) لتطبيق نفس التحويلات على `train` و`test` بحلقة واحدة
-ج) لحذف البيانات المكررة
-د) لتقليل حجم البيانات
+أ) `pd.cut()` للأعداد الصحيحة، `pd.qcut()` للأعداد العشرية
+ب) `pd.cut()` تقسّم لفترات متساوية العرض، `pd.qcut()` تقسّم لفترات متساوية العدد
+ج) `pd.cut()` أسرع من `pd.qcut()`
+د) لا فرق بينهما في النتائج
 
 **الإجابة الصحيحة: ب**
-**التعليل:** إنشاء قائمة من `DataFrames` يسمح بالمرور عليهما بحلقة `for` وتطبيق نفس التحويل (Title, Embarked, Age…) دون تكرار الكود. (أ) `concat()` أو `merge()` يدمجان البيانات. (ج) `.drop_duplicates()` للمكررات. (د) لا يؤثر على الحجم.
+
+**التعليل:**
+- ✅ **الخيار ب:** `cut` = equal-width bins (مثل 0-16, 16-32...) — `qcut` = equal-frequency bins (كل bin يحوي نفس العدد تقريباً)
+- ❌ **الخيار أ:** كلاهما يعمل مع الأعداد العشرية
+- ❌ **الخيار ج:** السرعة ليست معيار الاختلاف
+- ❌ **الخيار د:** نتائجهما مختلفة
 
 ---
 
-### السؤال 9 (صعب)
-ماذا يُرجع الكود: `titanic_train.Cabin.apply(lambda x: 0 if pd.isna(x) else len(x.split(' ')))`؟
+### السؤال 6 (medium)
 
-أ) `True/False` لكل صف
-ب) الحرف الأول من كود الكابينة
-ج) عدد الكبائن المخصصة لكل راكب
-د) عدد الأحرف في كود الكابينة
+ما معنى `FamilySize = 1` وكيف يتعلق بـ `IsAlone`؟
 
-**الإجابة الصحيحة: ج**
-**التعليل:** `pd.isna(x)` → إذا `NaN` يُرجع 0. وإلا `x.split(' ')` يقسّم على المسافة (مثل `"C23 C25"` → `['C23','C25']`) ثم `len()` يعدّ القائمة = عدد الكبائن. (أ) `.isnull()` يُرجع `Boolean`. (ب) `str(x)[0]` يُرجع الحرف. (د) `len(x)` دون `split` يعدّ الأحرف.
-
----
-
-### السؤال 10 (متوسط)
-لماذا نملأ القيم المفقودة في `Age` بقيم عشوائية حول المتوسط بدلاً من المتوسط مباشرة؟
-
-أ) لأن العشوائية أكثر دقة
-ب) للحفاظ على التوزيع الطبيعي وتجنّب تشويه التوزيع
-ج) لأن المتوسط غير متاح
-د) لأن `NaN` لا تقبل قيمة عددية
+أ) الراكب معه شخص آخر فقط
+ب) الراكب وحيد (لا أشقاء ولا آباء) — `IsAlone = 1`
+ج) الراكب لديه عيلة من 1 طفل
+د) الـ `FamilySize` لا يتعلق بـ `IsAlone`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** إذا ملأنا بالمتوسط مباشرة، سيكون هناك تجمّع مصطنع عند قيمة واحدة يشوّه التوزيع. القيم العشوائية قريبة من المتوسط لكنها تحافظ على التشتّت الطبيعي. (أ) ليست دقة عشوائية لكن واقعية. (ج) المتوسط متاح دائماً. (د) `NaN` تقبل أي قيمة رقمية.
+
+**التعليل:**
+- ✅ **الخيار ب:** `FamilySize = SibSp + Parch + 1` — إذا `SibSp=0` و `Parch=0`، فـ `FamilySize=1` = وحيد = `IsAlone=1`
+- ❌ **الخيار أ:** لو معه شخص آخر ستكون `FamilySize = 2`
+- ❌ **الخيار ج:** الطفل يُحسب في `Parch` وليس `FamilySize` مباشرة
+- ❌ **الخيار د:** `IsAlone` يُبنى مباشرة من `FamilySize`
 
 ---
 
-### السؤال 11 (صعب)
-ما الفرق بين `SVC()` و `LinearSVC()` وأيهما أفضل في مثال تايتانيك؟
+### السؤال 7 (hard)
 
-أ) `LinearSVC` أفضل دائماً — 80% مقابل 94%
-ب) `SVC` أفضل في هذا المثال — 94% مقابل 80%، لأن البيانات غير خطية تماماً
-ج) كلاهما يُنتج نفس النتيجة
-د) `LinearSVC` يستخدم `RBF` kernel
+`DecisionTreeClassifier` حقق `100%` دقة على `X_train`. ماذا يعني هذا؟
+
+أ) النموذج ممتاز ويجب استخدامه في الإنتاج
+ب) هناك `Overfitting` — النموذج حفظ بيانات التدريب ولن يُعمّم جيداً
+ج) البيانات مثالية وليس فيها ضوضاء
+د) `DecisionTree` هو دائماً الأفضل في `Titanic`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `SVC()` يستخدم `RBF kernel` افتراضياً يلتقط العلاقات غير الخطية. دقته 94.95% > 80.81% للـ`LinearSVC`. (أ) يعكس الحقيقة. (ج) الأرقام مختلفة. (د) `RBF` في `SVC` وليس `LinearSVC`.
+
+**التعليل:**
+- ✅ **الخيار ب:** 100% على التدريب = النموذج "حفظ" كل مثال — فشل في التعميم على بيانات جديدة
+- ❌ **الخيار أ:** 100% على التدريب تحديداً هي علامة خطر لا تحسين
+- ❌ **الخيار ج:** كل بيانات حقيقية فيها ضوضاء
+- ❌ **الخيار د:** هذا ادعاء زائف بناءً على نتيجة مضلّلة
 
 ---
 
-### السؤال 12 (متوسط)
-ماذا يعني `split=True` في `sns.violinplot()`؟
+### السؤال 8 (medium)
 
-أ) يقسّم البيانات إلى مجموعتي تدريب واختبار
-ب) يقسّم مخطط الكمان إلى نصفين لعرض مجموعتين (0 و1) جنباً إلى جنب
-ج) يقسّم المحور X إلى نصفين
-د) يحذف نصف البيانات
+ما وظيفة `hue` في `sns.catplot(x="Sex", y="Age", hue="Survived", ...)`؟
+
+أ) يغيّر لون كل نقطة بشكل عشوائي
+ب) يلوّن النقاط حسب قيمة `Survived` — لون لكل 0 ولون لكل 1
+ج) يضيف محوراً ثالثاً للرسم
+د) يُظهر فقط النقاط ذات `Survived=1`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `split=True` مع `hue='Survived'` يرسم نصف الكمان الأيسر للناجين والأيمن للمتوفين على نفس المحور الرأسي. (أ) لا علاقة بالتقسيم للتدريب. (ج) و(د) غير صحيحتان.
+
+**التعليل:**
+- ✅ **الخيار ب:** `hue` تضيف تمييزاً لوني لمتغير ثالث — ناجو = برتقالي، لم ينجوا = أزرق
+- ❌ **الخيار أ:** الألوان مرتبطة بقيم متغير محدد لا عشوائية
+- ❌ **الخيار ج:** الرسم يبقى ثنائي الأبعاد — اللون هو الـ "بُعد" الثالث
+- ❌ **الخيار د:** تُظهر كل النقاط لكن بألوان مختلفة
 
 ---
 
-### السؤال 13 (صعب)
-بعد حساب `FamilySize = SibSp + Parch + 1`، ما الراكب الذي يحقق `FamilySize = 1`؟
+### السؤال 9 (hard)
 
-أ) راكب معه سبعة من الإخوة
-ب) راكب يسافر وحيداً بدون أحد
-ج) راكب معه والداه فقط
-د) أي راكب
+ما ناتج `' ([A-Za-z]+)\.'` كـ `regex` على `"Braund, Mr. Owen Harris"`؟
+
+أ) `"Braund"`
+ب) `"Mr"`
+ج) `"Owen"`
+د) `"Harris"`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `FamilySize = SibSp + Parch + 1 = 0 + 0 + 1 = 1`. هذا يعني `SibSp=0` (لا إخوة) و`Parch=0` (لا آباء أو أطفال). الراكب وحيد تماماً. (أ) سبعة إخوة = 7+0+1=8. (ج) `Parch=2` → 0+2+1=3.
+
+**التعليل:**
+- ✅ **الخيار ب:** `[A-Za-z]+` يبحث عن حروف تتبعها نقطة — `"Mr."` يطابق، والـ capture group `(..)` تُرجع `"Mr"` بدون النقطة
+- ❌ **الخيار أ:** `"Braund"` لا تتبعها نقطة (يتبعها فاصلة)
+- ❌ **الخيار ج:** `"Owen"` لا تتبعها نقطة
+- ❌ **الخيار د:** `"Harris"` نهاية الجملة بلا نقطة
 
 ---
 
-### السؤال 14 (صعب)
-ما الناتج الصحيح لـ `titanic_train[['Sex', 'Survived']].groupby(['Sex'], as_index=False).mean()`؟
+### السؤال 10 (hard)
 
-أ) عدد الإناث والذكور في كل فئة
-ب) نسبة بقاء الإناث والذكور (female=0.742, male=0.188)
-ج) مجموع قيم `Survived` لكل جنس
-د) جدول من عمود واحد فقط
+ما ناتج هذا الكود بالضبط؟
+```python
+x = "STON/O2. 3101282"
+''.join(x.split(' ')[:-1]).replace('.','').replace('/','').lower()
+```
+
+أ) `"ston/o2"`
+ب) `"stono2"`
+ج) `"3101282"`
+د) `"STONO2"`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `mean()` على عمود يحتوي 0 و1 يُعطي النسبة المئوية للقيمة 1. female mean = 233/(233+81) = 0.742، male mean = 109/(109+468) = 0.188. (أ) `.value_counts()` يُعطي العدد. (ج) `.sum()` يُعطي المجموع. (د) الناتج `DataFrame` بعمودَين.
+
+**التعليل:**
+- ✅ **الخيار ب:** `split(' ')` = `['STON/O2.', '3101282']`، `[:-1]` = `['STON/O2.']`، `join` = `'STON/O2.'`، `.replace('.','')` = `'STON/O2'`، `.replace('/','')` = `'STONO2'`، `.lower()` = `'stono2'`
+- ❌ **الخيار أ:** الـ `/` لم يُحذف بعد
+- ❌ **الخيار ج:** `[:-1]` يحذف آخر عنصر وهو الرقم
+- ❌ **الخيار د:** `.lower()` يحوّل لحروف صغيرة
 
 ---
 
-### السؤال 15 (صعب)
-ما الهدف من `titanic_train.drop('PassengerId', axis=1).corr()` في الـ`heatmap`؟
+### السؤال 11 (medium)
 
-أ) حذف عمود `PassengerId` من البيانات نهائياً
-ب) استبعاد `PassengerId` من حساب الارتباط لأنه مجرد رقم تعريف لا علاقة إحصائية له
-ج) تحسين دقة النموذج مباشرة
-د) تغيير الفهرس
+لماذا نستخدم `pd.qcut()` للـ `Fare` بينما نستخدم `pd.cut()` للـ `Age`؟
+
+أ) لأن `Fare` أرقامها أكبر من `Age`
+ب) لأن `Fare` موزّع بشكل منحرف (متحيز) فنحتاج bins متساوية العدد، بينما `Age` موزّع بشكل أكثر انتظاماً
+ج) لأن `pd.qcut` أسرع من `pd.cut`
+د) لا فرق — كلاهما يعطي نفس النتيجة
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `PassengerId` هو ترقيم تسلسلي (1, 2, 3…) لا معنى إحصائياً له. ارتباطه بأي متغير آخر سيكون مصطنعاً. (أ) `drop` هنا مؤقت (لا `inplace=True`). (ج) لا يؤثر مباشرة على النموذج. (د) `axis=1` يعني حذف عمود لا تغيير الفهرس.
+
+**التعليل:**
+- ✅ **الخيار ب:** `Fare` فيها outliers كبيرة (max=512) و معظم القيم صغيرة — `qcut` يوزّع الركاب بالتساوي على الـ bins
+- ❌ **الخيار أ:** الحجم لا يحدد أيهما تستخدم
+- ❌ **الخيار ج:** السرعة ليست السبب
+- ❌ **الخيار د:** النتائج مختلفة جوهرياً
 
 ---
 
-### السؤال 16 (متوسط)
-ما معنى `col='Embarked'` في `sns.catplot(x='Pclass', y='Survived', hue='Sex', col='Embarked', kind='bar', data=titanic_train)`؟
+### السؤال 12 (medium)
 
-أ) يحوّل `Embarked` إلى ألوان مختلفة
-ب) يُنشئ مخططاً منفصلاً لكل قيمة من قيم `Embarked` (S, C, Q)
-ج) يرسم `Embarked` على المحور X
-د) يحذف `Embarked` من الرسم
+ما وظيفة `axis=1` في `titanic_train.drop('Survived', axis=1)`؟
+
+أ) يحذف الصف رقم 1
+ب) يحذف عمود `Survived`
+ج) يحذف أول عمود في الـ DataFrame
+د) يحذف كل الصفوف ما عدا الأول
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `col=` في `seaborn catplot` يُنشئ `FacetGrid` — شبكة من المخططات حيث كل لوحة فرعية تمثّل قيمة مختلفة من `Embarked`. (أ) `hue=` يتحكم في الألوان. (ج) `x=` يتحكم في المحور X. (د) لا يحذف شيئاً.
+
+**التعليل:**
+- ✅ **الخيار ب:** `axis=1` = عمليات على الأعمدة (columns) — يحذف العمود المُسمّى
+- ❌ **الخيار أ:** حذف الصف رقم 1 يتطلب `axis=0` وليس `axis=1`
+- ❌ **الخيار ج:** نحدد الاسم صراحةً، ليس الموقع
+- ❌ **الخيار د:** وهم تماماً
 
 ---
 
-### السيناريو 1: تحليل كود استخراج `Title` ومعالجته
+### السؤال 13 (hard)
 
-> المطوّر كتب الكود التالي لاستخراج لقب الراكب من اسمه:
-> ```python
-> dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.')
-> dataset['Title'] = dataset['Title'].replace(
->     ['Lady', 'Countess', 'Capt'], 'Other')
-> dataset['Title'] = dataset['Title'].replace('Mlle', 'Miss')
-> title_mapping = {"Mr": 1, "Miss": 2, "Mrs": 3, "Master": 4, "Other": 5}
-> dataset['Title'] = dataset['Title'].map(title_mapping)
-> ```
-> معدلات البقاء: `Master`=0.575, `Miss`=0.702, `Mr`=0.156, `Mrs`=0.793
+عند مقارنة دقة النماذج، نجد أن `SVC` = 94.95% و `LogisticRegression` = 80.58%. أيهما ستختار للإنتاج ولماذا؟
 
-### السؤال 1.1 (hard)
-ماذا يُنتج `' ([A-Za-z]+)\.'` كـ `regex pattern`؟
-
-أ) يستخرج أي كلمة تبدأ بمسافة
-ب) يستخرج أي تسلسل من الحروف يسبقه مسافة ويليه نقطة
-ج) يستخرج الاسم الأول فقط
-د) يستخرج الاسم الأخير فقط
+أ) `SVC` دائماً لأنه أعلى دقة
+ب) يعتمد — `SVC` أعلى دقة لكن يحتاج تحقق من بيانات الاختبار الفعلية وليس التدريب فقط
+ج) `LogisticRegression` لأنه أبسط وأسرع دائماً
+د) `GaussianNB` لأن دقته تُناسب البيانات المتوازنة
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `' '` = مسافة قبل اللقب. `([A-Za-z]+)` = مجموعة التقاط لحروف إنجليزية. `\.` = نقطة حرفية. النتيجة: يلتقط "Mr" من "Braund, Mr. Owen Harris".
 
-### السؤال 1.2 (hard)
-لماذا يُصنَّف `Mrs` كأعلى معدل بقاء (0.793)؟
+**التعليل:**
+- ✅ **الخيار ب:** الدقة هنا مُقاسة على `X_train` — لا نعرف الأداء الحقيقي على `X_test`. يجب `cross_validation` أو `test set` حقيقي
+- ❌ **الخيار أ:** ممكن يكون `SVC` يُبالغ في الـ fit على التدريب
+- ❌ **الخيار ج:** البساطة وحدها لا تكفي — الدقة مهمة جداً
+- ❌ **الخيار د:** `GaussianNB` = 77.78% الأضعف بين الخيارات الجيدة
 
-أ) لأنهن من الدرجة الأولى فقط
-ب) لأن `Mrs` = نساء متزوجات، تأثير "أسياد والأطفال أولاً" + غالباً مصاحبتهن لعائلة
-ج) لأن السيدات أسرع في الهروب
-د) الارتباط مصادفة
+---
+
+### السؤال 14 (medium)
+
+ما ناتج `str(float('nan'))[0]`؟
+
+أ) `'N'`
+ب) `'n'`
+ج) خطأ `TypeError`
+د) `'0'`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** السيدات المتزوجات (Mrs) غالباً مصاحبات لأزواج أو أطفال، وسياسة الإخلاء "نساء وأطفال أولاً" طُبِّقت بجدية. السياق الاجتماعي يؤثر في الإنقاذ.
 
-### السؤال 1.3 (hard)
-ماذا يحدث إذا لم نضع `fillna(0)` بعد `.map(title_mapping)`؟
+**التعليل:**
+- ✅ **الخيار ب:** `float('nan')` = القيمة `nan`، `str(nan)` = النص `'nan'`، `'nan'[0]` = `'n'` — هذا بالضبط ما يحدث في `cabin_adv`
+- ❌ **الخيار أ:** `'N'` كبيرة لكن `str(nan)` = `'nan'` بحروف صغيرة
+- ❌ **الخيار ج:** `Python` تتعامل مع `nan` كقيمة صالحة
+- ❌ **الخيار د:** `'0'` ليس حرف `nan`
 
-أ) لا شيء — القيم ستبقى صحيحة
-ب) الألقاب التي لم تُوجد في `title_mapping` ستصبح `NaN` وتؤثر على النموذج
-ج) النموذج يتجاهل `NaN` تلقائياً
-د) `.map()` يتعامل مع الحالات غير الموجودة بشكل افتراضي
+---
+
+### السؤال 15 (hard)
+
+ما ناتج `titanic_train[['Sex', 'Survived']].groupby(['Sex'], as_index=False).mean()` إذا كان `female: Survived=233, Not=81` و `male: Survived=109, Not=468`؟
+
+أ) `female: 233, male: 109`
+ب) `female: 0.742, male: 0.189`
+ج) `female: 0.258, male: 0.811`
+د) `female: 314, male: 577`
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `.map()` يُرجع `NaN` لأي قيمة غير موجودة في القاموس. بعض نماذج `sklearn` لا تقبل `NaN` كمدخل وستُرمي خطأ. `fillna(0)` يُحوّل `NaN` إلى 0 (مجموعة "أخرى غير محددة").
+
+**التعليل:**
+- ✅ **الخيار ب:** `female mean = 233 / (233+81) = 233/314 ≈ 0.742`, `male = 109/(109+468) = 109/577 ≈ 0.189`
+- ❌ **الخيار أ:** ده العدد لا النسبة
+- ❌ **الخيار ج:** ده معكوس (نسبة من لم ينجو)
+- ❌ **الخيار د:** ده الإجمالي لكل جنس
 
 ---
 
-## الجزء الرابع: أسئلة تصحيح الكود
+### السؤال 16 (hard)
 
-### سؤال تصحيح 1 (logic)
+ما الغرض من `titanic_combined_data = [titanic_train, titanic_test]` ثم استخدامه في `for dataset in titanic_combined_data`؟
 
-**الكود (يحتوي خطأ):**
-```python
-# Calculate survival rate by sex
-survived_rate = titanic_train.groupby('Sex').Survived.sum()
-print(survived_rate)
-```
+أ) لدمج الـ DataFrames في واحد
+ب) لتطبيق نفس التحويلات على كلا الـ datasets في نفس الوقت دون تكرار الكود
+ج) لأن `sklearn` تتطلب ذلك
+د) لمقارنة الـ datasets
 
-**اكتشف الخطأ:** يستخدم `.sum()` بدلاً من `.mean()` — يُرجع عدد الناجين لا نسبة البقاء.
+**الإجابة الصحيحة: ب**
 
-**التصحيح:**
-```python
-# Calculate survival RATE (percentage) by sex using mean on binary column
-survived_rate = titanic_train.groupby('Sex').Survived.mean()
-print(survived_rate)
-```
-
-**شرح الحل:**
-1. `.sum()` يُرجع `female=233`, `male=109` — وهذه أعداد لا نسب.
-2. `.mean()` على عمود 0/1 يُرجع النسبة المئوية (`female=0.742`, `male=0.188`).
-3. الهدف هو مقارنة نسبة البقاء لا الأعداد المطلقة.
+**التعليل:**
+- ✅ **الخيار ب:** بدل كتابة نفس الكود مرتين (مرة للـ train ومرة للـ test)، نضعهم في قائمة ونُطبّق التحويل دفعة واحدة — يضمن تطابق معالجة الـ datasets
+- ❌ **الخيار أ:** `[list]` لا تدمج — `pd.concat()` تدمج
+- ❌ **الخيار ج:** `sklearn` لا تتطلب ذلك
+- ❌ **الخيار د:** هي لتطبيق التحويل لا للمقارنة
 
 ---
 
-### سؤال تصحيح 2 (misconception)
+## الجزء الثالث: بطاقات سؤال وجواب (Q&A Cards)
 
-**الكود (يحتوي خطأ):**
-```python
-# Fill missing Age values with the mean
-titanic_train['Age'] = titanic_train['Age'].fillna(
-    titanic_train['Age'].mean())
-```
+### البطاقة 1
+**Q1:** ما هدف مشروع `Titanic` في `Machine Learning`؟
+**A:** التنبؤ بما إذا كان الراكب نجا (1) أم لم ينجُ (0) — هو `binary classification problem` يعتمد على ميزات كالجنس والعمر والدرجة.
 
-**اكتشف الخطأ:** تعبئة جميع القيم المفقودة (177 قيمة) بالمتوسط نفسه يُشوّه توزيع العمر ويخلق تجمّعاً مصطنعاً.
+### البطاقة 2
+**Q2:** ما حجم `titanic_train` و `titanic_test`؟
+**A:** `titanic_train` = 891 × 12، `titanic_test` = 418 × 12. بعد `Feature Engineering`، `X_train` = (891, 8) و `X_test` = (418, 8).
 
-**التصحيح:**
-```python
-import numpy as np
+### البطاقة 3
+**Q3:** كيف تحسب نسبة النجاة حسب الجنس بكود واحد؟
+**A:** `titanic_train[['Sex', 'Survived']].groupby(['Sex'], as_index=False).mean()` — لأن `Survived` هو 0 أو 1، الـ `mean()` يعطي النسبة مباشرة (female=0.742, male=0.189).
 
-age_avg = titanic_train['Age'].mean()              # compute mean
-age_std = titanic_train['Age'].std()               # compute standard deviation
-age_null_count = titanic_train['Age'].isnull().sum()  # count missing
+### البطاقة 4
+**Q4:** ما الفرق بين `pd.cut()` و `pd.qcut()`؟
+**A:** `pd.cut()` = فترات متساوية العرض (equal-width bins). `pd.qcut()` = فترات متساوية العدد (equal-frequency bins، كل bin يحوي نفس عدد الركاب تقريباً). نستخدم `cut` للـ `Age` و `qcut` للـ `Fare` (موزّع منحرف).
 
-# Generate random values within 1 std of mean
-age_null_random_list = np.random.randint(
-    age_avg - age_std, age_avg + age_std, size=age_null_count)
+### البطاقة 5
+**Q5:** لماذا `DecisionTree` بدقة 100% يُعتبر مشكلة؟
+**A:** لأن 100% على التدريب = `Overfitting` — النموذج حفظ كل مثال في التدريب بدلاً من تعلّم الأنماط. لن يؤدي هذا الأداء على بيانات جديدة.
 
-# Fill missing with random values to preserve distribution
-titanic_train['Age'][np.isnan(titanic_train['Age'])] = age_null_random_list
-titanic_train['Age'] = titanic_train['Age'].astype(int)
-```
+### البطاقة 6
+**Q6:** ما هو `FamilySize` وكيف يُحسب؟
+**A:** `FamilySize = SibSp + Parch + 1` (1 للراكب نفسه). يمثل إجمالي حجم العيلة على السفينة. `IsAlone = 1` إذا كان `FamilySize == 1`.
 
-**شرح الحل:**
-1. تعبئة بنفس القيمة 177 مرة تُنتج "قمة مصطنعة" في التوزيع عند قيمة المتوسط.
-2. القيم العشوائية في نطاق `(mean ± std)` تُبقي التوزيع طبيعياً.
-3. تحويل إلى `int` لاتساق نوع البيانات مع باقي القيم.
+### البطاقة 7
+**Q7:** لماذا نملأ `Age` الناقص بقيم عشوائية في [mean±std] بدلاً من المتوسط فقط؟
+**A:** لأن ملء كل القيم المفقودة بالمتوسط يخلق `spike` مصطنع في التوزيع عند نقطة واحدة. القيم العشوائية في النطاق [mean-std, mean+std] تحافظ على التوزيع الطبيعي للبيانات.
 
----
+### البطاقة 8
+**Q8:** ما الذي يفعله `str.extract(' ([A-Za-z]+)\.')` للاسم `"Braund, Mr. Owen Harris"`؟
+**A:** يستخرج `"Mr"` — الـ `regex` يبحث عن مسافة ثم حروف إنجليزية ثم نقطة، والـ capture group `(..)` ترجع الحروف بدون النقطة.
 
-### سؤال تصحيح 3 (syntax + logic)
+### البطاقة 9
+**Q9:** ما نسبة النجاة لكل درجة (`Pclass`) وما الاستنتاج؟
+**A:** Pclass 1 = 63%, Pclass 2 = 47%, Pclass 3 = 24%. الاستنتاج: الدرجة الأولى (الأغنياء) نجوا بنسبة أعلى بكثير — الثروة كانت عاملاً في النجاة.
 
-**الكود (يحتوي خطأ):**
-```python
-# Trying to map Embarked to numbers
-for dataset in titanic_combined_data:
-    dataset['Embarked'] = dataset['Embarked'].map(
-        {'S': 0, 'C': 1, 'Q': 2})
-    # No fillna for missing Embarked values!
-```
+### البطاقة 10
+**Q10:** ما وظيفة `annot=True` في `sns.heatmap()`؟
+**A:** يكتب قيمة الارتباط (كرقم) داخل كل خلية من الـ heatmap — يجعل القراءة أسهل بدلاً من الاعتماد على اللون فقط.
 
-**اكتشف الخطأ:** لم تُملأ القيم المفقودة في `Embarked` قبل التحويل — ستبقى `NaN` بعد `.map()`.
+### البطاقة 11
+**Q11:** ما معنى الشرطة (CI bar) في `sns.barplot()`؟
+**A:** الشرطة = `Confidence Interval` (فترة الثقة). شرطة قصيرة = البيانات مستقرة والتقدير دقيق. شرطة طويلة = تباين كبير وعدم يقين في التقدير.
 
-**التصحيح:**
-```python
-for dataset in titanic_combined_data:
-    # Fill missing Embarked with most common value 'S' FIRST
-    dataset['Embarked'] = dataset['Embarked'].fillna('S')
-    # Then map to numbers
-    dataset['Embarked'] = dataset['Embarked'].map(
-        {'S': 0, 'C': 1, 'Q': 2}).astype(int)
-```
+### البطاقة 12
+**Q12:** ما الـ 8 ميزات النهائية التي يستخدمها النموذج بعد `Feature Engineering`؟
+**A:** `PassengerId`, `Pclass`, `Sex` (0/1), `Age` (0-4), `Fare` (0-3), `Embarked` (0-2), `Title` (1-5), `IsAlone` (0/1). كلها أرقام صحيحة جاهزة للنموذج.
 
-**شرح الحل:**
-1. `Embarked` يحتوي 2 قيمة مفقودة — بدون `fillna` ستبقى `NaN`.
-2. `NaN` لا توجد في القاموس فستُحوَّل إلى `NaN` بعد `.map()`.
-3. `astype(int)` ستفشل إذا وُجد `NaN` (يحتاج `int` لا يقبل `NaN`).
+### البطاقة 13
+**Q13:** ما الفرق بين `clf.score(X_train, y_train)` و `clf.score(X_test, y_test)`؟
+**A:** الأول يقيس الدقة على **بيانات رآها النموذج** أثناء التدريب — قد يكون متحيزاً (overfitting). الثاني يقيس الدقة على **بيانات لم يرها** — هذا هو القياس الحقيقي للأداء.
+
+### البطاقة 14
+**Q14:** لماذا نستخدم `for dataset in titanic_combined_data` بدلاً من تطبيق التحويل على كل dataset بشكل منفصل؟
+**A:** لتجنب تكرار الكود وضمان تطابق المعالجة على `train` و `test` — أي تغيير في الكود يُطبَّق تلقائياً على كليهما.
 
 ---
 
-### سؤال تصحيح 4 (dead_code)
+## الجزء الرابع: ورقة المراجعة السريعة (Cheat Sheet)
 
-**الكود (يحتوي خطأ):**
-```python
-# Train and evaluate logistic regression
-clf = LogisticRegression()
-clf.fit(X_train, y_train)
-y_pred_log_reg = clf.predict(X_test)
-acc_log_reg = round(clf.score(X_test, y_test) * 100, 2)  # using X_test, y_test
-print(str(acc_log_reg) + ' percent')
-```
+### 🔑 التعاريف السريعة
 
-**اكتشف الخطأ:** في مشروع تايتانيك، `y_test` غير متاح (البيانات الحقيقية لا تحتوي label). الكود الصحيح يقيّم على `X_train, y_train`.
-
-**التصحيح:**
-```python
-clf = LogisticRegression()
-clf.fit(X_train, y_train)
-y_pred_log_reg = clf.predict(X_test)
-
-# Evaluate on training data (test labels are not available in Kaggle competition)
-acc_log_reg = round(clf.score(X_train, y_train) * 100, 2)
-print(str(acc_log_reg) + ' percent')  # 80.58 percent
-```
-
-**شرح الحل:**
-1. في مسابقات `Kaggle`، `test set` بدون `Survived` — لا `y_test`.
-2. نقيس دقة النموذج على `X_train` مع العلم أنها دقة "داخلية".
-3. الدقة الحقيقية تُقاس عند التقديم في `Kaggle`.
+| المصطلح | التعريف القصير |
+|---------|---------------|
+| `Binary Classification` | مشكلة تنبؤ بإجابة من اثنين (0 أو 1) |
+| `EDA` | Exploratory Data Analysis — تحليل البيانات استكشافياً |
+| `Feature Engineering` | تحويل بيانات خام لميزات رقمية مفيدة |
+| `Overfitting` | النموذج يحفظ بيانات التدريب ولا يُعمّم |
+| `Pivot Table` | جدول تلخيص متقاطع للبيانات |
+| `Pearson r` | معامل الارتباط الخطي بين متغيرين (-1 إلى 1) |
+| `pd.cut()` | تقسيم العمود لفترات متساوية العرض |
+| `pd.qcut()` | تقسيم العمود لفترات متساوية العدد |
+| `FamilySize` | SibSp + Parch + 1 (حجم العيلة الكاملة) |
+| `IsAlone` | 1 إذا كان الراكب وحيده (FamilySize=1) |
+| `CI bar` | Confidence Interval — فترة الثقة في barplot |
+| `hue` | في seaborn: يلوّن البيانات حسب متغير ثالث |
+| `col` | في catplot: يقسّم الرسم لمخططات جانباً لبعض |
 
 ---
 
-### سؤال تصحيح 5 (return_check)
+### 🔑 جداول المقارنة
 
-**الكود (يحتوي خطأ):**
-```python
-# Create IsAlone feature
-for dataset in titanic_combined_data:
-    dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
-    dataset['IsAlone'] = 1   # default everyone is alone (WRONG!)
-    dataset.loc[dataset['FamilySize'] > 1, 'IsAlone'] = 0
-```
+#### مقارنة النماذج
 
-**اكتشف الخطأ:** القيمة الافتراضية `IsAlone = 1` ثم نُعدّل للعائلات. الصحيح عكسه: الافتراضي 0 (مع عائلة) ثم نُعدّل المنفردين.
+| النموذج | الدقة (Train) | الملاحظة |
+|---------|--------------|---------|
+| `DecisionTreeClassifier` | 100.0% | Overfitting |
+| `SVC` | 94.95% | أفضل (kernel trick) |
+| `LinearSVC` | 80.81% | SVM خطي |
+| `LogisticRegression` | 80.58% | سريع وقابل للتفسير |
+| `KNeighborsClassifier(3)` | 79.57% | بسيط |
+| `GaussianNB` | 77.78% | يفترض توزيعاً طبيعياً |
+| `Perceptron` | 61.95% | الأضعف |
 
-**التصحيح:**
-```python
-for dataset in titanic_combined_data:
-    dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
-    dataset['IsAlone'] = 0                                       # default: not alone
-    dataset.loc[dataset['FamilySize'] == 1, 'IsAlone'] = 1      # set alone when FamilySize=1
-```
+#### نسبة النجاة حسب المتغيرات
 
-**شرح الحل:**
-1. الكود الخاطئ: `IsAlone=1` لكل الركاب ثم يُصحح للعائلات → المنفردون يبقون 1 صحيحاً لكنه غير واضح.
-2. التصحيح أوضح منطقياً: الافتراضي "مع عائلة" ثم نُعدّل الحالة الاستثنائية.
-3. الكود الخاطئ يُنتج نفس النتيجة لكن منطقه مُربك ومعرّض للخطأ في التوسعة.
-
----
-
-## الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)
-
-> **هذه تمارين إضافية من إعداد الدليل للتدريب** — ليست في المحاضرة الأصلية.
-
-### تمرين 1 (تمرين إضافي): حساب معدل النجاة — fill_gaps
-
-**السيناريو / المطلوب:**
-أكمل الكود التالي لحساب وعرض معدل بقاء الركاب مجمّعاً حسب `Pclass`.
-
-**المطلوب:**
-
-```python
-# Complete the blanks to group by Pclass and compute survival rate
-survival_by_class = titanic_train[['Pclass', '_______']].groupby(
-    ['_______'], as_index=False)._______()
-
-print(survival_by_class)
-```
-
-1. ما هو العمود الناقص الأول `_______`؟
-2. ما هو العمود الناقص الثاني `_______`؟
-3. ما الدالة الناقصة `_______` لحساب النسبة؟
-
-**نموذج الحل:**
-
-```python
-# Group by Pclass and compute mean survival rate (binary column → percentage)
-survival_by_class = titanic_train[['Pclass', 'Survived']].groupby(
-    ['Pclass'], as_index=False).mean()
-
-print(survival_by_class)
-```
-
-```text
-   Pclass  Survived
-0       1  0.629630   # 62.96%
-1       2  0.472826   # 47.28%
-2       3  0.242363   # 24.23%
-```
+| المتغير | القيمة | نسبة النجاة |
+|--------|--------|------------|
+| `Sex` | female | 74.2% |
+| `Sex` | male | 18.9% |
+| `Pclass` | 1 | 63.0% |
+| `Pclass` | 2 | 47.3% |
+| `Pclass` | 3 | 24.2% |
+| `Embarked` | C | 55.4% |
+| `Embarked` | Q | 38.9% |
+| `Embarked` | S | 33.7% |
+| `Title` | Mrs | 79.4% |
+| `Title` | Miss | 70.3% |
+| `Title` | Master | 57.5% |
+| `Title` | Mr | 15.7% |
+| `IsAlone` | 0 (not alone) | 50.6% |
+| `IsAlone` | 1 (alone) | 30.4% |
 
 ---
 
-### تمرين 2 (تمرين إضافي): إنشاء ميزة `Title` — code_fix
-
-**السيناريو / المطلوب:**
-الكود التالي يُحاول استخراج `Title` من `Name` لكنه يحتوي خطأ:
-
-```python
-# Extract title from Name using regex
-dataset['Title'] = dataset.Name.str.extract('([A-Za-z]+)\.')
-# Missing space before title - won't match correctly for all names
-```
-
-**المطلوب:**
-1. ما الخطأ في نمط الـ `regex`؟
-2. صحّح الكود.
-
-**نموذج الحل:**
-الخطأ: لا توجد مسافة قبل `(` — في بعض الأسماء سيُعطي نتيجة خاطئة (مثل الاسم الأول).
-
-```python
-# Correct: add space before group to match title after comma
-dataset['Title'] = dataset.Name.str.extract(' ([A-Za-z]+)\.')
-# The space ensures we match the title (which comes after ", " in the name format)
-```
-
----
-
-### تمرين 3 (تمرين إضافي): تفسير `heatmap` — scenario
-
-**السيناريو / المطلوب:**
-بناءً على مصفوفة الارتباط التالية:
-
-| | Survived | Pclass | Age | SibSp | Parch | Fare |
-| --- | --- | --- | --- | --- | --- | --- |
-| Survived | 1 | -0.34 | -0.077 | -0.035 | 0.082 | 0.26 |
-
-**المطلوب:**
-1. ما الميزة الأكثر ارتباطاً إيجابياً بـ`Survived`؟
-2. ما الميزة الأكثر ارتباطاً سلبياً؟
-3. هل ارتباط `Parch` بـ`Survived` قوي أم ضعيف؟
-
-**نموذج الحل:**
-1. `Fare` = 0.26 — الأعلى إيجابياً (الأغنى → نجا أكثر).
-2. `Pclass` = -0.34 — الأعلى سلبياً (الدرجة الأعلى رقماً → نجا أقل).
-3. `Parch` = 0.082 — ضعيف جداً (لأقل من 0.39).
-
----
-
-### تمرين 4 (تمرين إضافي): تجهيز `X_train` و `y_train` — fill_gaps
-
-**السيناريو / المطلوب:**
-أكمل الكود:
-
-```python
-# Separate features and target
-X_train = titanic_train.drop('_______', axis=___)
-y_train = titanic_train['_______']
-
-X_test = titanic_test.drop("_______", axis=1)._____()
-```
-
-**نموذج الحل:**
-
-```python
-# Drop target column from features
-X_train = titanic_train.drop('Survived', axis=1)   # features (remove target)
-y_train = titanic_train['Survived']                  # target column only
-
-# Copy test features (without target - not available in test)
-X_test = titanic_test.drop("Survived", axis=1).copy()
-```
-
----
-
-### تمرين 5 (تمرين إضافي): مقارنة النماذج — table_fill
-
-**السيناريو / المطلوب:**
-أكمل جدول المقارنة بناءً على نتائج المحاضرة:
-
-| النموذج | الدقة على `train` (%) | مؤشر الـ`Overfitting` |
-| --- | --- | --- |
-| `DecisionTreeClassifier` | _______ | _______ |
-| `SVC` | _______ | _______ |
-| `LogisticRegression` | _______ | _______ |
-| `KNN (k=3)` | _______ | _______ |
-
-**نموذج الحل:**
-
-| النموذج | الدقة على `train` (%) | مؤشر الـ`Overfitting` |
-| --- | --- | --- |
-| `DecisionTreeClassifier` | 100.0 | مرتفع جداً (خطر `Overfitting`) |
-| `SVC` | 94.95 | منخفض (الأفضل في هذا المثال) |
-| `LogisticRegression` | 80.58 | منخفض (متوازن) |
-| `KNN (k=3)` | 79.57 | منخفض (يعتمد على k) |
-
----
-
-## الجزء الرابع: تمارين تحليل وتطبيق (إضافية — من إعداد الدليل)
-
-### تمرين 1: تحليل تأثير `Embarked` على البقاء — written_analysis
-
-**السيناريو:**
-المعطيات: C=0.553، Q=0.389، S=0.336
-
-**المطلوب:**
-1. رتّب موانئ الصعود من الأعلى إلى الأقل نجاةً.
-2. فسّر لماذا `C` (شيربورغ) لديه أعلى نسبة.
-3. هل تُوصي باستخدام `Embarked` كميزة في النموذج؟ لماذا؟
-
-**نموذج الحل:**
-1. ترتيب النجاة: C (55.3%) > Q (38.9%) > S (33.6%).
-2. ميناء `C` (شيربورغ-فرنسا) كان نقطة صعود الأثرياء من الأوروبيين الذين حجزوا الدرجة الأولى → ارتفاع نسبة البقاء مرتبط بالدرجة لا بالميناء مباشرة.
-3. يمكن الاستفادة منه كميزة لكنها ذات ارتباط ضعيف مقارنة بـ`Sex` و`Pclass`. يُوصى بتضمينه بعد التحويل الرقمي.
-
----
-
-### تمرين 2: تصميم خطوات `Feature Engineering` — table_fill
-
-**السيناريو:** بيانات الراكب: `Name="Smith, Mr. John"`, `SibSp=2`, `Parch=1`, `Cabin="C23 C25"`, `Age=NaN`
-
-**المطلوب:**
-أكمل جدول التحولات:
-
-| الميزة | القيمة الأصلية | التحويل | القيمة الجديدة |
-| --- | --- | --- | --- |
-| `Title` | "Smith, Mr. John" | `regex + mapping` | _______ |
-| `cabin_multiple` | "C23 C25" | `split(' ')` | _______ |
-| `FamilySize` | SibSp=2, Parch=1 | `2 + 1 + 1` | _______ |
-| `IsAlone` | FamilySize=4 | `!= 1 → 0` | _______ |
-| `Age` | NaN | عشوائي ± std | _______ |
-
-**نموذج الحل:**
-
-| الميزة | القيمة الأصلية | التحويل | القيمة الجديدة |
-| --- | --- | --- | --- |
-| `Title` | "Smith, Mr. John" | `"Mr" → mapping["Mr"] = 1` | **1** |
-| `cabin_multiple` | "C23 C25" | `len(["C23","C25"]) = 2` | **2** |
-| `FamilySize` | SibSp=2, Parch=1 | `2 + 1 + 1 = 4` | **4** |
-| `IsAlone` | FamilySize=4 | `4 != 1 → 0` | **0** |
-| `Age` | NaN | قريب من 30 ± 14 | **عشوائي ≈ 16–44** |
-
----
-
-## الجزء الرابع: تمارين تتبع التنفيذ
-
-### تمرين تتبع 1: تحويل عمود `Age` إلى فئات
-
-**المدخل:**
-```python
-ages = [5, 20, 35, 55, 70]
-```
-
-**تتبّع خطوة بخطوة (أكمل الجدول):**
-
-| الراكب | عمره | الشرط | فئة `Age` الجديدة |
-| --- | --- | --- | --- |
-| A | 5 | `<= 16` | ؟ |
-| B | 20 | `> 16 & <= 32` | ؟ |
-| C | 35 | `> 32 & <= 48` | ؟ |
-| D | 55 | `> 48 & <= 64` | ؟ |
-| E | 70 | `> 64` | ؟ |
-
-**نموذج الحل:**
-
-| الراكب | عمره | الشرط | فئة `Age` الجديدة |
-| --- | --- | --- | --- |
-| A | 5 | `<= 16` | **0** (أطفال) |
-| B | 20 | `> 16 & <= 32` | **1** (شباب) |
-| C | 35 | `> 32 & <= 48` | **2** (بالغون) |
-| D | 55 | `> 48 & <= 64` | **3** (كبار) |
-| E | 70 | `> 64` | **4** (مسنّون) |
-
-**النتيجة:** `[0, 1, 2, 3, 4]`
-
-**سؤال إضافي (متوسط):** ماذا يحدث للراكب عمره 32؟
-أ) يُصنَّف ضمن الفئة 1 (> 16 & <= 32)
-ب) يُصنَّف ضمن الفئة 2 (> 32 & <= 48)
-ج) يُصنَّف ضمن الفئة 0
-د) لا يُصنَّف
-
-**الإجابة: أ** — الشرط `<= 32` يشمل 32.
-
----
-
-### تمرين تتبع 2: حساب `FamilySize` و `IsAlone`
-
-**المدخل:**
-
-| الراكب | SibSp | Parch |
-| --- | --- | --- |
-| P1 | 0 | 0 |
-| P2 | 1 | 2 |
-| P3 | 3 | 0 |
-| P4 | 0 | 1 |
-
-**أكمل الجدول:**
-
-| الراكب | SibSp | Parch | FamilySize | IsAlone |
-| --- | --- | --- | --- | --- |
-| P1 | 0 | 0 | ؟ | ؟ |
-| P2 | 1 | 2 | ؟ | ؟ |
-| P3 | 3 | 0 | ؟ | ؟ |
-| P4 | 0 | 1 | ؟ | ؟ |
-
-**نموذج الحل:**
-
-| الراكب | SibSp | Parch | FamilySize | IsAlone |
-| --- | --- | --- | --- | --- |
-| P1 | 0 | 0 | **1** | **1** (وحيد) |
-| P2 | 1 | 2 | **4** | **0** (مع عائلة) |
-| P3 | 3 | 0 | **4** | **0** (مع عائلة) |
-| P4 | 0 | 1 | **2** | **0** (مع عائلة) |
-
-**النتيجة:** فقط P1 (`FamilySize=1`) يُصنَّف `IsAlone=1`.
-
----
-
-### تمرين تتبع 3: تدريب نموذج وتقييمه خطوة بخطوة
-
-**المدخل:** `X_train` (891×8), `y_train` (891,), `X_test` (418×8)
-
-**أكمل جدول خطوات التدريب:**
-
-| الخطوة | العملية | الأداة | الناتج |
-| --- | --- | --- | --- |
-| 1 | إنشاء النموذج | `LogisticRegression()` | كائن `clf` غير مدرَّب |
-| 2 | ؟ | `.fit(X_train, y_train)` | ؟ |
-| 3 | ؟ | `.predict(X_test)` | ؟ |
-| 4 | قياس الدقة | `.score(X_train, y_train)` | ؟ |
-| 5 | تحويل الدقة لنسبة | `round(... * 100, 2)` | ؟ |
-
-**نموذج الحل:**
-
-| الخطوة | العملية | الأداة | الناتج |
-| --- | --- | --- | --- |
-| 1 | إنشاء النموذج | `LogisticRegression()` | كائن `clf` غير مدرَّب |
-| 2 | **تدريب النموذج** | `.fit(X_train, y_train)` | **`clf` مدرَّب بأوزان محسوبة** |
-| 3 | **توليد التنبؤات** | `.predict(X_test)` | **مصفوفة 0/1 بطول 418** |
-| 4 | قياس الدقة | `.score(X_train, y_train)` | **0.8058 (كسر)** |
-| 5 | تحويل الدقة لنسبة | `round(0.8058 * 100, 2)` | **80.58 (percent)** |
-
----
-
-## الجزء الرابع: أسئلة تصميم
-
-### سؤال تصميم 1: مخطط سير عملية `ML Pipeline` لتايتانيك
-
-**المطلوب:**
-ارسم مخططاً يُوضح الخطوات الكاملة من البيانات الخام إلى نموذج مُقيَّم في مشروع تايتانيك.
-
-**نموذج الإجابة:**
-
-#### ما هذا المخطط؟
-> يُوضّح `Pipeline` مشروع `Machine Learning` الكامل من الإدخال إلى الإخراج.
-
-#### وصف العُقد:
-| # | العُقدة | النوع | الشرح |
-| --- | --- | --- | --- |
-| 1 | Raw CSV Data | process | البيانات الخام (train + test) |
-| 2 | EDA | process | استكشاف البيانات والتصوير |
-| 3 | Feature Engineering | process | إنشاء Title, FamilySize, IsAlone |
-| 4 | Encoding | process | تحويل Sex, Embarked, Title لأرقام |
-| 5 | Missing Values | process | معالجة Age, Fare, Embarked |
-| 6 | Drop Columns | process | حذف Name, Ticket, Cabin… |
-| 7 | Split X y | decision | فصل الميزات عن الهدف |
-| 8 | Train Models | process | fit على X_train |
-| 9 | Evaluate | process | score على X_train |
-| 10 | Select Best | decision | اختيار النموذج الأفضل |
-
-#### وصف الروابط:
-| من | إلى | التسمية | نوع السهم | الشرح |
-| --- | --- | --- | --- | --- |
-| Raw CSV | EDA | يستكشف | → | قراءة وتحليل |
-| EDA | Feature Engineering | يُرشد | → | الرؤى توجّه الميزات |
-| Feature Engineering | Encoding | يُجهّز | → | تحويل النص لرقم |
-| Encoding | Missing Values | يعالج | → | تعبئة الفراغات |
-| Missing Values | Drop Columns | يُنظّف | → | حذف غير المفيد |
-| Drop Columns | Split X y | يقسّم | → | فصل الميزات والهدف |
-| Split X y | Train Models | يدرّب | → | تطبيق النماذج |
-| Train Models | Evaluate | يقيّم | → | قياس الدقة |
-| Evaluate | Select Best | يختار | → | أعلى دقة |
-
-```diagram
-type: flowchart
-title: Titanic ML Pipeline
-direction: TD
-nodes:
-  - id: raw
-    label: Raw CSV Data
-    kind: event
-    level: 0
-  - id: eda
-    label: EDA & Visualization
-    kind: process
-    level: 1
-  - id: fe
-    label: Feature Engineering
-    kind: process
-    level: 2
-  - id: enc
-    label: Encoding & Mapping
-    kind: process
-    level: 3
-  - id: miss
-    label: Handle Missing Values
-    kind: process
-    level: 4
-  - id: drop
-    label: Drop Irrelevant Columns
-    kind: process
-    level: 5
-  - id: split
-    label: Split X_train / y_train / X_test
-    kind: decision
-    level: 6
-  - id: train
-    label: Train Multiple Models
-    kind: process
-    level: 7
-  - id: eval
-    label: Evaluate Accuracy
-    kind: process
-    level: 8
-  - id: best
-    label: Select Best Model
-    kind: event
-    level: 9
-edges:
-  - from: raw
-    to: eda
-    label: read_csv
-    arrow: forward
-  - from: eda
-    to: fe
-    label: insights
-    arrow: forward
-  - from: fe
-    to: enc
-    label: new features
-    arrow: forward
-  - from: enc
-    to: miss
-    label: numeric cols
-    arrow: forward
-  - from: miss
-    to: drop
-    label: filled
-    arrow: forward
-  - from: drop
-    to: split
-    label: clean data
-    arrow: forward
-  - from: split
-    to: train
-    label: X_train, y_train
-    arrow: forward
-  - from: train
-    to: eval
-    label: fitted models
-    arrow: forward
-  - from: eval
-    to: best
-    label: accuracy scores
-    arrow: forward
-```
-
-**معايير التقييم:**
-- تضمين جميع المراحل العشر بالترتيب الصحيح.
-- التمييز بين مراحل المعالجة (`process`) ومراحل القرار (`decision`).
-- وضع التسميات الصحيحة على الروابط.
-
----
-
-### سؤال تصميم 2: تصميم جدول مقارنة النماذج
-
-**المطلوب:**
-صمّم جدولاً شاملاً لمقارنة النماذج السبعة المستخدمة في المحاضرة مع توصية مُبرَّرة.
-
-**نموذج الإجابة:**
-
-| النموذج | الدقة % | نوع النموذج | القرن | التعقيد | التوصية |
-| --- | --- | --- | --- | --- | --- |
-| `DecisionTree` | 100.0 | خطي/غير خطي | عمق كامل | منخفض | ❌ `Overfitting` |
-| `SVC` | 94.95 | غير خطي | `RBF` | مرتفع | ✅ الأفضل هنا |
-| `LinearSVC` | 80.81 | خطي | - | منخفض | 👍 سريع وجيد |
-| `LogisticRegression` | 80.58 | خطي | - | منخفض | 👍 قابل للتفسير |
-| `KNN (k=3)` | 79.57 | كسول | - | متوسط | 👌 مقبول |
-| `GaussianNB` | 77.78 | احتمالي | - | منخفض | 👌 للبيانات الصغيرة |
-| `Perceptron` | 61.95 | خطي بسيط | - | منخفض | ❌ ضعيف هنا |
-
-**معايير التقييم:**
-- تضمين جميع النماذج السبعة.
-- الدقة الصحيحة لكل نموذج.
-- تعليل التوصية بناءً على `Overfitting` واحتمال التعميم.
-
----
-
-## الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)
-
-**Q1:** ما هدف مشروع تايتانيك في `Machine Learning`؟
-A: التنبؤ بما إذا كان الراكب قد نجا (1) أم لا (0) استناداً إلى ميزاته — وهو `Binary Classification`.
-
-**Q2:** ما الفرق بين `Training set` و `Test set`؟
-A: `Training set` = البيانات التي يتعلّم منها النموذج. `Test set` = البيانات التي نختبر عليها قدرته على التعميم.
-
-**Q3:** لماذا `describe(include=['O'])` ضروري؟
-A: لأن `describe()` الافتراضي يعرض إحصاءات الأعمدة الرقمية فقط. إضافة `include=['O']` يُظهر إحصاءات الأعمدة النصية.
-
-**Q4:** ما معنى `mean()` على عمود `Survived`؟
-A: بما أن `Survived` يحتوي 0 و1 فقط، `mean = (عدد الـ1) / (إجمالي القيم)` = نسبة الناجين المئوية.
-
-**Q5:** ما `Pearson r` وما نطاقه؟
-A: مقياس للارتباط الخطي بين متغيّرَين. نطاقه [-1, 1]: قريب من 1 = ارتباط قوي إيجابي، قريب من -1 = عكسي قوي، قريب من 0 = لا ارتباط.
-
-**Q6:** ما `Overfitting` وكيف نكشفه؟
-A: النموذج يحفظ بيانات التدريب بدل التعلّم. نكشفه بمقارنة دقة `train` ودقة `test` — فارق كبير = `Overfitting`.
-
-**Q7:** لماذا نستخدم `titanic_combined_data = [train, test]`؟
-A: لتطبيق نفس التحويلات (`map`, `fillna`, `label encoding`) على كلا الجدولَين بحلقة `for` واحدة دون تكرار الكود.
-
-**Q8:** ما الفرق بين `pd.cut()` و `pd.qcut()`؟
-A: `pd.cut` يقسّم النطاق إلى فئات متساوية الحجم (المدى). `pd.qcut` يقسّم إلى فئات متساوية العدد (الربيعيات).
-
-**Q9:** ما `FamilySize` وكيف تُحسب؟
-A: `FamilySize = SibSp + Parch + 1`. تجمع عدد الإخوة والزوج (`SibSp`) وعدد الآباء والأطفال (`Parch`) ثم تُضيف الراكب نفسه.
-
-**Q10:** ما `IsAlone` ومتى تكون قيمته 1؟
-A: ميزة مشتقة تُشير لما إذا كان الراكب يسافر وحيداً. تكون 1 فقط عندما `FamilySize == 1`.
-
-**Q11:** ما الفرق بين `SVC` و `LinearSVC` في نتائج التايتانيك؟
-A: `SVC` استخدم `RBF kernel` وحقق 94.95%. `LinearSVC` خطي وحقق 80.81%. البيانات غير خطية فكان `SVC` أفضل.
-
-**Q12:** لماذا تُملأ القيم المفقودة في `Age` بقيم عشوائية لا بالمتوسط؟
-A: للحفاظ على التوزيع الطبيعي. ملء 177 قيمة بنفس المتوسط يُشوّه التوزيع ويخلق قمة مصطنعة.
-
-**Q13:** ما الذي يُشير إليه `annot=True` في `sns.heatmap()`؟
-A: يطبع قيمة معامل الارتباط داخل كل خلية في الـ`heatmap` بدلاً من الاعتماد على الألوان فقط.
-
-**Q14:** ما نسبة الناجين في `titanic_train`؟
-A: 342 من 891 = 38.4% نجوا. 549 = 61.6% لم ينجوا.
-
-**Q15:** ما الأعمدة التي تُحذف من `titanic_train` قبل التدريب؟
-A: `Name`, `SibSp`, `Parch`, `Ticket`, `Cabin`, `FamilySize`, `cabin_multiple`, `cabin_adv`, `numeric_ticket`, `ticket_letters`, `name_title`, `AgeBand`, `FareBand`.
-
-**Q16:** ما الفرق بين `.fit()` و `.predict()`؟
-A: `.fit(X_train, y_train)` = التدريب (تعلّم الأوزان). `.predict(X_test)` = التطبيق (توليد تنبؤات لبيانات جديدة).
-
-**Q17:** ما معنى `split=True` في `sns.violinplot()`؟
-A: يقسّم مخطط الكمان إلى نصفين: نصف للناجين ونصف للمتوفين، مما يسهل المقارنة البصرية.
-
-**Q18:** لماذا `Embarked` يُملأ بـ`'S'` عند التعبئة؟
-A: لأن `S` (Southampton) هي الأكثر شيوعاً — 644 راكباً مقابل 168 و77. القيمة المفقودة تُعامَل كحالة الأغلبية.
-
----
-
-## الجزء الخامس: أسئلة نظرية متوقعة بالامتحان
-
-### السؤال 1: ما `Feature Engineering` ولماذا نحتاجه في مشروع تايتانيك؟
-**نموذج الإجابة:**
-1. **التعريف:** عملية إنشاء أو تحويل الميزات الموجودة لإنتاج ميزات أكثر إفادة للنموذج.
-2. **المكونات:** استخراج `Title` من `Name`، إنشاء `FamilySize` و`IsAlone`، تحويل `Cabin` وتقسيم `Age` و`Fare`.
-3. **مثال:** `Name="Smith, Mr. John"` → `Title="Mr"` → رقم `1`. هذا أفيد من الاسم الكامل.
-4. **متى نستخدم:** عندما تحتوي البيانات على معلومات مخفية في أعمدة نصية أو مركّبة.
-
----
-
-### السؤال 2: ما `Pearson Correlation Coefficient` وكيف نفسّره؟
-**نموذج الإجابة:**
-1. **التعريف:** مقياس إحصائي للارتباط الخطي بين متغيّرَين ∈ [-1, 1].
-2. **المكونات:** البسط = العلاقة المشتركة، المقام = تطبيع بالتشتّت.
-3. **مثال:** `Survived` و`Pclass` = -0.34 (ارتباط عكسي متوسط).
-4. **متى نستخدم:** قبل اختيار الميزات للنموذج لتحديد أي منها يرتبط بالهدف.
-
----
-
-### السؤال 3: ما الفرق بين `Training set` و `Test set` ولماذا نحتاج كليهما؟
-**نموذج الإجابة:**
-1. **التعريف:** `Training set` = للتعلّم، `Test set` = للتقييم الموضوعي.
-2. **المكونات:** في تايتانيك `train`= 891 صفاً، `test`= 418 صفاً.
-3. **مثال:** نموذج `DecisionTree` دقته 100% على `train` لكن ستنخفض على `test`.
-4. **متى نستخدم:** دائماً — التقييم على نفس بيانات التدريب غير موثوق.
-
----
-
-### السؤال 4: ما `Overfitting` وكيف نتجنّبه؟
-**نموذج الإجابة:**
-1. **التعريف:** النموذج يحفظ بيانات التدريب بدلاً من تعلّم الأنماط العامة.
-2. **المكونات:** دقة عالية على `train` + دقة منخفضة على `test` = `Overfitting`.
-3. **مثال:** `DecisionTreeClassifier` بدقة 100% — يحفظ كل صف بدون تعميم.
-4. **متى نستخدم:** نتجنّبه بتقليل عمق الشجرة، أو استخدام `cross-validation`، أو `regularization`.
-
----
-
-### السؤال 5: اشرح استخدام `groupby()` مع `.mean()` لحساب نسبة البقاء.
-**نموذج الإجابة:**
-1. **التعريف:** `groupby()` يقسّم البيانات حسب قيم عمود، و`.mean()` يحسب المتوسط لكل مجموعة.
-2. **المكونات:** `groupby('Pclass')` → 3 مجموعات. `.Survived.mean()` → نسبة 0/1 لكل مجموعة.
-3. **مثال:** `Pclass=1` → 136 ناجٍ من 216 = `mean = 0.6296 = 62.96%`.
-4. **متى نستخدم:** لتحليل علاقة متغيّر فئوي بالهدف الثنائي دون رسم.
-
----
-
-### السؤال 6: ما `Binary Classification` وما مثاله في مشروع تايتانيك؟
-**نموذج الإجابة:**
-1. **التعريف:** تصنيف البيانات إلى فئتين حصراً (0 أو 1).
-2. **المكونات:** ميزات المدخل (X) + هدف ثنائي (y ∈ {0,1}) + نموذج + دقة.
-3. **مثال:** `Survived=0` (توفّي) أو `Survived=1` (نجا).
-4. **متى نستخدم:** أمراض: نعم/لا، بريد إلكتروني: سبام/غير سبام، معاملة: احتيال/سليمة.
-
----
-
-### السؤال 7: ما `pivot_table` وكيف تختلف عن `groupby`؟
-**نموذج الإجابة:**
-1. **التعريف:** `pd.pivot_table` يُنشئ ملخصاً على بُعدَين (صفوف وأعمدة) مع دالة تجميع.
-2. **المكونات:** `index=` (الصفوف) + `columns=` (الأعمدة) + `values=` + `aggfunc=`.
-3. **مثال:** `index="Survived", columns="Pclass", values="Ticket", aggfunc="count"` = جدول متقاطع.
-4. **متى نستخدم:** عندما تريد تقاطع متغيّرَين — `groupby` أحادي البُعد، `pivot_table` ثنائي.
-
----
-
-### السؤال 8: ما الهدف من `lambda` في `Feature Engineering`؟
-**نموذج الإجابة:**
-1. **التعريف:** `lambda` دالة مجهولة قصيرة تُكتب في سطر واحد.
-2. **المكونات:** `lambda x: expression` — تأخذ مدخلاً وتُرجع تعبيراً.
-3. **مثال:** `lambda x: 0 if pd.isna(x) else len(x.split(' '))` — تُحسب عدد الكبائن.
-4. **متى نستخدم:** مع `.apply()` لتطبيق دالة بسيطة على كل قيمة في عمود.
-
----
-
-### السؤال 9: اشرح `.map()` في تحويل `Sex` و`Title` إلى أرقام.
-**نموذج الإجابة:**
-1. **التعريف:** `.map(dict)` يستبدل كل قيمة في `Series` بالقيمة المقابلة في القاموس.
-2. **المكونات:** قاموس Python {القيمة الأصلية: القيمة الجديدة} + `Series`.
-3. **مثال:** `Sex.map({'female': 1, 'male': 0})` → `'female'` يصبح `1`.
-4. **متى نستخدم:** عند وجود متغيّر نصي ذو قيم محدودة يجب تحويلها لأرقام قبل النمذجة.
-
----
-
-### السؤال 10: ما الفرق بين `KNeighborsClassifier` و `LogisticRegression` في `sklearn`؟
-**نموذج الإجابة:**
-1. **التعريف:** `KNN` = يُصنّف نقطة بحسب أصوات أقرب K جيران. `LogReg` = يتعلّم حداً فاصلاً خطياً.
-2. **المكونات:** `KNN`: `n_neighbors=k` هو الوحيد المعامل. `LogReg`: يتعلّم أوزاناً للميزات.
-3. **مثال:** `KNN(k=3)` = 79.57%، `LogReg` = 80.58% في تايتانيك.
-4. **متى نستخدم:** `KNN` بيانات صغيرة وغير خطية. `LogReg` بيانات كبيرة مع تفسيرية عالية.
-
----
-
-## الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅
-
-- [ ] أستطيع شرح الفرق بين `Training set` و `Test set` وأهمية الفصل بينهما.
-- [ ] أفهم لماذا `mean()` على عمود 0/1 يُعطي نسبة البقاء مباشرة.
-- [ ] أستطيع حساب `Pearson r` يدوياً باستخدام الجدول والصيغة.
-- [ ] أفهم ماذا يعني معامل ارتباط سالب (مثل `Pclass` = -0.34).
-- [ ] أعرف الفرق بين `pd.cut()` و `pd.qcut()` ومتى أستخدم كلاً منهما.
-- [ ] أستطيع كتابة كود `groupby().mean()` لحساب نسبة البقاء لأي فئة.
-- [ ] أفهم ما `Overfitting` وكيف أكشفه (دقة 100% على `train`).
-- [ ] أعرف وظيفة `.fit()` و `.predict()` و `.score()` في `sklearn`.
-- [ ] أستطيع شرح عملية `Feature Engineering` الكاملة في تايتانيك.
-- [ ] أعرف الفرق بين `SVC` و `LinearSVC` وأي النموذجَين أفضل هنا.
-- [ ] أفهم لماذا نستخدم `titanic_combined_data = [train, test]`.
-- [ ] أستطيع حساب `FamilySize` و `IsAlone` وأفسّر نتائجهما.
-- [ ] أعرف كيف نستخرج `Title` من `Name` باستخدام `regex`.
-- [ ] أفهم `pivot_table` وكيف تختلف عن `groupby`.
-- [ ] أستطيع قراءة مخطط `violinplot` و `heatmap` وتفسير نتائجهما.
-
----
-
-## الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)
-
-### 🔑 خريطة العلاقات بين المحاضرات
-| المحاضرة | ترتبط مع | كيف؟ |
-| --- | --- | --- |
-| محاضرة 10 (هذه) | `pandas` + `seaborn` | تحليل البيانات والتصوير |
-| محاضرة 10 (هذه) | `sklearn` | النمذجة والتقييم |
-| محاضرات EDA السابقة | هذه المحاضرة | يُبنى عليها في مرحلة التحليل |
-
----
-
-### 🔑 أهم النقاط الذهبية
-| الموضوع | النقاط |
-| --- | --- |
-| `Binary Classification` | `Survived ∈ {0,1}` → `mean = survival rate` |
-| `Pearson r` | [-1,1] — سالب=عكسي, موجب=طردي |
-| `Overfitting` | دقة 100% على train = خطر |
-| `Feature Engineering` | `Title`, `FamilySize`, `IsAlone`, `AgeBand`, `FareBand` |
-| أفضل نموذج | `SVC` بـ94.95% في هذا المشروع |
-
----
-
-### 🔑 مرجع سريع
-| الرمز/المصطلح | المعنى | يُستخدم في |
-| --- | --- | --- |
-| `.fit(X,y)` | تدريب النموذج | جميع نماذج `sklearn` |
-| `.predict(X)` | توليد تنبؤات | بعد التدريب |
-| `.score(X,y)` | حساب الدقة | تقييم النموذج |
-| `.groupby().mean()` | نسبة بقاء لكل فئة | `EDA` |
-| `pd.cut()` | تقسيم بنطاق متساوٍ | `AgeBand` |
-| `pd.qcut()` | تقسيم بعدد متساوٍ | `FareBand` |
-| `.fillna()` | تعبئة القيم المفقودة | معالجة البيانات |
-| `.map(dict)` | تحويل فئوي لرقمي | `Sex`, `Embarked`, `Title` |
-| `.apply(lambda)` | تطبيق دالة على كل قيمة | `cabin_multiple`, `ticket_letters` |
-| `annot=True` | إظهار الأرقام في `heatmap` | `sns.heatmap()` |
-| `split=True` | نصفَين في `violinplot` | `sns.violinplot()` |
-| `col='col'` | لوحات فرعية لكل فئة | `sns.catplot()` |
+### 🔑 المكتبات والأدوات
+
+| الأداة | الوظيفة | متى تستخدم |
+|--------|---------|-----------|
+| `pd.read_csv()` | تحميل ملف CSV | بداية كل مشروع |
+| `df.describe()` | إحصاء وصفي | فهم البيانات |
+| `df.isnull().sum()` | عدد القيم المفقودة | فحص البيانات |
+| `df.groupby().mean()` | متوسط حسب مجموعة | حساب نسب النجاة |
+| `pd.pivot_table()` | جدول متقاطع ملخّص | تحليل العلاقات |
+| `sns.barplot()` | رسم بياني عمودي + CI | مقارنة الفئات |
+| `sns.catplot()` | رسم نقاط فئوي | رؤية التوزيع الفردي |
+| `sns.violinplot()` | رسم كمان | توزيع + density |
+| `sns.heatmap(.corr())` | خريطة حرارة الارتباط | رؤية العلاقات بين المتغيرات |
+| `pd.cut()` | تقسيم لفترات متساوية العرض | AgeBand |
+| `pd.qcut()` | تقسيم لفترات متساوية العدد | FareBand |
+| `np.random.randint()` | توليد أعداد صحيحة عشوائية | ملء Age الناقص |
+| `.map(dict)` | استبدال قيم بأرقام | تحويل Sex, Embarked, Title |
+| `.fillna(value)` | ملء القيم المفقودة | Fare, Embarked |
+| `.apply(lambda)` | تطبيق دالة على كل قيمة | Cabin, Ticket, Name |
+| `str.extract(regex)` | استخراج نص بـ regex | Title |
+| `.drop(cols, axis=1)` | حذف أعمدة | Feature Selection |
+| `clf.fit(X, y)` | تدريب النموذج | Model Training |
+| `clf.predict(X)` | التنبؤ | Model Inference |
+| `clf.score(X, y)` | قياس الدقة | Evaluation |
 
 ---
 
 ### 🔑 قواعد ذهبية لا تُنسى
+
 | # | القاعدة |
-| --- | --- |
-| 1 | دائماً افحص القيم المفقودة بـ `.isnull().sum()` قبل البدء |
-| 2 | طبّق نفس التحويلات على `train` و `test` معاً |
-| 3 | دقة 100% على `train` = `Overfitting` لا نموذج ممتاز |
-| 4 | `mean()` على عمود 0/1 = نسبة الحادثة مباشرة |
-| 5 | احذف الأعمدة التي لا تُساهم إحصائياً (`PassengerId`, `Name`…) |
-| 6 | اختبر النموذج على `X_test` لا على `X_train` |
+|---|---------|
+| 1 | 100% دقة على التدريب = Overfitting وليس نجاحاً |
+| 2 | `clf.score(X_train, y_train)` ≠ الدقة الحقيقية — استخدم X_test |
+| 3 | `mean()` على عمود 0/1 = النسبة المئوية تلقائياً |
+| 4 | `pd.cut` = عرض متساوٍ، `pd.qcut` = عدد متساوٍ |
+| 5 | املأ Age بـ random[mean±std] لا بالمتوسط لتجنب الـ spike |
+| 6 | طبّق نفس الـ Feature Engineering على Train و Test معاً |
+| 7 | `SibSp + Parch + 1 = FamilySize` (1 للراكب نفسه) |
+| 8 | كل نماذج sklearn: `.fit()` → `.predict()` → `.score()` |
 
 ---
 
-<!-- VALIDATION
-schema: 1.0
-parts: integration_map, detail, summary, mcq, debug, exercise, analysis_exercise, trace_exercise, design_question, qa_cards, theory, self_check, cheat_sheet
-mcq_count: 16
-code_blocks: 22
--->
+### 🔑 قاموس المصطلحات
+
+| المصطلح | المعنى |
+|---------|-------|
+| `SibSp` | Siblings + Spouses (أشقاء + زوج/زوجة على السفينة) |
+| `Parch` | Parents + Children (آباء + أطفال على السفينة) |
+| `Pclass` | Passenger Class — درجة التذكرة (1=أولى، 3=ثالثة) |
+| `Embarked` | ميناء الصعود (S=Southampton، C=Cherbourg، Q=Queenstown) |
+| `Cabin` | رقم الكابينة (مفقود لـ 77% من الركاب) |
+| `Ticket` | رقم التذكرة (قد يكون نصاً أو رقماً) |
+| `Fare` | سعر التذكرة |
+| `cabin_multiple` | عدد الكابينات المخصصة للراكب الواحد |
+| `cabin_adv` | الحرف الأول من رقم الكابينة (يمثل الطابق) |
+| `numeric_ticket` | هل رقم التذكرة رقمي بالكامل؟ (0/1) |
+| `ticket_letters` | الحروف البادئة في رقم التذكرة |
+| `name_title` / `Title` | اللقب المستخرج من الاسم (Mr, Mrs, Miss, Master...) |
+| `AgeBand` | شريحة العمر (0-4) بعد تقسيم Age بـ pd.cut |
+| `FareBand` | شريحة السعر (0-3) بعد تقسيم Fare بـ pd.qcut |
+
+---
+
+### 🔑 الخطوات السريعة
+
+#### خطوات المشروع الكامل
+
+```algorithm
+1  | تحميل البيانات | pd.read_csv() | Train (891×12), Test (418×12)
+2  | استكشاف البيانات | .describe(), .isnull().sum() | فهم الشكل والقيم المفقودة
+3  | تحليل العلاقات | .groupby().mean(), sns.barplot() | كشف الأنماط
+4  | Pivot Tables | pd.pivot_table() | تلخيص متقاطع
+5  | Feature Engineering - Cabin | lambda + split/str[0] | cabin_multiple, cabin_adv
+6  | Feature Engineering - Ticket | isnumeric + join | numeric_ticket, ticket_letters
+7  | Feature Engineering - Name | split + strip / regex | name_title, Title
+8  | تحويل Title لأرقام | .map(dict) + fillna(0) | 1-5
+9  | تحويل Sex لأرقام | .map({female:1, male:0}) | 0/1
+10 | ملء Embarked | fillna('S') + map({S:0,C:1,Q:2}) | 0/1/2
+11 | ملء Age | random[mean±std] + astype(int) | أعداد صحيحة
+12 | AgeBand | pd.cut(5) + loc mapping 0-4 | Age: 0,1,2,3,4
+13 | ملء Fare | fillna(median) | ---
+14 | FareBand | pd.qcut(4) + loc mapping 0-3 | Fare: 0,1,2,3
+15 | FamilySize | SibSp + Parch + 1 | int
+16 | IsAlone | FamilySize==1 → 1 | 0/1
+17 | حذف الأعمدة | .drop(features_list, axis=1) | 9 أعمدة مفيدة فقط
+18 | X_train, y_train | drop('Survived') / ['Survived'] | (891,8) / (891,)
+19 | تدريب النموذج | clf.fit(X_train, y_train) | Trained model
+20 | التنبؤ | clf.predict(X_test) | y_pred array
+21 | قياس الدقة | clf.score(X_train, y_train) * 100 | accuracy %
+```
+
+#### نمط تدريب أي نموذج sklearn
+
+```algorithm
+1 | إنشاء النموذج | clf = ModelName(params) | object فارغ
+2 | التدريب | clf.fit(X_train, y_train) | يتعلّم من البيانات
+3 | التنبؤ | clf.predict(X_test) | يُخرج 0 أو 1 لكل راكب
+4 | الدقة | round(clf.score(X_train, y_train) * 100, 2) | نسبة مئوية
+```

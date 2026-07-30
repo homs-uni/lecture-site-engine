@@ -1,0 +1,13 @@
+-- Practice exam outcomes
+SELECT
+  properties.subject AS subject,
+  properties.exam_mode AS exam_mode,
+  count() AS exams,
+  avg(toFloat(properties.percent)) AS avg_percent,
+  avg(toFloat(properties.elapsed_seconds)) AS avg_elapsed_sec,
+  avg(toFloat(properties.question_count)) AS avg_questions
+FROM events
+WHERE event = 'exam_finished'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject, exam_mode
+ORDER BY exams DESC

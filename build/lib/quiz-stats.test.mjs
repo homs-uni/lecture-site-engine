@@ -49,6 +49,14 @@ assert(stats.getMasteredCount('par2') === 1, 'mastery per lecture prefix');
 stats.recordAnswer('par1-sec1::q1', true);
 assert(stats.getMasteredCount('par1') === 1, 'prefix match respects :: separator');
 
+// --- persisted answer choice (DAWRAT restore) --------------------------------
+stats.saveAnswerChoice('dawrat::exams-p1-q1', 'b', true);
+const choice = stats.getAnswerChoice('dawrat::exams-p1-q1');
+assert(choice && choice.picked === 'b' && choice.last === 1, 'saveAnswerChoice stores pick');
+assert(stats.clearAnswerChoice('dawrat::exams-p1-q1') === true, 'clearAnswerChoice removes pick');
+assert(stats.getAnswerChoice('dawrat::exams-p1-q1') === null, 'pick gone after clear');
+assert(stats.getQuestionStats()['dawrat::exams-p1-q1'], 'history row kept after clear');
+
 // --- subject isolation -----------------------------------------------------
 const other = createQuizStats({ subjectKey: 'year-2/other', storage });
 assert(other.getWrongQids().length === 0, 'subjects are isolated');

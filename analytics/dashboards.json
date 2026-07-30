@@ -1,0 +1,258 @@
+{
+  "name": "Study Analytics",
+  "description": "Lecture-site engagement: subjects, lectures, scroll depth, focus time, hub funnel",
+  "insights": [
+    {
+      "id": "study-overview-pageviews",
+      "name": "Content views by subject",
+      "description": "content_viewed events broken down by subject",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "content_viewed", "name": "content_viewed" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "subject", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "study-overview-by-type",
+      "name": "Views by content type",
+      "description": "lecture vs dawrat vs note vs home",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "content_viewed", "name": "content_viewed" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "content_type", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "lecture-engagement-sessions",
+      "name": "Lecture sessions (study_session_end)",
+      "description": "Sessions ending on lecture content",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "study_session_end",
+            "name": "study_session_end",
+            "properties": [
+              { "key": "content_type", "value": ["lecture"], "operator": "exact", "type": "event" }
+            ]
+          }
+        ],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "content_id", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "scroll-milestones",
+      "name": "Scroll depth milestones",
+      "description": "scroll_milestone by milestone_pct",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "scroll_milestone", "name": "scroll_milestone" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "milestone_pct", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "focus-milestones",
+      "name": "Focus time milestones",
+      "description": "1 / 5 / 15 minute focus thresholds",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "focus_milestone", "name": "focus_milestone" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "focus_minutes", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "dawrat-vs-lectures",
+      "name": "DAWRAT vs lectures vs notes",
+      "description": "study_session_end by content_type",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "study_session_end", "name": "study_session_end" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "content_type", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "hub-pageviews",
+      "name": "Hub pageviews",
+      "description": "hub_pageview over time",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "hub_pageview", "name": "hub_pageview" }],
+        "interval": "day",
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "hub-subject-clicks",
+      "name": "Hub subject clicks",
+      "description": "hub_subject_click by subject_id",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "hub_subject_click", "name": "hub_subject_click" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "subject_id", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "mcq-answered",
+      "name": "MCQ answers",
+      "description": "mcq_answered over time (learning signal)",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "mcq_answered", "name": "mcq_answered" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "is_correct", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "exam-finished",
+      "name": "Practice exams finished",
+      "description": "exam_finished by mode",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "exam_finished", "name": "exam_finished" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "exam_mode", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "search-performed",
+      "name": "Search usage",
+      "description": "search_performed (incl. zero-result rate via has_results)",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "search_performed", "name": "search_performed" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "has_results", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "lecture-progress",
+      "name": "Lecture completion toggles",
+      "description": "lecture_progress_toggled",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "lecture_progress_toggled", "name": "lecture_progress_toggled" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "completed", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "exit-scroll-by-content",
+      "name": "Where students give up (exit scroll % by lecture)",
+      "description": "Average exit_scroll_pct on study_session_end, broken down by content_id — low values mean students consistently stop reading early in that lecture",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "study_session_end",
+            "name": "study_session_end",
+            "math": "avg",
+            "math_property": "exit_scroll_pct",
+            "properties": [
+              { "key": "content_type", "value": ["lecture"], "operator": "exact", "type": "event" }
+            ]
+          }
+        ],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "content_id", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "exit-reason-breakdown",
+      "name": "Exit reason breakdown",
+      "description": "study_session_end by exit_reason (navigated_away / tab_closed / idle_timeout)",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "study_session_end", "name": "study_session_end" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "exit_reason", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "studier-vs-watcher-by-subject",
+      "name": "Studiers vs watchers by subject",
+      "description": "study_session_end engagement_level (studier/watcher), broken down by subject — shows which subjects get real study time vs. passive browsing",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "study_session_end",
+            "name": "study_session_end",
+            "properties": [
+              { "key": "engagement_level", "value": ["studier"], "operator": "exact", "type": "event" }
+            ]
+          },
+          {
+            "kind": "EventsNode",
+            "event": "study_session_end",
+            "name": "study_session_end",
+            "properties": [
+              { "key": "engagement_level", "value": ["watcher"], "operator": "exact", "type": "event" }
+            ]
+          }
+        ],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "subject", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "engagement-level-trend",
+      "name": "Studier vs watcher ratio over time",
+      "description": "engagement_level share over time across all subjects",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "study_session_end", "name": "study_session_end" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "engagement_level", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "returning-vs-new-visitors",
+      "name": "Returning vs new visitors",
+      "description": "content_viewed split by is_returning_visitor",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "content_viewed", "name": "content_viewed" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "is_returning_visitor", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    },
+    {
+      "id": "visit-count-distribution",
+      "name": "Visit count distribution",
+      "description": "content_viewed broken down by visit_count — how many students come back 2x, 3x, etc.",
+      "insight": {
+        "kind": "TrendsQuery",
+        "series": [{ "kind": "EventsNode", "event": "content_viewed", "name": "content_viewed" }],
+        "interval": "day",
+        "breakdownFilter": { "breakdowns": [{ "property": "visit_count", "type": "event" }] },
+        "dateRange": { "date_from": "-30d" }
+      }
+    }
+  ]
+}

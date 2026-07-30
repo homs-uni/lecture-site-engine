@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-storage-prefix="study-guide">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="site-build-id" content="">
   <title>Study Guide</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljsTheme">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+    id="hljsTheme">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <script>
     (function () {
@@ -29,52 +34,74 @@
   <script src="css/tailwind-config.js"></script>
   <link rel="stylesheet" href="css/styles.css">
   <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;
-        t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];
-        y.parentNode.insertBefore(t,y);
+    (function (c, l, a, r, i, t, y) {
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+      t = l.createElement(r); t.async = 1;
+      t.src = "https://www.clarity.ms/tag/" + i;
+      y = l.getElementsByTagName(r)[0];
+      y.parentNode.insertBefore(t, y);
     })(window, document, "clarity", "script", "xim6tigbcd");
-    </script>
+  </script>
+  <meta name="analytics-provider" content="posthog+clarity">
+  <meta name="posthog-key" content="__POSTHOG_KEY__">
+  <meta name="posthog-host" content="__POSTHOG_HOST__">
 </head>
+
 <body class="bg-background text-on-surface scroll-smooth">
-    <header class="site-navbar bg-surface border-b border-outline-variant w-full px-md md:px-lg sticky top-0 z-50">
-      <div class="site-navbar__brand">
-        <button type="button" id="backToHubBtn" class="site-navbar__back md:hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all" aria-label="العودة للسنوات الدراسية">
-          <span class="material-symbols-outlined text-primary">home</span>
-        </button>
-        <button type="button" id="backToHomeBtn" class="site-navbar__back hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all" aria-label="العودة للمحاضرات">
-          <span class="material-symbols-outlined text-primary">arrow_forward</span>
+  <header class="site-navbar bg-surface border-b border-outline-variant w-full px-md md:px-lg sticky top-0 z-50">
+    <div class="site-navbar__brand">
+      <button type="button" id="backToHubBtn"
+        class="site-navbar__back md:hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="العودة للسنوات الدراسية">
+        <span class="material-symbols-outlined text-primary">home</span>
       </button>
-        <button type="button" id="brandBtn" class="site-navbar__brand-btn text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity text-right min-w-0" title="العودة للسنوات الدراسية">
+      <button type="button" id="backToHomeBtn"
+        class="site-navbar__back hidden shrink-0 p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="العودة للمحاضرات">
+        <span class="material-symbols-outlined text-primary">arrow_forward</span>
+      </button>
+      <button type="button" id="brandBtn"
+        class="site-navbar__brand-btn text-primary dark:text-inverse-primary hover:opacity-80 transition-opacity text-right min-w-0"
+        title="العودة للسنوات الدراسية">
         <span id="appBrandShort" class="md:hidden">موقع تفاعلي</span>
         <span id="appBrand" class="hidden md:inline">Study Guide</span>
       </button>
     </div>
-      <nav class="site-navbar__links hidden md:flex items-center gap-sm text-on-surface-variant font-label-md" aria-label="روابط أساسية">
-        <a class="site-navbar__link" href="#home">الرئيسية</a>
-        <a class="site-navbar__link" href="../../index.html">السنوات الدراسية</a>
-      </nav>
-      <div class="site-navbar__actions">
-        <div class="lecture-width-control hidden" id="lectureWidthControl">
-          <button type="button" id="lectureWidthBtn" class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all" aria-label="عرض المحتوى" aria-haspopup="true" aria-expanded="false" title="عرض المحتوى">
-            <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">width</span>
-          </button>
-          <div id="lectureWidthMenu" class="lecture-width-menu hidden" role="menu" aria-label="خيارات العرض"></div>
-        </div>
-        <button type="button" id="lectureNotesBtn" class="site-navbar__toggle hidden p-base rounded-full hover:bg-surface-variant transition-all" aria-label="ملاحظات المحاضرة" title="ملاحظات">
-          <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">sticky_note_2</span>
+
+    <div class="site-navbar__actions">
+      <button type="button" id="expandOriginalBtn"
+        class="site-navbar__toggle expand-original-btn hidden p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="عرض النص الأصلي في البداية" aria-pressed="false" title="عرض النص الأصلي في البداية">
+        <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">record_voice_over</span>
+      </button>
+      <div class="lecture-width-control hidden" id="lectureWidthControl">
+        <button type="button" id="lectureWidthBtn"
+          class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all"
+          aria-label="عرض المحتوى" aria-haspopup="true" aria-expanded="false" title="عرض المحتوى">
+          <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">width</span>
         </button>
-        <button type="button" id="navbarSearchBtn" class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all" aria-label="بحث في المحاضرات" title="بحث (Ctrl+Shift+F)">
-          <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">search</span>
-        </button>
-        <button type="button" id="laserPointerToggle" class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all" aria-label="قلم ليزر تفاعلي" aria-pressed="false" title="قلم ليزر تفاعلي">
-          <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">flare</span>
-        </button>
-        <button type="button" id="themeToggle" class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all" aria-label="تبديل الوضع">
-          <span class="material-symbols-outlined text-on-surface-variant" id="themeIcon">dark_mode</span>
-        </button>
+        <div id="lectureWidthMenu" class="lecture-width-menu hidden" role="menu" aria-label="خيارات العرض"></div>
+      </div>
+      <button type="button" id="lectureNotesBtn"
+        class="site-navbar__toggle hidden p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="ملاحظات المحاضرة" title="ملاحظات">
+        <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">sticky_note_2</span>
+      </button>
+      <button type="button" id="navbarSearchBtn"
+        class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="بحث في المحاضرات" title="بحث (Ctrl+Shift+F)">
+        <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">search</span>
+      </button>
+      <button type="button" id="laserPointerToggle"
+        class="site-navbar__toggle hidden p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="قلم ليزر تفاعلي" aria-pressed="false" title="قلم ليزر تفاعلي">
+        <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">flare</span>
+      </button>
+      <button type="button" id="themeToggle"
+        class="site-navbar__toggle p-base rounded-full hover:bg-surface-variant transition-all"
+        aria-label="تبديل الوضع">
+        <span class="material-symbols-outlined text-on-surface-variant" id="themeIcon">dark_mode</span>
+      </button>
     </div>
   </header>
 
@@ -87,20 +114,25 @@
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      <textarea id="lectureNotesInput" class="lecture-notes-modal__textarea" placeholder="اكتب ملاحظاتك هنا…" rows="12"></textarea>
-      <p class="lecture-notes-modal__hint font-label-md text-on-surface-variant">تُحفظ الملاحظات تلقائياً على هذا الجهاز.</p>
+      <textarea id="lectureNotesInput" class="lecture-notes-modal__textarea" placeholder="اكتب ملاحظاتك هنا…"
+        rows="12"></textarea>
+      <p class="lecture-notes-modal__hint font-label-md text-on-surface-variant">تُحفظ الملاحظات تلقائياً على هذا
+        الجهاز.</p>
     </div>
   </div>
 
   <div id="homeView" class="min-h-[calc(100vh-64px)]">
     <div class="max-w-container-max mx-auto px-lg md:px-xl py-xl">
       <section class="text-center mb-xl">
-        <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary dark:text-inverse-primary mb-md" id="homeTitle">Study Guide</h1>
+        <h1
+          class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary dark:text-inverse-primary mb-md"
+          id="homeTitle">Study Guide</h1>
         <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto" id="homeSubtitle"></p>
         <div class="disclaimers-stack mt-lg max-w-2xl mx-auto">
           <div class="ai-disclaimer" role="note">
             <span class="material-symbols-outlined ai-disclaimer__icon" aria-hidden="true">smart_toy</span>
-            <p class="ai-disclaimer__text"><strong>تنبيه:</strong> المحتوى مُولَّد بمساعدة AI. دليل <strong id="aiDisclaimerSubject">المادة</strong> غير مسؤول عن أي نقص أو خطأ.</p>
+            <p class="ai-disclaimer__text"><strong>تنبيه:</strong> المحتوى مُولَّد بمساعدة AI. دليل <strong
+                id="aiDisclaimerSubject">المادة</strong> غير مسؤول عن أي نقص أو خطأ.</p>
           </div>
         </div>
       </section>
@@ -109,26 +141,25 @@
       <section id="reviewFeatured" class="mb-xl hidden" aria-label="مراجعة شاملة"></section>
       <section id="examEntry" class="mb-xl hidden" aria-label="الاختبار الذاتي"></section>
       <section id="examArchive" class="mb-xl hidden" aria-label="دورات سنوات سابقة"></section>
-      <section id="notesSection" class="mb-xl pt-lg pb-md hidden border-t border-outline-variant" aria-label="ملخصات وأسئلة سريعة"></section>
+      <section id="notesSection" class="mb-xl pt-lg pb-md hidden border-t border-outline-variant"
+        aria-label="ملخصات وأسئلة سريعة"></section>
       <div id="searchContainer" class="relative mb-xl" role="search" aria-label="بحث في المحاضرات">
-        <div class="relative flex items-center bg-surface-container-high rounded-xl border border-outline-variant focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
-          <span class="material-symbols-outlined text-on-surface-variant mx-md pointer-events-none select-none" aria-hidden="true">search</span>
-          <input
-            id="searchInput"
-            type="search"
+        <div
+          class="relative flex items-center bg-surface-container-high rounded-xl border border-outline-variant focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
+          <span class="material-symbols-outlined text-on-surface-variant mx-md pointer-events-none select-none"
+            aria-hidden="true">search</span>
+          <input id="searchInput" type="search"
             class="w-full bg-transparent py-md pl-md font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant outline-none border-none"
-            placeholder="ابحث في المحاضرات… (Ctrl+Shift+F)"
-            autocomplete="off"
-            spellcheck="false"
-            aria-label="ابحث في المحاضرات"
-            aria-expanded="false"
-            aria-controls="searchResults"
-          />
-          <button type="button" id="searchClearBtn" class="hidden p-base mx-sm rounded-full hover:bg-surface-variant transition-all" aria-label="مسح البحث">
+            placeholder="ابحث في المحاضرات… (Ctrl+Shift+F)" autocomplete="off" spellcheck="false"
+            aria-label="ابحث في المحاضرات" aria-expanded="false" aria-controls="searchResults" />
+          <button type="button" id="searchClearBtn"
+            class="hidden p-base mx-sm rounded-full hover:bg-surface-variant transition-all" aria-label="مسح البحث">
             <span class="material-symbols-outlined text-on-surface-variant text-sm">close</span>
           </button>
         </div>
-        <div id="searchResults" class="hidden absolute top-full mt-sm left-0 right-0 z-50 bg-surface-container-low border border-outline-variant rounded-xl shadow-xl max-h-96 overflow-y-auto" role="listbox" aria-label="نتائج البحث"></div>
+        <div id="searchResults"
+          class="hidden absolute top-full mt-sm left-0 right-0 z-50 bg-surface-container-low border border-outline-variant rounded-xl shadow-xl max-h-96 overflow-y-auto"
+          role="listbox" aria-label="نتائج البحث"></div>
       </div>
       <div class="flex items-center gap-md mb-lg">
         <span class="material-symbols-outlined text-primary">school</span>
@@ -138,32 +169,54 @@
     </div>
   </div>
 
-  <div id="lectureView" class="hidden flex" data-width="120" style="--lecture-body-width: 100%; --lecture-main-pad-inline: var(--lecture-pad-md); --lecture-main-max-width: min(100%, 75rem);">
+  <div id="lectureView" class="hidden flex" data-width="120"
+    style="--lecture-body-width: 100%; --lecture-main-pad-inline: var(--lecture-pad-md); --lecture-main-max-width: min(100%, 75rem);">
     <aside class="hidden lg:flex h-[calc(100vh-64px)] sticky top-16 shrink-0 lecture-sidebar" id="lectureSidebar">
-      <div class="lecture-sidebar__panel w-80 bg-surface-container-low border-l border-outline-variant flex flex-col overflow-hidden" id="lectureSidebarPanel">
+      <div
+        class="lecture-sidebar__panel w-80 bg-surface-container-low border-l border-outline-variant flex flex-col overflow-hidden"
+        id="lectureSidebarPanel">
         <div class="lecture-sidebar__head">
-          <button type="button" id="sidebarToggleBtn" class="lecture-sidebar__toggle" aria-label="طي الفهرس" aria-expanded="true">
+          <button type="button" id="sidebarToggleBtn" class="lecture-sidebar__toggle" aria-label="طي الفهرس"
+            aria-expanded="true">
             <span class="material-symbols-outlined" id="sidebarToggleIcon" aria-hidden="true">chevron_right</span>
           </button>
           <span class="lecture-sidebar__head-label">فهرس المحاضرة</span>
         </div>
-        <div id="sidebarCourse" class="p-lg flex flex-col items-center border-b border-outline-variant shrink-0">
-          <span class="material-symbols-outlined text-primary scale-150 mb-md" id="sidebarMatIcon">school</span>
-          <h3 class="font-headline-sm text-headline-sm text-primary text-center" id="sidebarCourseTitle">...</h3>
-          <p class="font-label-md text-label-md text-on-surface-variant text-center" id="sidebarCourseSub">...</p>
-          <button type="button" id="sidebarCompleteBtn" class="lecture-complete-toggle hidden mt-md" aria-pressed="false">
-            <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-            <span data-complete-label>وضع كمكتملة</span>
+        <div id="sidebarCourse" class="lecture-sidebar__course shrink-0">
+          <button type="button" id="sidebarPrevLectureBtn" class="lecture-sidebar__nav-arrow"
+            aria-label="المحاضرة السابقة" title="المحاضرة السابقة">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
           </button>
+          <span class="material-symbols-outlined lecture-sidebar__course-icon" id="sidebarMatIcon" hidden>school</span>
+          <div class="lecture-sidebar__course-text">
+            <h3 class="lecture-sidebar__course-title" id="sidebarCourseTitle">...</h3>
+            <p class="lecture-sidebar__course-sub" id="sidebarCourseSub">...</p>
+          </div>
+          <button type="button" id="sidebarNextLectureBtn" class="lecture-sidebar__nav-arrow"
+            aria-label="المحاضرة التالية" title="المحاضرة التالية">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+          </button>
+          <button type="button" id="sidebarCompleteBtn" class="lecture-complete-toggle hidden" aria-pressed="false"
+            title="وضع كمكتملة">
+            <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+            <span class="sr-only" data-complete-label>وضع كمكتملة</span>
+          </button>
+        </div>
+        <div class="lecture-sidebar__progress shrink-0" id="sidebarProgressWrap">
+          <div class="lecture-sidebar__progress-row">
+            <span class="lecture-sidebar__progress-label">التقدم بالشرح</span>
+            <span class="lecture-sidebar__progress-pct" id="sidebarProgressPct">0%</span>
+          </div>
+          <div class="lecture-sidebar__progress-track">
+            <div class="lecture-sidebar__progress-fill" id="sidebarProgressFill"></div>
+          </div>
         </div>
         <nav id="sidebarToc" class="flex-1 py-md overflow-y-auto"></nav>
         <div class="p-lg border-t border-outline-variant shrink-0">
-          <button type="button" id="jumpQuizBtn" class="w-full bg-primary text-on-primary py-md rounded-lg font-bold hover:opacity-90 transition-all font-label-md">الملخص المنظم</button>
+          <button type="button" id="jumpQuizBtn"
+            class="w-full bg-primary text-on-primary py-md rounded-lg font-bold hover:opacity-90 transition-all font-label-md">الملخص
+            المنظم</button>
         </div>
-      </div>
-      <div class="lecture-sidebar__rail" aria-hidden="true">
-        <div class="lecture-sidebar__rail-fill" id="sidebarProgressFill"></div>
-        <div class="lecture-sidebar__rail-dot" id="sidebarProgressDot"></div>
       </div>
     </aside>
     <button type="button" id="sidebarExpandBtn" class="lecture-sidebar__expand hidden" aria-label="عرض الفهرس">
@@ -187,19 +240,38 @@
       </button>
     </div>
     <div id="mobileTocCourse" class="mobile-toc-drawer__course">
-      <span class="material-symbols-outlined text-primary" id="mobileTocMatIcon">school</span>
-      <div>
+      <button type="button" id="mobilePrevLectureBtn" class="lecture-sidebar__nav-arrow" aria-label="المحاضرة السابقة"
+        title="المحاضرة السابقة">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </button>
+      <span class="material-symbols-outlined text-primary" id="mobileTocMatIcon" hidden>school</span>
+      <div class="lecture-sidebar__course-text">
         <p class="font-label-md font-bold text-on-surface" id="mobileTocCourseTitle">...</p>
         <p class="font-label-md text-on-surface-variant text-sm" id="mobileTocCourseSub"></p>
-        <button type="button" id="mobileCompleteBtn" class="lecture-complete-toggle hidden mt-sm" aria-pressed="false">
-          <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-          <span data-complete-label>وضع كمكتملة</span>
-        </button>
+      </div>
+      <button type="button" id="mobileNextLectureBtn" class="lecture-sidebar__nav-arrow" aria-label="المحاضرة التالية"
+        title="المحاضرة التالية">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+      </button>
+      <button type="button" id="mobileCompleteBtn" class="lecture-complete-toggle hidden" aria-pressed="false"
+        title="وضع كمكتملة">
+        <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+        <span class="sr-only" data-complete-label>وضع كمكتملة</span>
+      </button>
+    </div>
+    <div class="lecture-sidebar__progress" id="mobileProgressWrap">
+      <div class="lecture-sidebar__progress-row">
+        <span class="lecture-sidebar__progress-label">التقدم بالشرح</span>
+        <span class="lecture-sidebar__progress-pct" id="mobileProgressPct">0%</span>
+      </div>
+      <div class="lecture-sidebar__progress-track">
+        <div class="lecture-sidebar__progress-fill" id="mobileProgressFill"></div>
       </div>
     </div>
     <nav id="mobileTocNav" class="mobile-toc-drawer__nav"></nav>
     <div class="mobile-toc-drawer__foot">
-      <button type="button" id="mobileJumpQuizBtn" class="w-full bg-primary text-on-primary py-md rounded-lg font-bold font-label-md">الملخص المنظم</button>
+      <button type="button" id="mobileJumpQuizBtn"
+        class="w-full bg-primary text-on-primary py-md rounded-lg font-bold font-label-md">الملخص المنظم</button>
     </div>
   </aside>
 
@@ -220,11 +292,14 @@
 
   <footer class="bg-surface-container w-full py-lg border-t border-outline-variant">
     <div class="flex flex-col md:flex-row justify-between items-center px-lg gap-md max-w-container-max mx-auto">
-      <span class="font-label-md text-on-surface-variant">© <span id="siteYear">2025-2026</span> — <span id="siteSubject">المادة</span> — المكتب الأكاديمي</span>
+      <span class="font-label-md text-on-surface-variant">© <span id="siteYear">2025-2026</span> — <span
+          id="siteSubject">المادة</span> — المكتب الأكاديمي</span>
     </div>
   </footer>
 
-  <button type="button" id="scrollTopFab" class="fixed bottom-lg left-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40 opacity-0 pointer-events-none" aria-label="العودة للأعلى">
+  <button type="button" id="scrollTopFab"
+    class="fixed bottom-lg left-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-40 opacity-0 pointer-events-none"
+    aria-label="العودة للأعلى">
     <span class="material-symbols-outlined">keyboard_arrow_up</span>
   </button>
 
@@ -237,8 +312,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <script type="module" src="js/app.js"></script>
+  <script src="chat-widget.js"></script>
+
 </body>
+
 </html>

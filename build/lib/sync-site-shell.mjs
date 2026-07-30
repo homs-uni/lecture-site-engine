@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { ENGINE_ROOT } from './subject-paths.mjs';
 import { patchSubjectIndexHtml, patchSubjectStoragePrefix } from './patch-subject-index.mjs';
+import { patchAnalyticsInDir } from './patch-analytics.mjs';
 import { patchBuildMeta } from './patch-build-meta.mjs';
 import { generateServiceWorker } from './generate-sw.mjs';
 
@@ -74,6 +75,7 @@ async function syncOne(subjectRel) {
   if (guideBackup) await writeFile(guidePath, guideBackup);
 
   await patchSubjectIndexHtml(outDir, subjectRel);
+  await patchAnalyticsInDir(outDir);
   await patchSubjectStoragePrefix(outDir);
   await bumpShellCache(outDir);
 }

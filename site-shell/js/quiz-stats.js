@@ -18,12 +18,16 @@ export function normalizeQuizSubjectState(raw) {
     Object.keys(raw.questions).forEach((qid) => {
       const s = raw.questions[qid];
       if (!s || typeof s !== 'object') return;
-      state.questions[qid] = {
+      const entry = {
         c: Number(s.c) || 0,
         w: Number(s.w) || 0,
         last: s.last === 1 ? 1 : 0,
         at: Number(s.at) || 0,
       };
+      // Persisted choice for DAWRAT (and any other view that saves picks).
+      // Cleared explicitly via clearAnswerChoice — survives reloads until then.
+      if (typeof s.picked === 'string' && s.picked) entry.picked = s.picked;
+      state.questions[qid] = entry;
     });
   }
   if (Array.isArray(raw.exams)) {
@@ -86,6 +90,51 @@ export function createQuizStats({
     return writeSubjectState(state);
   }
 
+  /** Persist which option was picked so the card can be restored across sessions. */
+  function saveAnswerChoice(qid, pickedKey, isCorrect) {
+    if (!qid || !pickedKey) return false;
+    const state = readSubjectState();
+    const stat = state.questions[qid] || { c: 0, w: 0, last: 0, at: 0 };
+    stat.picked = String(pickedKey);
+    stat.last = isCorrect ? 1 : 0;
+    stat.at = Date.now();
+    state.questions[qid] = stat;
+    return writeSubjectState(state);
+  }
+
+  function getAnswerChoice(qid) {
+    if (!qid) return null;
+    const stat = readSubjectState().questions[qid];
+    if (!stat?.picked) return null;
+    return { picked: stat.picked, last: stat.last };
+  }
+
+  /** Drop the saved pick so the question is unanswered again (keeps c/w history). */
+  function clearAnswerChoice(qid) {
+    if (!qid) return false;
+    const state = readSubjectState();
+    const stat = state.questions[qid];
+    if (!stat || !stat.picked) return false;
+    delete stat.picked;
+    state.questions[qid] = stat;
+    return writeSubjectState(state);
+  }
+
+  /** Clear saved picks for many qids at once (e.g. reset whole DAWRAT progress). */
+  function clearAnswerChoices(qids) {
+    if (!Array.isArray(qids) || !qids.length) return false;
+    const state = readSubjectState();
+    let changed = false;
+    for (const qid of qids) {
+      const stat = state.questions[qid];
+      if (!stat?.picked) continue;
+      delete stat.picked;
+      state.questions[qid] = stat;
+      changed = true;
+    }
+    return changed ? writeSubjectState(state) : false;
+  }
+
   function getQuestionStats() {
     return readSubjectState().questions;
   }
@@ -131,6 +180,10 @@ export function createQuizStats({
     storageKey,
     getSubjectKey: () => currentSubjectKey,
     recordAnswer,
+    saveAnswerChoice,
+    getAnswerChoice,
+    clearAnswerChoice,
+    clearAnswerChoices,
     getQuestionStats,
     getWrongQids,
     getMasteredCount,

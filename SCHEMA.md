@@ -250,6 +250,23 @@ Standard GFM pipe table with header separator `| --- |`.
 A: [answer]
 ```
 
+### Mini MCQ (inline quick check — not a `## MCQ` part)
+
+Compact comprehension check under a `###` section (notes / summary / detail). One question per heading. See `templates/block-mini-mcq.md`.
+
+```markdown
+#### تحقق سريع:
+[question — one clear sentence]
+أ) ...
+ب) ...
+ج) ...
+د) ...
+**الإجابة: ب**
+> [short rationale — one or two lines]
+```
+
+Alias heading: `#### سؤال سريع:`. Optional first line: `**المصدر:** [نمط …]`. Answer also accepts `**الإجابة الصحيحة: ب**`.
+
 ### Line-explain table (alternate)
 
 ```markdown

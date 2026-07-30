@@ -1,0 +1,55 @@
+-- Per-subject rollup: how many visitors look like "this is my primary source" vs.
+-- "quick reference only", based on coverage ratio + total active time + reading pace.
+-- Buckets (heuristic, tune thresholds as real data comes in):
+--   primary_source: coverage_ratio >= 0.5 AND total_active_minutes >= 30
+--   quick_reference: everyone else who opened at least one lecture meaningfully
+WITH visitor_subject_stats AS (
+  SELECT
+    distinct_id,
+    properties.subject AS subject,
+    count(DISTINCT properties.content_id) AS lectures_opened,
+    countIf(toFloat(properties.active_seconds) >= 60) AS lectures_meaningfully_opened,
+    sum(toFloat(properties.active_seconds)) / 60 AS total_active_minutes
+  FROM events
+  WHERE event = 'study_session_end'
+    AND properties.content_type = 'lecture'
+    AND timestamp > now() - INTERVAL 90 DAY
+  GROUP BY distinct_id, subject
+),
+subject_lecture_counts AS (
+  SELECT
+    properties.subject AS subject,
+    count(DISTINCT properties.content_id) AS total_lectures_seen_sitewide
+  FROM events
+  WHERE event = 'study_session_end'
+    AND properties.content_type = 'lecture'
+    AND timestamp > now() - INTERVAL 90 DAY
+  GROUP BY subject
+),
+classified AS (
+  SELECT
+    v.subject AS subject,
+    v.distinct_id AS visitor,
+    v.total_active_minutes AS total_active_minutes,
+    v.lectures_meaningfully_opened / s.total_lectures_seen_sitewide AS coverage_ratio,
+    if(
+      (v.lectures_meaningfully_opened / s.total_lectures_seen_sitewide) >= 0.5
+        AND v.total_active_minutes >= 30,
+      'primary_source',
+      'quick_reference'
+    ) AS visitor_type
+  FROM visitor_subject_stats v
+  JOIN subject_lecture_counts s ON v.subject = s.subject
+  WHERE v.lectures_meaningfully_opened > 0
+)
+SELECT
+  subject,
+  count() AS total_visitors,
+  countIf(visitor_type = 'primary_source') AS primary_source_visitors,
+  countIf(visitor_type = 'quick_reference') AS quick_reference_visitors,
+  round(countIf(visitor_type = 'primary_source') / count(), 2) AS primary_source_share,
+  round(avg(total_active_minutes), 1) AS avg_active_minutes_per_visitor,
+  round(avg(coverage_ratio), 2) AS avg_coverage_ratio
+FROM classified
+GROUP BY subject
+ORDER BY total_visitors DESC

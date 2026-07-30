@@ -1,371 +1,459 @@
-# المحاضرة 13 — مشروع اللعبة: Alien Invasion (غزو الفضائيين)
-
-> **المادة:** البرمجة المتقدمة 2 (القسم النظري) | **الموضوع:** بناء لعبة كاملة باستخدام `pygame` — من الإعداد وحتى الطلقات والحركة
-
----
-
-## 📌 خريطة التكامل (أين تقع هذه المحاضرة في الدورة؟)
-
-| المرحلة | الأدوات | المخرجات |
-| --- | --- | --- |
-| أساسيات Python | `variables`، `functions`، `loops`، `classes` | كود منظّم |
-| البرمجة الكائنية OOP | `class`، `__init__`، `self`، `inheritance` | كائنات قابلة لإعادة الاستخدام |
-| **مشروع اللعبة — Alien Invasion ← أنت هنا** | `pygame`، `Sprite`، `Group`، `event loop`، `Rect` | لعبة تفاعلية كاملة |
-| إضافة الفضائيين والنقاط | `pygame.sprite.groupcollide`، `scoreboard` | لعبة مكتملة المعالم |
-
-> **نوع هذه المحاضرة:** `Game Development` — بناء مشروع تدريجي باستخدام `pygame`، يشمل: إعداد النافذة، إنشاء الكائنات، التحكم بالحركة، وإطلاق الطلقات.
+# المحاضرة 13 — Game Project (مشروع اللعبة)
+> **المادة:** البرمجة المتقدمة 2 (القسم النظري) | **الموضوع:** بناء لعبة Alien Invasion باستخدام `pygame` — من الصفر إلى الرصاص
 
 ---
 
-## الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
+## الجزء الأول: ملخص منظم (اقرأ قبل المحاضرة!)
 
-> **مهم:** كل قسم يبدأ بـ «النص الأصلي يقول» ثم «الشرح المبسّط».
+### 📍 عن هذه المحاضرة
+> هذه المحاضرة تأخذك خطوة بخطوة في بناء لعبة كاملة بـ `Python` و`pygame` — من فتح نافذة فارغة، إلى تحريك سفينة، إلى إطلاق رصاصات.
+
+### 🎯 ستتعلم
+- كيف تُنشئ نافذة `pygame` وتستجيب لأحداث المستخدم — الأساس الذي تبنى عليه كل لعبة
+- كيف تبني `Settings class` مركزية لتخزين كل إعدادات اللعبة في مكان واحد
+- كيف تُحرّك `sprite` بشكل سلس باستخدام `movement flags` بدلاً من تحريكه مباشرة عند الضغط
+- كيف تُطلق رصاصات وتديرها كـ `Group` من `sprites` — بما في ذلك حذفها تلقائياً عند خروجها من الشاشة
+
+### 📚 المتطلبات السابقة
+- `OOP` بالكامل (Classes, `__init__`, methods, inheritance) — لأن كل عنصر في اللعبة هو class
+- مفهوم `while True` loop — قلب اللعبة كله يدور حولها
+- أساسيات `pygame` — `import`, `pygame.init()`, `blit()`
+
+### 💡 الأفكار الرئيسية
+
+هذه المحاضرة تبني مشروع **Alien Invasion** — لعبة تصويب كلاسيكية. فكّر فيها كطبقات: في الأسفل عندك `pygame` كمحرك، فوقه عندك كود تنظيمي (`settings`, `game_functions`)، وعلى القمة عندك الكيانات (`Ship`, `Bullet`).
+
+اللعبة كلها تدور في حلقة واحدة لا تنتهي — `while True`. في كل دورة من هذه الحلقة، تحدث ثلاثة أشياء بالترتيب: تفحص الأحداث (ضغطات المفاتيح، إغلاق النافذة)، تحدّث حالة العالم (مواضع السفينة والرصاصات)، ثم تعيد رسم كل شيء على الشاشة. هذا هو **Game Loop** وهو قلب كل لعبة.
+
+الفكرة الذكية في تحريك السفينة هي `movement flags`. بدل ما تحرّك السفينة مباشرة لما تضغط المفتاح، تشعل flag مثل `moving_right = True` عند الضغط، وتطفيه عند الرفع. بعدين في كل دورة من الـ loop تقرأ الـ flag وتحرّك السفينة. النتيجة: حركة سلسة مستمرة بدون توقف.
+
+للرصاصات، تستخدم `pygame.sprite.Group()` — وعاء ذكي يتيح لك تحديث وعرض وحذف عشرات الرصاصات بسطر واحد. كل رصاصة ترث من `Sprite`، وعندما تخرج من الشاشة تُحذف من الـ Group تلقائياً.
+
+### 🔗 كيف تتصل هذه المحاضرة بالمحاضرات الأخرى؟
+- **السابقة:** محاضرات OOP علّمتك Classes و Inheritance ← الآن كل عنصر في اللعبة هو class كامل
+- **القادمة:** ستضيف الـ Aliens وآليات الاصطدام وعرض النقاط (Score)
+
+### ⚠️ الأخطاء الشائعة الواجب تجنبها
+
+#### الفهم الخاطئ ❌:
+"أحرّك السفينة مباشرة عند الضغط على المفتاح بجملة واحدة داخل event handler"
+
+#### الفهم الصحيح ✅:
+الضغط يُشعل flag فقط — الحركة الفعلية تحدث في `ship.update()` داخل الـ loop الرئيسي. هذا يعطي حركة سلسة لأن `update()` يُنفَّذ في كل frame.
+
+#### الفهم الخاطئ ❌:
+"أحذف الرصاصات من `bullets` مباشرة أثناء التكرار على نفسها"
+
+#### الفهم الصحيح ✅:
+دائماً كرّر على نسخة: `for bullet in bullets.copy():` ثم احذف من الأصل. تعديل collection أثناء التكرار عليها يسبب `RuntimeError`.
+
+### لما تحتاج هذا في الامتحان
+الأسئلة تركز على: بنية الـ Game Loop الصحيحة (ترتيب check→update→draw)، الفرق بين `KEYDOWN` و`KEYUP`، لماذا نستخدم `float` للسرعة، كيف يعمل `sprite.Group()` وكيف تُطلق رصاصة محدودة، ولماذا `bullets.copy()` في حذف الرصاصات.
 
 ---
 
-### 1. فكرة المشروع العامة — Alien Invasion
+## الجزء الثاني: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)
 
-#### النص الأصلي يقول:
-> "In Alien Invasion, the player controls a ship that appears at the bottom center of the screen. The player can move the ship right and left using the arrow keys and shoot bullets using the spacebar. When the game begins, a fleet of aliens fills the sky and moves across and down the screen. The player shoots and destroys the aliens. If the player shoots all the aliens, a new fleet appears that moves faster than the previous fleet. If any alien hits the player's ship or reaches the bottom of the screen, the player loses a ship. If the player loses three ships, the game ends."
+### 1. نظرة عامة على اللعبة (Project Overview)
 
-#### الشرح المبسّط:
-اللعبة تشبه لعبة «Space Invaders» الكلاسيكية:
-- اللاعب يتحكم في مركبة فضائية أسفل الشاشة
-- يتحرك يميناً ويساراً بأزرار الأسهم
-- يطلق طلقات بزر المسافة `spacebar`
-- أسراب من الفضائيين تهجم من الأعلى
-- إذا أتمّ اللاعب تدمير السرب كله → يظهر سرب جديد أسرع
-- إذا وصل فضائي للمركبة أو قاع الشاشة → يخسر اللاعب مركبة
-- خسارة 3 مركبات = نهاية اللعبة
+<!-- @render: {type: "prose-first", visualization: "none", coverage: "100%"} -->
 
-**لماذا؟** هذا المشروع يجمع كل مفاهيم OOP في سياق عملي: الكائنات تتفاعل مع بعضها، كل مكوّن في ملف منفصل، وهناك `game loop` يربطها جميعاً.
-
-💡 **التشبيه:**
-> اللعبة مثل مطعم: المدير (`alien_invasion.py`) يُنسّق بين الطاهي (`ship.py`) والنادل (`game_functions.py`) والقائمة (`settings.py`) — كل واحد يؤدّي دوره لكن المطعم يعمل كوحدة واحدة.
-> **وجه الشبه:** `alien_invasion.py` = المدير الذي يستدعي الجميع في كل `frame`.
+#### 💡 الفكرة الأساسية
+**Alien Invasion هي لعبة تصويب: سفينة في الأسفل تواجه أسطولاً من الأجانب في الأعلى — الهدف هو إبادتهم قبل أن يصلوا إليك.**
 
 ---
 
-### 2. بدء مشروع اللعبة — Starting the Game Project
+#### 📖 الشرح
 
-#### 2.1 إنشاء نافذة `pygame` والاستجابة للمدخلات
+اللعبة تعمل بهذه القواعد:
+- السفينة تظهر في **المنتصف السفلي** من الشاشة
+- تتحرك **يميناً ويساراً** بالأسهم وتُطلق رصاصات بـ`Space`
+- عند بداية اللعبة، أسطول من الأجانب يملأ الأعلى ويتحرك يميناً ويساراً ثم ينزل
+- إذا دمّرت كل الأجانب → أسطول جديد **أسرع** يظهر
+- إذا ضرب جنبي سفينتك أو وصل للأسفل → **تخسر سفينة**
+- تخسر 3 سفن → **اللعبة تنتهي**
 
-#### النص الأصلي يقول:
-> "Creating an empty Pygame window to which we can later draw our game elements, such as the ship and the aliens. We'll also have our game respond to user input, set the background color, and load a ship image."
+#### 💡 التشبيه:
+> تخيّل أنك تلعب Space Invaders على ورق — أنت والخصم تتناوبون الحركة. في pygame، "التناوب" هو الـ Game Loop: في كل دورة يتحرك الجميع خطوة واحدة.
+> **وجه الشبه:** كل frame من اللعبة = نوبة واحدة في لعبة الورق
 
-#### الشرح المبسّط:
-أول خطوة في أي لعبة `pygame`: إنشاء النافذة وتشغيل الحلقة الرئيسية.
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-#### 💻 الكود: alien_invasion.py — النسخة الأولى
+**النص الأصلي يقول:**
+> In Alien Invasion, the player controls a ship that appears at the bottom center of the screen. The player can move the ship right and left using the arrow keys and shoot bullets using the spacebar. When the game begins, a fleet of aliens fills the sky and moves across and down the screen. The player shoots and destroys the aliens. If the player shoots all the aliens, a new fleet appears that moves faster than the previous fleet. If any alien hits the player's ship or reaches the bottom of the screen, the player loses a ship. If the player loses three ships, the game ends.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل قواعد اللعبة
+- ℹ️ إضافة من الدليل: تشبيه Space Invaders لتوضيح الفكرة
+
+</details>
+
+---
+
+### 2. بدء المشروع — إنشاء نافذة `pygame`
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_1"} -->
+
+#### 💡 الفكرة الأساسية
+**أول خطوة في أي لعبة `pygame`: تهيئة المكتبة، إنشاء نافذة، ثم دخول حلقة لا نهاية لها تراقب الأحداث وترسم الشاشة.**
+
+---
+
+#### 📊 المخطط: Game Loop Architecture
+
+#### ما هذا المخطط؟
+> يوضّح البنية الأساسية لـ Game Loop — الحلقة اللانهائية التي تشغّل كل لعبة pygame.
+
+#### وصف المراحل:
+| # | المرحلة | الدخل | الخرج | الملاحظات |
+|---|---------|-------|-------|-----------|
+| 1 | `pygame.init()` | — | pygame جاهز | مرة واحدة فقط |
+| 2 | `set_mode()` | أبعاد | كائن screen | يُحدد حجم النافذة |
+| 3 | `event.get()` | — | قائمة events | QUIT, KEYDOWN, ... |
+| 4 | رسم الشاشة | — | صورة معدّلة | `fill()` ثم `blit()` |
+| 5 | `display.flip()` | — | تحديث الشاشة | يظهر التغييرات للمستخدم |
+
+#### وصف الروابط:
+| من | إلى | الشرط / الحافة | الملاحظات |
+|---|---|---|---|
+| init | Loop | دائماً | لا تدخل الـ loop قبل init |
+| event QUIT | `sys.exit()` | عند إغلاق النافذة | يُنهي البرنامج نهائياً |
+| Loop نهاية | Loop بداية | دائماً | تكرار لانهائي |
+
+```mermaid
+flowchart TD
+    A[pygame.init] --> B[set_mode — create screen window]
+    B --> C{while True}
+    C --> D[event.get — check keyboard/mouse]
+    D --> E{event.type == QUIT?}
+    E -->|Yes| F[sys.exit]
+    E -->|No| G[screen.fill — redraw background]
+    G --> H[display.flip — show frame]
+    H --> C
+```
+
+#### 💻 الكود: `alien_invasions.py` — النسخة الأولى
 
 #### ما هذا الكود؟
-> ملف البداية: يُهيّئ `pygame`، يفتح نافذة 800×600، ويبدأ حلقة اللعبة الرئيسية التي تراقب الأحداث وتُحدّث الشاشة باستمرار.
+> الهيكل الأساسي للعبة: يفتح نافذة فارغة ويبقى مفتوحاً حتى يضغط المستخدم X.
 
 ```python
-import sys                           # system operations (exit)
-import pygame                        # game library
+import sys              # needed for sys.exit()
+import pygame
 
 def run_game():
     # Initialize pygame, settings, and screen object
-    pygame.init()                    # start all pygame modules
-    screen = pygame.display.set_mode((800, 600))  # create 800x600 window
-    pygame.display.set_caption("Alien Invasion")  # set window title
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))  # width=800, height=600
+    pygame.display.set_caption("Alien Invasion")
 
     # Start the main loop for the game
     while True:
         # Watch for keyboard and mouse events
-        for event in pygame.event.get():     # get all pending events
-            if event.type == pygame.QUIT:    # if user closes window
-                sys.exit()                   # exit cleanly
-
-        # Make the most recently drawn screen visible
-        pygame.display.flip()    # swap buffers — show what we drew
-
-run_game()                       # entry point
-```
-
-#### شرح كل سطر:
-1. `import sys` → استيراد وحدة النظام — لازمة لـ `sys.exit()` لإغلاق اللعبة نظيفاً
-2. `import pygame` → استيراد مكتبة الألعاب الكاملة
-3. `pygame.init()` → تشغيل جميع وحدات `pygame` الفرعية (الصوت، الشاشة، الحوادث)
-4. `pygame.display.set_mode((800, 600))` → إنشاء سطح عرض `Surface` بحجم 800 عرض × 600 ارتفاع بكسل
-5. `pygame.display.set_caption(...)` → تعيين عنوان الشريط العلوي للنافذة
-6. `while True:` → الحلقة الأبدية — اللعبة تستمر حتى يُغلقها المستخدم
-7. `pygame.event.get()` → استرجاع كل الأحداث المنتظرة (ضغطات، نقرات، إغلاق)
-8. `event.type == pygame.QUIT` → الكشف عن حدث الإغلاق (X في النافذة)
-9. `sys.exit()` → إنهاء البرنامج بشكل نظيف
-10. `pygame.display.flip()` → عرض الإطار المرسوم على الشاشة (double buffering)
-
-**المكتبات المطلوبة (Imports):**
-> `import sys` | `import pygame`
-
-**الناتج المتوقع:**
-> نافذة سوداء فارغة بعنوان "Alien Invasion" — تستجيب لزر الإغلاق
-
-#### مهم للامتحان ⚠️:
-> `pygame.display.flip()` يجب أن يكون في نهاية كل دورة من `while True:` — بدونه لن يظهر أي شيء على الشاشة.
-
-🤔 **تفعيل الفهم:**
-> **سؤال:** ماذا يحدث لو أزلت `pygame.init()`؟
-> **لماذا هذا مهم؟** لأن `pygame.init()` تُشغّل كل الوحدات الداخلية — بدونها تظهر أخطاء مثل `pygame.error: No video mode has been set`.
-
----
-
-#### 2.2 تعيين لون الخلفية
-
-#### النص الأصلي يقول:
-> `bg_color = (230, 230, 230)` — تُستخدم داخل الحلقة: `screen.fill(bg_color)`
-
-#### الشرح المبسّط:
-`pygame` تُمثّل الألوان بنظام `RGB` (أحمر، أخضر، أزرق) — كل قيمة بين 0 و255.
-
-#### 💻 الكود: إضافة لون الخلفية
-
-#### ما هذا الكود؟
-> يُعيّن لون خلفية رمادي فاتح `(230, 230, 230)` ويُطبّقه على كامل الشاشة في كل إطار.
-
-```python
-# Inside run_game() — after set_caption
-bg_color = (230, 230, 230)    # light gray: R=230, G=230, B=230
-
-while True:
-    # -- event loop (snip) --
-
-    # Redraw the screen during each pass through the loop
-    screen.fill(bg_color)     # paint entire screen with bg_color
-
-    pygame.display.flip()     # show the result
-```
-
-#### شرح كل سطر:
-1. `bg_color = (230, 230, 230)` → تعريف لون رمادي فاتح — كلما اقتربت القيم من 255 كلما اتجه اللون نحو الأبيض
-2. `screen.fill(bg_color)` → طلاء الشاشة كاملها بهذا اللون — **يجب استدعاؤه قبل رسم أي شيء آخر** وإلا ستُغطّي الخلفية كل ما رُسم
-
-**الناتج المتوقع:**
-> النافذة الآن رمادية فاتحة بدلاً من السوداء
-
-💡 **التشبيه:**
-> `screen.fill(bg_color)` مثل مسح السبورة قبل الكتابة عليها من جديد — بدون المسح ستتراكم الصور فوق بعضها.
-> **وجه الشبه:** `fill` = الممحاة، `flip()` = عرض السبورة للطلاب.
-
----
-
-#### 2.3 إنشاء فئة الإعدادات — Settings Class
-
-#### النص الأصلي يقول:
-> "class Settings(): — A class to store all settings for Alien Invasion. — self.screen_width = 800 — self.screen_height = 600 — self.bg_color = (230, 230, 230)"
-
-#### الشرح المبسّط:
-بدلاً من وضع الأرقام في كل مكان (hard-coding)، نجمع كل الإعدادات في ملف `settings.py` منفصل. هذا يجعل التعديل أسهل — تغيّر رقماً واحداً في مكان واحد.
-
-#### 💻 الكود: settings.py
-
-#### ما هذا الكود؟
-> فئة `Settings` تحمل كل القيم الثابتة للعبة: أبعاد الشاشة، الألوان، سرعة السفينة — بدلاً من تكرارها في كل ملف.
-
-```python
-class Settings():
-    """A class to store all settings for Alien Invasion."""
-
-    def __init__(self):
-        """Initialize the game's settings."""
-        # Screen settings
-        self.screen_width = 800       # window width in pixels
-        self.screen_height = 600      # window height in pixels
-        self.bg_color = (230, 230, 230)  # background color (light gray)
-```
-
-#### شرح كل سطر:
-1. `class Settings():` → تعريف فئة `Settings` — لا ترث من أي فئة (هياكل بيانات بسيطة)
-2. `def __init__(self):` → منشئ الفئة — يُنفَّذ تلقائياً عند `Settings()`
-3. `self.screen_width = 800` → سمة الشاشة بالبكسل
-4. `self.screen_height = 600` → ارتفاع الشاشة
-5. `self.bg_color = (230, 230, 230)` → لون الخلفية كـ `tuple` من `RGB`
-
-#### 💻 الكود: تعديل alien_invasion.py لاستخدام Settings
-
-#### ما هذا الكود؟
-> ربط `alien_invasion.py` بالفئة الجديدة `Settings` لاستخدام القيم المركزية بدلاً من الأرقام المتفرقة.
-
-```python
-import pygame
-from settings import Settings       # import our Settings class
-
-def run_game():
-    pygame.init()
-    ai_settings = Settings()        # create settings instance
-    screen = pygame.display.set_mode(
-        (ai_settings.screen_width, ai_settings.screen_height))  # use settings
-    pygame.display.set_caption("Alien Invasion")
-
-    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                import sys; sys.exit()
+                sys.exit()  # close window cleanly
 
-        screen.fill(ai_settings.bg_color)   # use settings color
+        # Make the most recently drawn screen visible
         pygame.display.flip()
 
 run_game()
 ```
 
-#### شرح كل سطر:
-1. `from settings import Settings` → استيراد الفئة من الملف `settings.py`
-2. `ai_settings = Settings()` → إنشاء كائن إعدادات — `ai` اختصار `alien_invasion`
-3. `ai_settings.screen_width` → الوصول للعرض من الكائن بدلاً من الرقم المباشر
+#### ملاحظات الأسطر المهمة:
+- `pygame.init()` → تُهيئ جميع وحدات pygame قبل استخدامها — **يجب أن تأتي أولاً**
+- `set_mode((800, 600))` → tuple من (عرض، ارتفاع) — لاحظ الأقواس المزدوجة
+- `pygame.event.get()` → تُعيد قائمة بكل الأحداث التي حدثت منذ آخر استدعاء
+- `pygame.display.flip()` → تعرض الـ frame الجديد — بدونها لن ترى أي تغيير
 
-#### ⚠️ مهم للامتحان:
-> عند استخدام `Settings`، أي تغيير في حجم الشاشة يتم في مكان واحد فقط (`settings.py`) ويسري تلقائياً على كل الكود — هذا مبدأ `DRY (Don't Repeat Yourself)`.
+#### 🎯 الملخص السريع
+- `pygame.init()` مرة واحدة في البداية
+- `while True` هو قلب اللعبة
+- `event.get()` يلتقط أحداث المستخدم
+- `display.flip()` يُظهر الصورة المرسومة
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Creating an empty Pygame window to which we can later draw our game elements, such as the ship and the aliens. We'll also have our game respond to user input, set the background color, and load a ship image.
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: النافذة، event loop، `sys.exit()`، `display.flip()`
+- ℹ️ إضافة من الدليل: مخطط Game Loop بـ Mermaid
+
+</details>
 
 ---
 
-### 3. إضافة صورة السفينة — Adding the Ship Image
+### 3. ضبط لون الخلفية
 
-#### 3.1 إنشاء فئة السفينة — Ship Class
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_2"} -->
 
-#### النص الأصلي يقول:
-> `self.image = pygame.image.load('images/ship.bmp')` — `self.rect = self.image.get_rect()` — `self.rect.centerx = self.screen_rect.centerx` — `self.rect.bottom = self.screen_rect.bottom`
+#### 💡 الفكرة الأساسية
+**`screen.fill(color)` يمسح الشاشة بلون ثابت في بداية كل frame — بدون ذلك ستتراكم الرسومات فوق بعضها.**
 
-#### الشرح المبسّط:
-السفينة تُمثَّل بفئة `Ship` منفصلة في `ship.py`. تعمل الفئة على:
-1. تحميل الصورة من ملف `.bmp`
-2. الحصول على مستطيل الصورة `rect` لتحديد موضعها
-3. وضعها في المنتصف أسفل الشاشة
+---
 
-#### 💻 الكود: ship.py
+#### 📖 الشرح
 
-#### ما هذا الكود؟
-> فئة `Ship` تُحمّل صورة المركبة الفضائية وتضعها في منتصف قاع الشاشة، وتوفّر دالة `blitme()` لرسمها في كل إطار.
+في `pygame`، الألوان تُعبَّر كـ `tuple` من ثلاثة أرقام: `(R, G, B)` حيث كل رقم بين 0 و255. لون الخلفية `(230, 230, 230)` هو رمادي فاتح.
+
+`screen.fill(bg_color)` **يجب أن يأتي في بداية رسم كل frame** (قبل رسم السفينة وغيرها) حتى يمسح ما رُسم في الـ frame السابق. إذا نسيته ستبقى صور قديمة على الشاشة.
+
+#### 💻 الكود: إضافة لون الخلفية
 
 ```python
-import pygame                              # for image loading and drawing
+def run_game():
+    # --snip--
+    pygame.display.set_caption("Alien Invasion")
+    
+    # Set the background color (light gray)
+    bg_color = (230, 230, 230)
+    
+    while True:
+        # --snip-- (event handling)
+        
+        # Redraw the screen during each pass through the loop
+        screen.fill(bg_color)  # clear screen with background color each frame
+        
+        # Make the most recently drawn screen visible
+        pygame.display.flip()
+```
+
+#### ملاحظات الأسطر المهمة:
+- `bg_color = (230, 230, 230)` → RGB tuple — هنا رمادي فاتح. `(0,0,0)` = أسود، `(255,255,255)` = أبيض
+- `screen.fill(bg_color)` → **يمسح الشاشة كلها** بالألوان المحددة — يأتي قبل رسم أي شيء
+
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** ماذا يحدث لو أزلت `screen.fill()` من الكود؟
+> **لماذا هذا مهم؟** لأن السفينة في كل frame ستُرسم فوق نفسها في موضعها القديم — ستشاهد "ذيلاً" من الصور خلف السفينة عند تحريكها.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> bg_color = (230, 230, 230) ... screen.fill(bg_color)
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: RGB، `screen.fill()`، أهمية الترتيب
+- ℹ️ إضافة: شرح سبب وضعه في بداية كل frame
+
+</details>
+
+---
+
+### 4. إنشاء `Settings Class`
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_3"} -->
+
+#### 💡 الفكرة الأساسية
+**بدل تشتيت القيم في ملفات مختلفة، نجمع كل إعدادات اللعبة في class واحدة — تغيير إعداد واحد يؤثر على اللعبة كلها.**
+
+---
+
+#### 📖 الشرح
+
+مع نمو اللعبة، ستكون عندك عشرات الإعدادات (سرعة السفينة، حجم الرصاص، عدد الأجانب...). وضعها كـ hardcoded numbers في كل مكان يجعل التعديل كابوساً. الحل: `Settings class` — ملف واحد، class واحدة، كل شيء فيها.
+
+```python
+# settings.py
+class Settings():
+    """A class to store all settings for Alien Invasion."""
+    
+    def __init__(self):
+        """Initialize the game's settings."""
+        # Screen settings
+        self.screen_width = 800
+        self.screen_height = 600
+        self.bg_color = (230, 230, 230)
+```
+
+ثم في `alien_invasions.py` تستخدمها هكذا:
+
+```python
+from settings import Settings
+
+def run_game():
+    pygame.init()
+    ai_settings = Settings()  # create settings object
+    screen = pygame.display.set_mode(
+        (ai_settings.screen_width, ai_settings.screen_height)  # use from settings
+    )
+    # ...
+    while True:
+        # ...
+        screen.fill(ai_settings.bg_color)  # use color from settings
+```
+
+#### ملاحظات الأسطر المهمة:
+- `ai_settings = Settings()` → نُنشئ كائن إعدادات واحد وتُمرر لكل شيء يحتاجها
+- `ai_settings.screen_width` → الوصول للإعداد من أي مكان في الكود
+- لاحظ: لا تعديل على `run_game()` إذا أردت تغيير حجم النافذة — فقط غيّر في `settings.py`
+
+#### 💡 التشبيه:
+> `Settings class` مثل لوحة التحكم في مصنع — بدلاً من الذهاب لكل آلة وضبطها، تضبط كل شيء من مكان واحد.
+> **وجه الشبه:** الإعدادات = اللوحة المركزية | كل class تقرأ منها = آلة في المصنع
+
+#### 🎯 الملخص السريع
+- `Settings` class في ملف `settings.py` منفصل
+- كل الثوابت كـ `self.attribute` في `__init__`
+- تُمرر كـ `ai_settings` لكل class أو function تحتاجها
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> class Settings(): ... self.screen_width = 800, self.screen_height = 600, self.bg_color = (230, 230, 230)
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: هيكل الـ class، الغرض منها، طريقة الاستخدام
+- ℹ️ إضافة: تشبيه لوحة التحكم، شرح الفائدة من المركزية
+
+</details>
+
+---
+
+### 5. إضافة صورة السفينة — `Ship Class`
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_4"} -->
+
+#### 📍 أين نحن الآن؟
+الآن عندنا نافذة. الخطوة التالية: نُضيف السفينة — كـ class مستقلة في ملف `ship.py`.
+
+#### 💡 الفكرة الأساسية
+**السفينة class مستقلة تحمل صورتها وموضعها ومنطق حركتها — نعزل كل كيان في class خاصة بها.**
+
+---
+
+#### 💻 الكود: `ship.py`
+
+#### ما هذا الكود؟
+> يُعرّف class للسفينة: تُحمّل صورتها، تضع نفسها في المنتصف السفلي، ولديها طريقة لرسم نفسها.
+
+```python
+import pygame
 
 class Ship():
     def __init__(self, screen):
         """Initialize the ship and set its starting position."""
-        self.screen = screen               # store screen reference
-
+        self.screen = screen
+        
         # Load the ship image and get its rect
-        self.image = pygame.image.load('images/ship.bmp')  # load bitmap
-        self.rect = self.image.get_rect()  # get bounding rectangle
-        self.screen_rect = screen.get_rect()  # get screen dimensions as rect
-
+        self.image = pygame.image.load('images/ship.bmp')  # load from images folder
+        self.rect = self.image.get_rect()                  # bounding rectangle
+        self.screen_rect = screen.get_rect()               # screen rectangle
+        
         # Start each new ship at the bottom center of the screen
-        self.rect.centerx = self.screen_rect.centerx  # center horizontally
-        self.rect.bottom = self.screen_rect.bottom     # align to bottom
-
+        self.rect.centerx = self.screen_rect.centerx  # align centers horizontally
+        self.rect.bottom = self.screen_rect.bottom     # stick to bottom edge
+    
     def blitme(self):
         """Draw the ship at its current location."""
         self.screen.blit(self.image, self.rect)  # draw image at rect position
 ```
 
-#### شرح كل سطر:
-1. `pygame.image.load('images/ship.bmp')` → تحميل صورة بتنسيق `BMP` من المجلد `images/`
-2. `self.image.get_rect()` → الحصول على `pygame.Rect` يمثل حدود الصورة (x، y، width، height)
-3. `screen.get_rect()` → مستطيل الشاشة كاملة — نستخدمه للتموضع
-4. `self.rect.centerx = self.screen_rect.centerx` → توسيط أفقي: مركز السفينة = مركز الشاشة
-5. `self.rect.bottom = self.screen_rect.bottom` → قاع السفينة عند قاع الشاشة
-6. `self.screen.blit(self.image, self.rect)` → رسم (`blit`) الصورة على الشاشة في موضع `self.rect`
-
-**المكتبات المطلوبة (Imports):**
-> `import pygame`
-
-💡 **التشبيه:**
-> `Rect` مثل بطاقة هوية الصورة: يحمل موقعها (x, y) وحجمها (width, height) — عند تحريك السفينة نُعدّل `Rect` وليس الصورة نفسها.
-> **وجه الشبه:** `Rect` = إطار الصورة المتحرّك، `blit` = لصق الصورة في الإطار.
-
----
-
-#### 3.2 رسم السفينة على الشاشة
-
-#### النص الأصلي يقول:
-> `from ship import Ship` — `ship = Ship(screen)` — `ship.blitme()`
-
-#### الشرح المبسّط:
-بعد إنشاء فئة `Ship`، نستوردها في `alien_invasion.py` ونستدعي `ship.blitme()` داخل الحلقة الرئيسية لرسمها في كل إطار.
-
-#### 💻 الكود: alien_invasion.py — إضافة السفينة
-
-#### ما هذا الكود؟
-> ربط فئة `Ship` بالحلقة الرئيسية لرسم السفينة على الشاشة في كل دورة.
+ثم في `alien_invasions.py`:
 
 ```python
-import pygame
-from settings import Settings
-from ship import Ship                   # import Ship class
+from ship import Ship
 
 def run_game():
-    pygame.init()
-    ai_settings = Settings()
-    screen = pygame.display.set_mode(
-        (ai_settings.screen_width, ai_settings.screen_height))
-    pygame.display.set_caption("Alien Invasion")
-
-    ship = Ship(screen)                 # create ship instance
-
+    # --snip--
+    ship = Ship(screen)  # create ship, pass screen
+    
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                import sys; sys.exit()
-
-        screen.fill(ai_settings.bg_color)   # clear screen first
-        ship.blitme()                        # draw ship on top
-        pygame.display.flip()               # show result
-
-run_game()
+        # --snip--
+        screen.fill(ai_settings.bg_color)
+        ship.blitme()           # draw ship each frame
+        pygame.display.flip()
 ```
 
-#### شرح كل سطر:
-1. `from ship import Ship` → استيراد فئة `Ship` من `ship.py`
-2. `ship = Ship(screen)` → إنشاء كائن السفينة — يمرر `screen` لتعرف أين ترسم نفسها
-3. `ship.blitme()` → يُرسم بعد `screen.fill()` حتى لا تُغطيه الخلفية
+#### ملاحظات الأسطر المهمة:
+- `pygame.image.load('images/ship.bmp')` → يُحمّل ملف صورة — المسار نسبي من مجلد المشروع
+- `self.image.get_rect()` → يُعيد `Rect` object يمثل مستطيل الصورة (width, height, x, y)
+- `self.rect.centerx = self.screen_rect.centerx` → تمركز أفقي: centerx السفينة = centerx الشاشة
+- `self.rect.bottom = self.screen_rect.bottom` → الحافة السفلية للسفينة = الحافة السفلية للشاشة
+- `screen.blit(image, rect)` → يرسم image في الموضع المحدد بـ rect
 
-#### مهم للامتحان ⚠️:
-> ترتيب الرسم داخل الحلقة مهم جداً: `fill()` أولاً (مسح) → `blitme()` (رسم العناصر) → `flip()` (عرض). أي تغيير في الترتيب يُسبب مشاكل بصرية.
+#### 💡 التشبيه:
+> `Rect` في `pygame` مثل بطاقة هوية للصورة — فيها الموضع والحجم. عندما تقول `self.rect.bottom = self.screen_rect.bottom` أنت تقول "ضع أسفل بطاقة هوية السفينة عند أسفل بطاقة هوية الشاشة."
+> **وجه الشبه:** Rect = بطاقة هوية | `bottom`, `centerx` = معلومات الموضع فيها
+
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** لماذا نحفظ `self.screen_rect` داخل الـ `__init__` بدل استدعاء `screen.get_rect()` في كل مرة؟
+> **لماذا هذا مهم؟** لأن `get_rect()` تُعيد نفس القيمة دائماً — حفظها يوفر وقت المعالجة في كل frame.
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> self.image = pygame.image.load('images/ship.bmp'), self.rect = self.image.get_rect(), self.screen_rect = screen.get_rect(), self.rect.centerx = self.screen_rect.centerx, self.rect.bottom = self.screen_rect.bottom, def blitme(self): self.screen.blit(self.image, self.rect)
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: `load()`, `get_rect()`, موضع البداية, `blitme()`
+- ℹ️ إضافة: تشبيه الـ Rect كبطاقة هوية
+
+</details>
 
 ---
 
-### 4. وحدة دوال اللعبة — The game_functions Module
+### 6. وحدة الدوال `game_functions` Module
 
-#### 4.1 دالة check_events()
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_5"} -->
 
-#### النص الأصلي يقول:
-> "def check_events(): — Respond to keypresses and mouse events. — for event in pygame.event.get(): — if event.type == pygame.QUIT: sys.exit()"
+#### 💡 الفكرة الأساسية
+**نقل الدوال المتكررة من `alien_invasions.py` إلى ملف منفصل `game_functions.py` يُنظّف الكود ويجعله أسهل في الصيانة.**
 
-#### الشرح المبسّط:
-بدلاً من كتابة منطق الأحداث مباشرة في `alien_invasion.py`، ننقله لملف `game_functions.py` — هذا يجعل `alien_invasion.py` أقصر وأوضح.
+---
 
-#### 💻 الكود: game_functions.py — check_events
+#### 📖 الشرح
+
+الـ Game Loop الرئيسي يتضمن ثلاث عمليات رئيسية: `check_events()` لمعالجة المدخلات، `update_screen()` لإعادة الرسم. نقلهما لـ `game_functions.py` يُبسّط الـ loop الرئيسي لثلاثة أسطر فقط.
+
+#### 💻 الكود: `game_functions.py` — الدوال الأساسية
 
 #### ما هذا الكود؟
-> دالة `check_events()` تُعالج كل أحداث لوحة المفاتيح والفأرة وتُنظّف الكود الرئيسي.
+> ملف منفصل يحتوي الدوال المساعدة للعبة — يُستورد في `alien_invasions.py`.
 
 ```python
-import sys                               # for sys.exit()
-import pygame                            # for event types
+# game_functions.py
+import sys
+import pygame
 
 def check_events():
     """Respond to keypresses and mouse events."""
-    for event in pygame.event.get():     # iterate all pending events
-        if event.type == pygame.QUIT:    # window close button
-            sys.exit()                   # terminate program
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+
+def update_screen(ai_settings, screen, ship):
+    """Update images on the screen and flip to the new screen."""
+    # Redraw the screen during each pass through the loop
+    screen.fill(ai_settings.bg_color)
+    ship.blitme()
+    
+    # Make the most recently drawn screen visible
+    pygame.display.flip()
 ```
 
-#### شرح كل سطر:
-1. `def check_events():` → دالة مستقلة تجمع معالجة الأحداث
-2. `pygame.event.get()` → قائمة بكل الأحداث منذ آخر استدعاء
-3. `pygame.QUIT` → ثابت يمثل حدث الإغلاق
-
-#### 💻 الكود: alien_invasion.py — استخدام check_events
-
-#### ما هذا الكود؟
-> استبدال كود الأحداث المتكرر بـ `import game_functions as gf` واستدعاء `gf.check_events()`.
-
 ```python
+# alien_invasions.py — after refactoring
 import pygame
 from settings import Settings
 from ship import Ship
-import game_functions as gf             # import functions module as gf
+import game_functions as gf  # import module with alias
 
 def run_game():
     pygame.init()
@@ -374,380 +462,122 @@ def run_game():
         (ai_settings.screen_width, ai_settings.screen_height))
     pygame.display.set_caption("Alien Invasion")
     ship = Ship(screen)
-
+    
     while True:
-        gf.check_events()               # handle all events
-        screen.fill(ai_settings.bg_color)
-        ship.blitme()
-        pygame.display.flip()
+        gf.check_events()                              # handle input
+        gf.update_screen(ai_settings, screen, ship)   # draw frame
 
 run_game()
 ```
 
-#### شرح كل سطر:
-1. `import game_functions as gf` → استيراد الوحدة بالاسم المختصر `gf`
-2. `gf.check_events()` → استدعاء دالة من الوحدة — أوضح من كتابة الكود مباشرة
+#### ملاحظات الأسطر المهمة:
+- `import game_functions as gf` → نستورد الملف كله بـ alias مختصر — نستدعي دوالها بـ `gf.function_name()`
+- الـ loop الرئيسي الآن سطران فقط — أسهل قراءةً وصيانةً
+
+#### 🎯 الملخص السريع
+- `check_events()` → تفحص الأحداث وتستجيب لها
+- `update_screen()` → تُعيد رسم الشاشة في كل frame
+- `import module as alias` → طريقة استيراد الملفات الكاملة
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> def check_events(): ... if event.type == pygame.QUIT: sys.exit() | def update_screen(ai_settings, screen, ship): screen.fill(ai_settings.bg_color), ship.blitme(), pygame.display.flip()
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: `check_events()`, `update_screen()`, `import as`
+- ℹ️ إضافة: شرح فائدة الـ refactoring
+
+</details>
 
 ---
 
-#### 4.2 دالة update_screen()
+### 7. تحريك السفينة — `Piloting the Ship`
 
-#### النص الأصلي يقول:
-> "def update_screen(ai_settings, screen, ship): — Update images on the screen and flip to the new screen. — screen.fill(ai_settings.bg_color) — ship.blitme() — pygame.display.flip()"
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_6"} -->
 
-#### الشرح المبسّط:
-مثلما أخرجنا منطق الأحداث لـ `check_events()`، نُخرج منطق الرسم لـ `update_screen()`. الهدف: `while True` في الملف الرئيسي يصبح قصيراً ومقروءاً.
+#### 📍 أين نحن الآن؟
+عندنا سفينة مرسومة. الآن نُضيف التحكم فيها.
 
-#### 💻 الكود: game_functions.py — update_screen
-
-#### ما هذا الكود؟
-> دالة `update_screen()` تتولّى كل عمليات الرسم وتحديث الشاشة في كل إطار.
-
-```python
-def update_screen(ai_settings, screen, ship):
-    """Update images on the screen and flip to the new screen."""
-    # Redraw the screen during each pass through the loop
-    screen.fill(ai_settings.bg_color)   # clear with background color
-    ship.blitme()                       # draw ship
-    # Make the most recently drawn screen visible
-    pygame.display.flip()               # swap to display buffer
-```
-
-#### شرح كل سطر:
-1. `update_screen(ai_settings, screen, ship)` → تستقبل الإعدادات، الشاشة، والسفينة كمعاملات
-2. ترتيب الاستدعاءات: `fill()` → `blitme()` → `flip()` — لا يتغيّر هذا الترتيب
-
-#### 💻 الكود: alien_invasion.py — النسخة المحسّنة
-
-#### ما هذا الكود؟
-> الحلقة الرئيسية المنظّمة — جسم `while True` أصبح 3 أسطر فقط.
-
-```python
-while True:
-    gf.check_events()                              # handle events
-    gf.update_screen(ai_settings, screen, ship)    # draw everything
-```
-
-#### شرح كل سطر:
-1. `gf.check_events()` → يُعالج مدخلات المستخدم
-2. `gf.update_screen(...)` → يرسم الشاشة ويعرضها
-
-#### ملاحظة:
-> فصل المنطق إلى دوال مستقلة يُطبّق مبدأ `Single Responsibility`: كل دالة مسؤولة عن شيء واحد فقط — هذا يُسهّل التصحيح والتطوير.
+#### 💡 الفكرة الأساسية
+**التحريك بـ flags: اضغط المفتاح → أشعل flag → السفينة تتحرك في كل frame حتى ترفع المفتاح.**
 
 ---
 
-### 5. التحكم في السفينة — Piloting the Ship
+#### 7.1. الاستجابة لضغطة المفتاح الواحدة
 
-#### 5.1 الاستجابة لضغطة مفتاح واحدة
-
-#### النص الأصلي يقول:
-> "elif event.type == pygame.KEYDOWN: if event.key == pygame.K_RIGHT: # Move the ship to the right. ship.rect.centerx += 1"
-
-#### الشرح المبسّط:
-عند الضغط على السهم الأيمن، نُزيد `centerx` للسفينة بمقدار 1 بكسل. لكن هذه الطريقة تتحرك بكسلاً واحداً فقط عند كل ضغطة — غير مريح للاعب.
-
-#### 💻 الكود: game_functions.py — استجابة بسيطة للمفاتيح
-
-#### ما هذا الكود؟
-> إضافة منطق الحركة الأساسية — تحريك السفينة يميناً بكسل واحد عند الضغط.
+أبسط طريقة: حرّك السفينة مباشرة عند `KEYDOWN`:
 
 ```python
+# game_functions.py — simple version (not ideal)
 def check_events(ship):
-    """Respond to keypresses and mouse events."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        elif event.type == pygame.KEYDOWN:      # key pressed
-            if event.key == pygame.K_RIGHT:     # right arrow key
-                # Move the ship to the right
-                ship.rect.centerx += 1          # shift 1 pixel right
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                ship.rect.centerx += 1  # move one pixel right per keypress
 ```
 
-#### شرح كل سطر:
-1. `event.type == pygame.KEYDOWN` → حدث ضغط مفتاح (لحظة الضغط فقط)
-2. `event.key == pygame.K_RIGHT` → التحقق أن المفتاح هو السهم الأيمن
-3. `ship.rect.centerx += 1` → تحريك السفينة بكسل واحد يميناً
+**المشكلة:** السفينة تتحرك pixel واحد لكل ضغطة — متقطعة وبطيئة.
 
 ---
 
-#### 5.2 السماح بالحركة المستمرة — Continuous Movement
+#### 7.2. الحركة المستمرة بـ `Movement Flags`
 
-#### النص الأصلي يقول:
-> "self.moving_right = False — def update(self): if self.moving_right: self.rect.centerx += 1"
-
-#### الشرح المبسّط:
-الحل: نستخدم `flag` (راية) داخل `Ship`. عند ضغط المفتاح → `moving_right = True`. عند رفعه → `moving_right = False`. في كل إطار نستدعي `ship.update()` لتحريكها ما دام الضغط مستمراً.
-
-**لماذا؟** `KEYDOWN` يُطلَق مرة واحدة لحظة الضغط، لكن اللاعب يريد حركة مستمرة ما دام الإصبع على المفتاح. الراية تحل هذه المشكلة.
-
-#### 🔄 قبل / بعد: نظام الحركة
-
-**قبل (بسيط — غير مريح):**
-```python
-# Moves only once per keypress
-if event.key == pygame.K_RIGHT:
-    ship.rect.centerx += 1
-```
-
-**بعد (مستمر — مريح):**
-```python
-# In Ship.__init__: flag
-self.moving_right = False
-
-# In check_events: set flag
-if event.key == pygame.K_RIGHT:
-    ship.moving_right = True
-
-# In Ship.update(): act on flag
-if self.moving_right:
-    self.rect.centerx += 1
-```
-
-**ماذا تغيّر؟** الحركة أصبحت مستمرة ما دام المفتاح مضغوطاً بدلاً من مجرد نقلة واحدة.
-
-#### 💻 الكود: ship.py — إضافة update() والراية
-
-#### ما هذا الكود؟
-> إضافة راية `moving_right` ودالة `update()` لتمكين الحركة المستمرة.
+الحل الصحيح: استخدام flags في `Ship class`:
 
 ```python
+# ship.py — updated with movement flags
 class Ship():
-    def __init__(self, screen):
-        # -- previous code (snip) --
-        self.screen_rect = screen.get_rect()
-        self.rect.centerx = self.screen_rect.centerx
-        self.rect.bottom = self.screen_rect.bottom
-
-        # Movement flag — False means not moving
-        self.moving_right = False          # right movement flag
-
+    def __init__(self, ai_settings, screen):
+        """Initialize the ship and set its starting position."""
+        self.screen = screen
+        self.ai_settings = ai_settings    # store settings reference
+        # --snip-- (image loading, position)
+        
+        # Store decimal center value for smooth movement
+        self.center = float(self.rect.centerx)  # float for sub-pixel precision
+        
+        # Movement flags — start stopped
+        self.moving_right = False
+        self.moving_left = False
+    
     def update(self):
-        """Update the ship's position based on the movement flag."""
-        if self.moving_right:             # if flag is True
-            self.rect.centerx += 1        # shift one pixel right
-
+        """Update the ship's position based on movement flags."""
+        # Update center value (not rect directly)
+        if self.moving_right and self.rect.right < self.screen_rect.right:
+            self.center += self.ai_settings.ship_speed_factor  # move right
+        if self.moving_left and self.rect.left > 0:
+            self.center -= self.ai_settings.ship_speed_factor  # move left
+        
+        # Update rect from center (rect only holds integers)
+        self.rect.centerx = self.center
+    
     def blitme(self):
         """Draw the ship at its current location."""
         self.screen.blit(self.image, self.rect)
 ```
 
-#### شرح كل سطر:
-1. `self.moving_right = False` → الراية تبدأ بـ `False` (السفينة ثابتة)
-2. `def update(self):` → دالة تُستدعى في كل إطار لتُحدّث الموضع
-3. `if self.moving_right: self.rect.centerx += 1` → تحرك فقط إذا كانت الراية `True`
-
-#### 💻 الكود: game_functions.py — رفع وخفض الراية
-
-#### ما هذا الكود؟
-> ضبط الراية عند KEYDOWN وإعادة تعيينها عند KEYUP لتمكين التوقف عند رفع المفتاح.
-
-```python
-def check_events(ship):
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:     # key pressed
-            if event.key == pygame.K_RIGHT:
-                ship.moving_right = True        # start moving
-        elif event.type == pygame.KEYUP:       # key released
-            if event.key == pygame.K_RIGHT:
-                ship.moving_right = False       # stop moving
-```
-
-#### شرح كل سطر:
-1. `pygame.KEYDOWN` → لحظة الضغط → `True`
-2. `pygame.KEYUP` → لحظة الرفع → `False`
-
-#### 💻 الكود: alien_invasion.py — استدعاء update()
-
-#### ما هذا الكود؟
-> إضافة `ship.update()` في الحلقة الرئيسية لتُنفَّذ في كل إطار.
-
-```python
-while True:
-    gf.check_events(ship)                       # handle input → set flags
-    ship.update()                               # move ship based on flags
-    gf.update_screen(ai_settings, screen, ship) # draw
-```
-
----
-
-#### 5.3 التحرك يميناً ويساراً معاً
-
-#### النص الأصلي يقول:
-> "self.moving_right = False — self.moving_left = False — if self.moving_right: self.rect.centerx += 1 — if self.moving_left: self.rect.centerx -= 1"
-
-#### الشرح المبسّط:
-نضيف راية ثانية `moving_left` ونُعالج مفتاح السهم الأيسر بنفس الأسلوب.
-
-#### 💻 الكود: ship.py — حركة ثنائية الاتجاه
-
-#### ما هذا الكود؟
-> إضافة راية `moving_left` وتحديث `update()` لدعم الحركة في الاتجاهين.
-
-```python
-def __init__(self, screen):
-    # -- snip --
-    # Movement flags
-    self.moving_right = False    # right flag
-    self.moving_left = False     # left flag
-
-def update(self):
-    """Update the ship's position based on movement flags."""
-    if self.moving_right:
-        self.rect.centerx += 1    # move right
-    if self.moving_left:
-        self.rect.centerx -= 1    # move left
-```
-
-#### 💻 الكود: game_functions.py — معالجة كلا المفتاحين
-
-#### ما هذا الكود؟
-> توسيع `check_events()` لمعالجة السهم الأيسر بجانب الأيمن.
-
-```python
-elif event.type == pygame.KEYDOWN:
-    if event.key == pygame.K_RIGHT:
-        ship.moving_right = True     # right pressed
-    elif event.key == pygame.K_LEFT:
-        ship.moving_left = True      # left pressed
-
-elif event.type == pygame.KEYUP:
-    if event.key == pygame.K_RIGHT:
-        ship.moving_right = False    # right released
-    elif event.key == pygame.K_LEFT:
-        ship.moving_left = False     # left released
-```
-
----
-
-#### 5.4 ضبط سرعة السفينة
-
-#### النص الأصلي يقول:
-> "self.ship_speed_factor = 1.5"
-
-#### الشرح المبسّط:
-بدلاً من الحركة بكسل واحد (عدد صحيح)، نستخدم عدداً عشرياً `float` لضبط السرعة بدقة أكبر. `1.5` بكسل في كل إطار أسرع من `1` وأبطأ من `2`.
-
-#### 💻 الكود: settings.py — إضافة سرعة السفينة
-
-#### ما هذا الكود؟
-> إضافة `ship_speed_factor` لتحديد سرعة السفينة بقيمة عشرية قابلة للتعديل.
-
-```python
-class Settings():
-    def __init__(self):
-        # Screen settings
-        self.screen_width = 800
-        self.screen_height = 600
-        self.bg_color = (230, 230, 230)
-        # Ship settings
-        self.ship_speed_factor = 1.5     # pixels per frame (float)
-```
-
-#### 💻 الكود: ship.py — استخدام السرعة العشرية
-
-#### ما هذا الكود؟
-> تعديل `Ship` لاستخدام `ai_settings` وتخزين الموضع كـ `float` لدعم السرعة العشرية.
-
-```python
-class Ship():
-    def __init__(self, ai_settings, screen):     # accept settings
-        """Initialize the ship and set its starting position."""
-        self.screen = screen
-        self.ai_settings = ai_settings           # store settings reference
-        # -- load image, get rect (snip) --
-
-        # Store a decimal value for the ship's center
-        self.center = float(self.rect.centerx)   # float for precision
-        # Movement flags
-        self.moving_right = False
-        self.moving_left = False
-
-    def update(self):
-        """Update the ship's position based on movement flags."""
-        # Update the ship's center value, not the rect
-        if self.moving_right:
-            self.center += self.ai_settings.ship_speed_factor   # add speed
-        if self.moving_left:
-            self.center -= self.ai_settings.ship_speed_factor   # subtract speed
-        # Update rect object from self.center
-        self.rect.centerx = self.center      # convert float back to int for rect
-```
-
-#### شرح كل سطر:
-1. `self.center = float(self.rect.centerx)` → نُخزّن الموضع كـ `float` لأن `Rect` يقبل فقط عدداً صحيحاً — لو أضفنا `1.5` مباشرة لـ `rect.centerx` ستُقرَّب وتُفقد الدقة
-2. `self.center += self.ai_settings.ship_speed_factor` → نُضيف للـ `float` بدقة
-3. `self.rect.centerx = self.center` → في النهاية نُحدّث `rect` من `self.center`
-
-💡 **التشبيه:**
-> `self.center` مثل الـ GPS الدقيق لمركبة، و`self.rect.centerx` مثل خانة النظام القديم التي تقبل أرقاماً صحيحة فقط — نحسب بدقة ثم نُدرج.
-> **وجه الشبه:** `float` = دقة GPS، `int` = خانة الكيلومترات الصحيحة.
-
----
-
-#### 5.5 تحديد نطاق حركة السفينة — Limiting the Ship's Range
-
-#### النص الأصلي يقول:
-> "if self.moving_right and self.rect.right < self.screen_rect.right: — if self.moving_left and self.rect.left > 0:"
-
-#### الشرح المبسّط:
-بدون قيود، ستخرج السفينة من حدود الشاشة. نضيف شرطاً: تتحرك يميناً فقط إذا لم يتجاوز طرفها الأيمن حد الشاشة الأيمن، وتتحرك يساراً فقط إذا لم يتجاوز طرفها الأيسر حد الشاشة الأيسر (0).
-
-#### 💻 الكود: ship.py — تقييد الحركة
-
-#### ما هذا الكود؟
-> إضافة شروط حدود الشاشة لمنع السفينة من الخروج.
-
-```python
-def update(self):
-    """Update the ship's position based on movement flags."""
-    # Update the ship's center value, not the rect
-    if self.moving_right and self.rect.right < self.screen_rect.right:
-        self.center += self.ai_settings.ship_speed_factor   # move right if within bounds
-    if self.moving_left and self.rect.left > 0:
-        self.center -= self.ai_settings.ship_speed_factor   # move left if within bounds
-    # Update rect object from self.center
-    self.rect.centerx = self.center
-```
-
-#### شرح كل سطر:
-1. `self.rect.right < self.screen_rect.right` → تحقق: الحافة اليمنى للسفينة لم تصل لحافة الشاشة اليمنى
-2. `self.rect.left > 0` → تحقق: الحافة اليسرى للسفينة لم تصل لبداية الشاشة (x=0)
-
-#### مهم للامتحان ⚠️:
-> `self.rect.right` = إحداثي الحافة اليمنى = `x + width`، و`self.rect.left` = إحداثي الحافة اليسرى = `x`. هذه خصائص مدمجة في `pygame.Rect`.
-
----
-
-#### 5.6 إعادة هيكلة check_events() — Refactoring
-
-#### النص الأصلي يقول:
-> "def check_keydown_events(event, ship): — def check_keyup_events(event, ship): — def check_events(ship): … check_keydown_events(event, ship) … check_keyup_events(event, ship)"
-
-#### الشرح المبسّط:
-مع نمو الكود، تصبح `check_events()` طويلة. نُقسّمها إلى 3 دوال: دالة رئيسية تُوزّع الأحداث، ودالتان للضغط والرفع.
-
-#### 💻 الكود: game_functions.py — الدوال المفككة
-
-#### ما هذا الكود؟
-> إعادة هيكلة `check_events()` إلى 3 دوال منفصلة أصغر وأوضح.
+#### 💻 الكود: `game_functions.py` — إدارة المفاتيح
 
 ```python
 def check_keydown_events(event, ship):
     """Respond to keypresses."""
     if event.key == pygame.K_RIGHT:
-        ship.moving_right = True     # start moving right
+        ship.moving_right = True   # set flag on keydown
     elif event.key == pygame.K_LEFT:
-        ship.moving_left = True      # start moving left
+        ship.moving_left = True
 
 def check_keyup_events(event, ship):
     """Respond to key releases."""
     if event.key == pygame.K_RIGHT:
-        ship.moving_right = False    # stop moving right
+        ship.moving_right = False  # clear flag on keyup
     elif event.key == pygame.K_LEFT:
-        ship.moving_left = False     # stop moving left
+        ship.moving_left = False
 
 def check_events(ship):
     """Respond to keypresses and mouse events."""
@@ -755,143 +585,211 @@ def check_events(ship):
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_keydown_events(event, ship)    # delegate to helper
+            check_keydown_events(event, ship)  # delegate to helper
         elif event.type == pygame.KEYUP:
-            check_keyup_events(event, ship)      # delegate to helper
+            check_keyup_events(event, ship)    # delegate to helper
 ```
-
-#### شرح كل سطر:
-1. `check_keydown_events(event, ship)` → دالة مساعدة لمعالجة الضغط فقط
-2. `check_keyup_events(event, ship)` → دالة مساعدة للرفع فقط
-3. `check_events()` → تبقى الدالة الرئيسية لكن تُفوّض العمل للمساعدتين
-
-💡 **التشبيه:**
-> `check_events()` مثل مدير استقبال في فندق: يستقبل كل الطلبات ثم يُوجّهها للموظف المختص (`check_keydown_events` أو `check_keyup_events`).
-> **وجه الشبه:** التفويض = `delegation` في هندسة البرمجيات.
-
----
-
-### 6. إطلاق الطلقات — Shooting Bullets
-
-#### 6.1 إضافة إعدادات الطلقات
-
-#### النص الأصلي يقول:
-> "self.bullet_speed_factor = 1 — self.bullet_width = 3 — self.bullet_height = 15 — self.bullet_color = 60, 60, 60 — self.bullets_allowed = 3"
-
-#### الشرح المبسّط:
-نُضيف إعدادات الطلقات لـ `Settings`: الحجم، اللون، السرعة، والحد الأقصى لعدد الطلقات المسموح بوجودها على الشاشة في آنٍ واحد.
-
-#### 💻 الكود: settings.py — إعدادات الطلقات
-
-#### ما هذا الكود؟
-> إضافة معاملات الطلقات لفئة `Settings` لمركزة كل القيم القابلة للتعديل.
 
 ```python
-# Bullet settings
-self.bullet_speed_factor = 1       # pixels per frame (upward)
-self.bullet_width = 3              # width in pixels
-self.bullet_height = 15            # height in pixels
-self.bullet_color = 60, 60, 60     # dark gray (R, G, B)
-self.bullets_allowed = 3           # max bullets on screen at once
+# alien_invasions.py — updated loop
+while True:
+    gf.check_events(ship)   # handle events (set/clear flags)
+    ship.update()           # move ship based on flags
+    gf.update_screen(ai_settings, screen, ship)  # draw
 ```
 
-#### شرح كل سطر:
-1. `bullet_speed_factor = 1` → سرعة الطلقة صعوداً (بكسل/إطار)
-2. `bullet_width = 3` → عرض ضيّق — يبدو كخط رفيع
-3. `bullet_height = 15` → طول متوسط مرئي
-4. `bullet_color = 60, 60, 60` → رمادي داكن — يتميّز عن الخلفية الفاتحة
-5. `bullets_allowed = 3` → تقييد عدد الطلقات لزيادة صعوبة اللعبة
+#### ملاحظات الأسطر المهمة:
+- `self.center = float(self.rect.centerx)` → نحفظ الموضع كـ `float` لأن `rect` يقبل integers فقط — بدون `float` السرعة الكسرية مثل 1.5 ستُقرَّب وتفقد دقتها
+- `self.moving_right = False` → flag مبدئية = متوقفة
+- `if self.moving_right and self.rect.right < self.screen_rect.right:` → شرطان: هل تتحرك؟ وهل لم تصل للحافة؟ — هذا **يحدد مدى السفينة**
+- `self.rect.centerx = self.center` → بعد تحديث الـ float، نقرّبه ونضعه في الـ rect
+- `KEYDOWN` = لما يُضغط المفتاح | `KEYUP` = لما يُرفع
+
+#### 🔍 تتبع التنفيذ: ضغط زر ← ثم رفعه
+
+**المدخل:** المستخدم يضغط ← مع 5 frames ثم يرفع
+
+| Frame | الحدث | Flag | `ship.update()` | موضع X |
+|-------|-------|------|-----------------|--------|
+| 1 | `KEYDOWN K_LEFT` | `moving_left = True` | تحرك يساراً | 400-1.5=398.5 |
+| 2 | — | `True` | تحرك | 397 |
+| 3 | — | `True` | تحرك | 395.5 |
+| 4 | — | `True` | تحرك | 394 |
+| 5 | `KEYUP K_LEFT` | `moving_left = False` | لا حركة | 394 |
+
+**النتيجة:** حركة سلسة مستمرة فقط أثناء الضغط.
+
+#### ⚖️ المقايضة: Direct Move vs Flags
+
+| | Direct Move | Movement Flags |
+|---|---|---|
+| **المزايا** | بسيطة جداً | حركة سلسة، دقة عالية |
+| **العيوب** | حركة متقطعة | كود أطول قليلاً |
+| **متى تختاره** | macros/shortcuts | الحركة المستمرة في الألعاب |
+
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
+
+**النص الأصلي يقول:**
+> Moving Both Left and Right: self.moving_right = False, self.moving_left = False, def update(self): if self.moving_right: self.rect.centerx += 1, if self.moving_left: self.rect.centerx -= 1 | Adjusting Speed: self.ship_speed_factor = 1.5 | Limiting Range: if self.moving_right and self.rect.right < self.screen_rect.right | Refactoring check_events: check_keydown_events, check_keyup_events
+
+**ملاحظة على التغطية:**
+- ✓ تم شرح: flags، `update()`، السرعة، تحديد المدى، refactoring
+- ℹ️ إضافة: جدول تتبع التنفيذ، مقارنة الطريقتين، شرح لماذا `float`
+
+</details>
 
 ---
 
-#### 6.2 إنشاء فئة الطلقة — Bullet Class
+### 8. ضبط سرعة السفينة
 
-#### النص الأصلي يقول:
-> "class Bullet(Sprite): — self.rect = pygame.Rect(0, 0, ai_settings.bullet_width, ai_settings.bullet_height) — self.rect.centerx = ship.rect.centerx — self.rect.top = ship.rect.top — self.y = float(self.rect.y) — def update(self): self.y -= self.speed_factor — def draw_bullet(self): pygame.draw.rect(self.screen, self.color, self.rect)"
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_7"} -->
 
-#### الشرح المبسّط:
-الطلقة كائن `Sprite` (من `pygame.sprite.Sprite`). تبدأ من أعلى السفينة وتتحرك للأعلى (y تتناقص لأن الإحداثيات من الأعلى للأسفل في `pygame`). تُرسم كمستطيل ملوّن لا كصورة.
+#### 💡 الفكرة الأساسية
+**بتخزين السرعة في `settings.py` كـ `float`، يمكن ضبطها بدقة عالية دون تعديل كود الحركة نفسه.**
 
-#### 💻 الكود: bullet.py — فئة الطلقة الكاملة
+---
+
+```python
+# settings.py — add ship speed
+class Settings():
+    def __init__(self):
+        # --snip--
+        # Ship settings
+        self.ship_speed_factor = 1.5  # pixels per frame — float for precision
+```
+
+```python
+# ship.py — use speed from settings
+def update(self):
+    if self.moving_right and self.rect.right < self.screen_rect.right:
+        self.center += self.ai_settings.ship_speed_factor   # 1.5 pixels/frame
+    if self.moving_left and self.rect.left > 0:
+        self.center -= self.ai_settings.ship_speed_factor
+    
+    self.rect.centerx = self.center  # int truncation here is fine
+```
+
+```python
+# alien_invasions.py — pass ai_settings to Ship
+ship = Ship(ai_settings, screen)  # now Ship needs ai_settings too
+```
+
+#### ملاحظات الأسطر المهمة:
+- `ship_speed_factor = 1.5` → سرعة كسرية ممكنة بفضل `self.center = float(...)` — بدون float لن تلاحظ الفرق بين 1.0 و1.5 لأن `rect` يقرّب للعدد الصحيح
+- `self.rect.centerx = self.center` → في كل frame نقرّب الـ float لأقرب int، لكن التراكم الدقيق يحفظه الـ `self.center`
+
+#### نقطة مهمة ⚠️:
+> لماذا `self.center` بدلاً من تحديث `self.rect.centerx` مباشرة؟ لأن `rect` يخزن integers فقط. إذا السرعة 1.5 وحدّثت `rect` مباشرة، كل frame تضيف 1.5 لكن `rect` يخزّنه كـ 1 أو 2 — خطأ تراكمي. بـ `self.center` (float) التراكم دقيق، ونقرّبه فقط عند الرسم.
+
+---
+
+### 9. إطلاق الرصاصات — `Shooting Bullets`
+
+<!-- @render: {type: "code-first", visualization: "none", coverage: "100%"} -->
+<!-- @connectivity: {prerequisite: "section_8"} -->
+
+#### 📍 أين نحن الآن؟
+السفينة تتحرك. الآن نُضيف قدرتها على إطلاق الرصاص.
+
+#### 💡 الفكرة الأساسية
+**الرصاصة `Sprite` تُنشأ عند الضغط على `Space`، تتحرك للأعلى في كل frame، وتُحذف تلقائياً عند خروجها من الشاشة.**
+
+---
+
+#### 9.1. إعدادات الرصاص في `settings.py`
+
+```python
+# settings.py
+class Settings():
+    def __init__(self):
+        # --snip--
+        # Bullet settings
+        self.bullet_speed_factor = 1       # pixels per frame upward
+        self.bullet_width = 3              # narrow bullet
+        self.bullet_height = 15            # tall bullet
+        self.bullet_color = 60, 60, 60     # dark gray
+        self.bullets_allowed = 3           # max bullets on screen at once
+```
+
+---
+
+#### 9.2. `Bullet Class` في `bullet.py`
+
+#### 💻 الكود: `bullet.py`
 
 #### ما هذا الكود؟
-> فئة `Bullet` ترث من `Sprite` — تُنشأ عند قاع السفينة وتتحرك للأعلى بسرعة محددة وترسم نفسها كمستطيل.
+> class تمثل رصاصة واحدة: تُنشأ في موضع السفينة، وترتفع للأعلى بكل frame.
 
 ```python
 import pygame
-from pygame.sprite import Sprite     # base class for game objects
+from pygame.sprite import Sprite  # inherit from Sprite for group management
 
 class Bullet(Sprite):
     """A class to manage bullets fired from the ship."""
-
+    
     def __init__(self, ai_settings, screen, ship):
         """Create a bullet object at the ship's current position."""
-        super(Bullet, self).__init__()   # initialize parent Sprite
+        super(Bullet, self).__init__()  # initialize parent Sprite
         self.screen = screen
-
-        # Create a bullet rect at (0,0) and then set correct position
-        self.rect = pygame.Rect(0, 0,
-            ai_settings.bullet_width,
-            ai_settings.bullet_height)   # create rectangle with settings size
-
-        self.rect.centerx = ship.rect.centerx  # align center with ship center
-        self.rect.top = ship.rect.top          # start at ship's top edge
-
-        # Store the bullet's position as a decimal value
-        self.y = float(self.rect.y)            # float for smooth movement
-
-        self.color = ai_settings.bullet_color         # bullet color
-        self.speed_factor = ai_settings.bullet_speed_factor  # bullet speed
-
+        
+        # Create a bullet rect at (0,0) then set correct position
+        self.rect = pygame.Rect(0, 0, 
+                                ai_settings.bullet_width,
+                                ai_settings.bullet_height)
+        self.rect.centerx = ship.rect.centerx   # align with ship center
+        self.rect.top = ship.rect.top            # start at ship's top
+        
+        # Store bullet's position as decimal for precision
+        self.y = float(self.rect.y)
+        
+        self.color = ai_settings.bullet_color
+        self.speed_factor = ai_settings.bullet_speed_factor
+    
     def update(self):
         """Move the bullet up the screen."""
-        # Update the decimal position of the bullet
-        self.y -= self.speed_factor    # subtract = move up (y=0 is top)
-        # Update the rect position
-        self.rect.y = self.y           # sync rect to float position
-
+        # Update decimal position
+        self.y -= self.speed_factor      # move up (y decreases going up)
+        # Update rect position
+        self.rect.y = self.y
+    
     def draw_bullet(self):
         """Draw the bullet to the screen."""
         pygame.draw.rect(self.screen, self.color, self.rect)  # draw filled rect
 ```
 
-#### شرح كل سطر:
-1. `class Bullet(Sprite):` → ترث من `pygame.sprite.Sprite` للاستفادة من إدارة المجموعات
-2. `super(Bullet, self).__init__()` → استدعاء منشئ `Sprite` الأب
-3. `pygame.Rect(0, 0, width, height)` → إنشاء `Rect` في الموضع (0,0) أولاً ثم نُحدّده
-4. `self.rect.centerx = ship.rect.centerx` → الطلقة تنطلق من مركز السفينة أفقياً
-5. `self.rect.top = ship.rect.top` → الطلقة تبدأ من أعلى السفينة
-6. `self.y -= self.speed_factor` → تحرك للأعلى: في `pygame` y=0 أعلى الشاشة، لذا التناقص = الصعود
-7. `pygame.draw.rect(screen, color, rect)` → رسم مستطيل مُعبَّأ بالألوان
+#### ملاحظات الأسطر المهمة:
+- `class Bullet(Sprite)` → ترث من `Sprite` لتستفيد من `Group` management
+- `super(Bullet, self).__init__()` → تستدعي `__init__` الأب لإعداد الـ Sprite
+- `pygame.Rect(0, 0, width, height)` → ننشئ مستطيلاً يدوياً (ليس من صورة)
+- `self.rect.top = ship.rect.top` → تبدأ الرصاصة من أعلى السفينة (تخرج من فوق السفينة)
+- `self.y -= self.speed_factor` → **ناقص** لأن Y في pygame يزداد للأسفل — للأعلى نُنقص Y
 
-**المكتبات المطلوبة (Imports):**
-> `import pygame` | `from pygame.sprite import Sprite`
+#### 📊 المخطط: محاور الإحداثيات في `pygame`
 
-💡 **التشبيه:**
-> إحداثيات `pygame` مقلوبة كأنك تنظر لشاشة الكمبيوتر: y=0 في الأعلى وتزيد للأسفل — لذا لتحريك الطلقة للأعلى نطرح من y.
-> **وجه الشبه:** y في pygame = عمق القائمة — كلما قلّت كلما ارتفعت.
+#### ما هذا المخطط؟
+> توضيح اتجاه محاور X وY في pygame — عكس ما تعلمته في الرياضيات.
 
-#### مهم للامتحان ⚠️:
-> في `pygame`: الزاوية العلوية اليسرى هي (0, 0). y تزيد نحو الأسفل. لذا تحريك شيء للأعلى = طرح من y.
+```mermaid
+flowchart TD
+    TL["(0,0) — Top-Left corner"] -->|"X increases →"| TR["(800,0) — Top-Right"]
+    TL -->|"Y increases ↓"| BL["(0,600) — Bottom-Left"]
+    BL -->|"X increases →"| BR["(800,600) — Bottom-Right"]
+```
+
+#### نقطة مهمة ⚠️:
+> في `pygame`: (0,0) هو **الزاوية العليا اليسرى** — Y يزداد للأسفل وينقص للأعلى. لذلك للتحرك للأعلى نكتب `self.y -= speed`.
 
 ---
 
-#### 6.3 تخزين الطلقات في مجموعة — Storing Bullets in a Group
-
-#### النص الأصلي يقول:
-> "from pygame.sprite import Group — bullets = Group() — bullets.update() — gf.update_screen(ai_settings, screen, ship, bullets)"
-
-#### الشرح المبسّط:
-`pygame.sprite.Group` وعاء خاص يحمل مجموعة `Sprite`. مميزاته: `update()` واحدة تُحدّث كل العناصر، و`sprites()` تُعطيك قائمة بها جميعاً.
-
-#### 💻 الكود: alien_invasion.py — إضافة مجموعة الطلقات
-
-#### ما هذا الكود؟
-> إنشاء `Group` لتخزين الطلقات وإضافة `bullets.update()` و`gf.update_screen(...)` الموسّع.
+#### 9.3. تخزين الرصاصات في `Group` وإدارتها
 
 ```python
+# alien_invasions.py
 import pygame
-from pygame.sprite import Group          # import Group class
+from pygame.sprite import Group   # Group manages collections of sprites
 from settings import Settings
 from ship import Ship
 import game_functions as gf
@@ -902,162 +800,26 @@ def run_game():
     screen = pygame.display.set_mode(
         (ai_settings.screen_width, ai_settings.screen_height))
     pygame.display.set_caption("Alien Invasion")
+    
     ship = Ship(ai_settings, screen)
-    # Make a group to store bullets in
-    bullets = Group()                    # empty sprite group
-
+    bullets = Group()   # container for all active bullets
+    
     while True:
-        gf.check_events(ai_settings, screen, ship, bullets)  # pass bullets
+        gf.check_events(ai_settings, screen, ship, bullets)  # may add bullets
         ship.update()
-        bullets.update()                 # update all bullets in group
+        gf.update_bullets(bullets)    # move + delete off-screen bullets
         gf.update_screen(ai_settings, screen, ship, bullets)
-
-run_game()
 ```
 
-#### شرح كل سطر:
-1. `from pygame.sprite import Group` → استيراد فئة المجموعة
-2. `bullets = Group()` → مجموعة فارغة — ستُملأ بالطلقات عند الإطلاق
-3. `bullets.update()` → تُستدعى `update()` لكل طلقة في المجموعة — طلقة واحدة استدعاء واحد
-
----
-
-#### 6.4 إطلاق الطلقات عند ضغط زر المسافة
-
-#### النص الأصلي يقول:
-> "elif event.key == pygame.K_SPACE: — new_bullet = Bullet(ai_settings, screen, ship) — bullets.add(new_bullet)"
-
-#### الشرح المبسّط:
-عند ضغط `spacebar`: نُنشئ كائن `Bullet` جديداً ونُضيفه للمجموعة `bullets`. كل ما في المجموعة يتحرك تلقائياً عند `bullets.update()`.
-
-#### 💻 الكود: game_functions.py — check_keydown_events مع الطلقات
-
-#### ما هذا الكود؟
-> إضافة منطق إطلاق الطلقة عند `K_SPACE` وتخزينها في `bullets`.
-
 ```python
-from bullet import Bullet    # import Bullet class
+# game_functions.py — bullet-related functions
 
-def check_keydown_events(event, ai_settings, screen, ship, bullets):
-    """Respond to keypresses."""
-    if event.key == pygame.K_RIGHT:
-        ship.moving_right = True
-    elif event.key == pygame.K_LEFT:
-        ship.moving_left = True
-    elif event.key == pygame.K_SPACE:
-        # Create a new bullet and add it to the bullets group
-        new_bullet = Bullet(ai_settings, screen, ship)   # create bullet at ship pos
-        bullets.add(new_bullet)                          # add to group
-```
-
-#### شرح كل سطر:
-1. `event.key == pygame.K_SPACE` → الكشف عن ضغط المسافة
-2. `Bullet(ai_settings, screen, ship)` → إنشاء طلقة عند موضع السفينة الحالي
-3. `bullets.add(new_bullet)` → إضافتها للمجموعة — `update()` ستتكفّل بها
-
----
-
-#### 6.5 رسم الطلقات وحذف القديمة منها
-
-#### النص الأصلي يقول:
-> "for bullet in bullets.sprites(): bullet.draw_bullet() — for bullet in bullets.copy(): if bullet.rect.bottom <= 0: bullets.remove(bullet)"
-
-#### الشرح المبسّط:
-- **الرسم:** نمرّ على كل طلقة في المجموعة ونستدعي `draw_bullet()`
-- **الحذف:** نفحص كل طلقة — إذا خرجت من الشاشة (rect.bottom ≤ 0) نحذفها لتوفير الذاكرة
-
-#### 💻 الكود: game_functions.py — update_screen مع الطلقات
-
-#### ما هذا الكود؟
-> تحديث `update_screen()` لرسم كل الطلقات قبل رسم السفينة.
-
-```python
-def update_screen(ai_settings, screen, ship, bullets):
-    """Update images on the screen and flip to the new screen."""
-    screen.fill(ai_settings.bg_color)          # clear screen
-
-    # Redraw all bullets behind ship and aliens
-    for bullet in bullets.sprites():           # iterate all bullets
-        bullet.draw_bullet()                   # draw each bullet
-
-    ship.blitme()                              # draw ship on top
-    pygame.display.flip()                      # show result
-```
-
-#### 💻 الكود: alien_invasion.py — حذف الطلقات القديمة
-
-#### ما هذا الكود؟
-> حذف الطلقات التي تجاوزت حدود الشاشة العليا لتوفير الذاكرة.
-
-```python
-while True:
-    gf.check_events(ai_settings, screen, ship, bullets)
-    ship.update()
-    bullets.update()
-
-    # Get rid of bullets that have disappeared
-    for bullet in bullets.copy():            # copy() to allow removal during loop
-        if bullet.rect.bottom <= 0:          # bullet passed top of screen
-            bullets.remove(bullet)           # remove from group
-
-    print(len(bullets))                      # debug: show bullet count
-    gf.update_screen(ai_settings, screen, ship, bullets)
-```
-
-#### شرح كل سطر:
-1. `bullets.copy()` → نسخة للتكرار — **لا يجوز** حذف عناصر من مجموعة أثناء التكرار عليها مباشرة
-2. `bullet.rect.bottom <= 0` → الطلقة وصلت أو تجاوزت قمة الشاشة
-3. `bullets.remove(bullet)` → حذف من المجموعة — سيتوقف `update()` عن استدعائها
-4. `print(len(bullets))` → طباعة تشخيصية للتحقق من عمل الحذف
-
-#### مهم للامتحان ⚠️:
-> دائماً استخدم `bullets.copy()` عند الحذف أثناء التكرار — التكرار على المجموعة الأصلية مع الحذف يُسبب `RuntimeError: dictionary changed size during iteration`.
-
----
-
-#### 6.6 تحديد عدد الطلقات — Limiting the Number of Bullets
-
-#### النص الأصلي يقول:
-> "if len(bullets) < ai_settings.bullets_allowed: — new_bullet = Bullet(...) — bullets.add(new_bullet)"
-
-#### الشرح المبسّط:
-نتحقق من عدد الطلقات الحالية قبل إطلاق طلقة جديدة. إذا وصلنا للحد (`bullets_allowed = 3`)، لا نُضيف طلقة جديدة.
-
-#### 💻 الكود: game_functions.py — تقييد الطلقات
-
-#### ما هذا الكود؟
-> إضافة شرط التحقق من عدد الطلقات قبل إنشاء طلقة جديدة.
-
-```python
-elif event.key == pygame.K_SPACE:
-    # Create a new bullet and add it to the bullets group
-    if len(bullets) < ai_settings.bullets_allowed:  # check limit
-        new_bullet = Bullet(ai_settings, screen, ship)
-        bullets.add(new_bullet)
-```
-
----
-
-#### 6.7 إنشاء دالة fire_bullet()
-
-#### النص الأصلي يقول:
-> "def fire_bullet(ai_settings, screen, ship, bullets): — Fire a bullet if limit not reached yet. — if len(bullets) < ai_settings.bullets_allowed: new_bullet = Bullet(...) bullets.add(new_bullet)"
-
-#### الشرح المبسّط:
-نُخرج منطق الإطلاق إلى دالة `fire_bullet()` مستقلة — هذا يجعل `check_keydown_events()` أنظف.
-
-#### 💻 الكود: game_functions.py — fire_bullet()
-
-#### ما هذا الكود؟
-> دالة `fire_bullet()` تتحقق من الحد ثم تُطلق الطلقة — يمكن استدعاؤها من أي مكان.
-
-```python
 def fire_bullet(ai_settings, screen, ship, bullets):
     """Fire a bullet if limit not reached yet."""
-    # Create a new bullet and add it to the bullets group
-    if len(bullets) < ai_settings.bullets_allowed:    # check limit
-        new_bullet = Bullet(ai_settings, screen, ship) # create bullet
-        bullets.add(new_bullet)                        # add to group
+    # Create a new bullet only if below limit
+    if len(bullets) < ai_settings.bullets_allowed:
+        new_bullet = Bullet(ai_settings, screen, ship)
+        bullets.add(new_bullet)      # add to Group
 
 def check_keydown_events(event, ai_settings, screen, ship, bullets):
     """Respond to keypresses."""
@@ -1066,1353 +828,594 @@ def check_keydown_events(event, ai_settings, screen, ship, bullets):
     elif event.key == pygame.K_LEFT:
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
-        fire_bullet(ai_settings, screen, ship, bullets)  # delegate
+        fire_bullet(ai_settings, screen, ship, bullets)  # fire on spacebar
+
+def update_bullets(bullets):
+    """Update position of bullets and get rid of old bullets."""
+    # Update bullet positions (calls update() on each sprite)
+    bullets.update()
+    
+    # Get rid of bullets that have disappeared off top
+    for bullet in bullets.copy():          # iterate over COPY
+        if bullet.rect.bottom <= 0:        # bullet went off top of screen
+            bullets.remove(bullet)         # remove from original group
+
+def update_screen(ai_settings, screen, ship, bullets):
+    """Update images on the screen and flip to the new screen."""
+    screen.fill(ai_settings.bg_color)
+    
+    # Draw all bullets behind ship
+    for bullet in bullets.sprites():
+        bullet.draw_bullet()
+    
+    ship.blitme()         # ship drawn after bullets (appears in front)
+    pygame.display.flip()
 ```
 
----
+#### ملاحظات الأسطر المهمة:
+- `bullets = Group()` → container يدير مجموعة sprites — يوفر `update()`, `sprites()`, `add()`, `remove()`
+- `len(bullets) < ai_settings.bullets_allowed` → نُحدد عدد الرصاصات الفعالة في نفس الوقت
+- `bullets.update()` → يستدعي `update()` على **كل** bullet في الـ Group دفعة واحدة
+- `for bullet in bullets.copy():` → **يجب** التكرار على نسخة — تعديل collection أثناء التكرار خطأ
+- `bullet.rect.bottom <= 0` → الحافة السفلية للرصاصة وصلت فوق الشاشة (خرجت تماماً)
+- `bullets.sprites()` → يُعيد list من الـ sprites للتكرار عليها في الرسم
 
-### 7. ملخص بنية الملفات — A Quick Recap
+#### 🤔 تفعيل الفهم (اسأل نفسك):
+> **سؤال:** لماذا `bullets.copy()` في `update_bullets` وليس `bullets.sprites()`؟
+> **لماذا هذا مهم؟** لأننا نحذف من `bullets` أثناء التكرار. التكرار على `sprites()` (المرجع الأصلي) ثم الحذف منه في نفس الوقت يُسبب تخطّي عناصر أو `RuntimeError`. `copy()` يُعطينا نسخة ثابتة للتكرار، ونحذف من الأصل بأمان.
 
-#### النص الأصلي يقول:
-> "alien_invasion.py — The main file creates important objects: ai_settings, screen, ship, bullets. Contains the main while loop calling check_events(), ship.update(), bullets.update(), and update_screen(). The other files — settings.py, game_functions.py, ship.py — contain code imported directly or indirectly into this file."
+#### 🔍 تتبع التنفيذ: إطلاق وحذف رصاصة
 
-| الملف | المحتوى | الدور |
-| --- | --- | --- |
-| `alien_invasion.py` | `run_game()`، الحلقة الرئيسية | نقطة البداية — المنسّق العام |
-| `settings.py` | `class Settings` | تخزين كل الإعدادات |
-| `game_functions.py` | `check_events()`، `update_screen()`، `fire_bullet()` | منطق اللعبة |
-| `ship.py` | `class Ship` | السفينة — حركة ورسم |
-| `bullet.py` | `class Bullet(Sprite)` | الطلقة — حركة ورسم |
-| `images/ship.bmp` | ملف الصورة | أصل مرئي |
+**المدخل:** `bullets_allowed = 3`، لا رصاصات حالياً
 
----
+| الخطوة | العملية | حالة `bullets` |
+|--------|---------|----------------|
+| 1 | Space مضغوط | `fire_bullet()` يُنشئ رصاصة | `len = 1` |
+| 2 | Space مضغوط | `fire_bullet()` ينشئ | `len = 2` |
+| 3 | Space مضغوط | `fire_bullet()` ينشئ | `len = 3` |
+| 4 | Space مضغوط | `len(3) < 3` خاطئة — لا رصاصة جديدة | `len = 3` |
+| 5 | رصاصة تخرج من أعلى | `update_bullets` تحذفها | `len = 2` |
+| 6 | Space مضغوط | `len(2) < 3` صحيحة — رصاصة جديدة | `len = 3` |
 
-## الجزء الثاني: ملخص منظم
+**النتيجة:** دائماً ≤ 3 رصاصات على الشاشة.
 
-### أهم التعاريف والمفاهيم
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-| المصطلح | التعريف | مثال/ملاحظة |
-| --- | --- | --- |
-| `pygame` | مكتبة بايثون لبناء الألعاب ثنائية الأبعاد | `import pygame` |
-| `Surface` | سطح رسم في `pygame` | الشاشة الرئيسية `screen` |
-| `Rect` | مستطيل يمثل موضع وحجم كائن | `self.rect = image.get_rect()` |
-| `Sprite` | فئة أساسية لكائنات اللعبة في `pygame` | `class Bullet(Sprite)` |
-| `Group` | وعاء لتجميع `Sprite` وتحديثها دفعة واحدة | `bullets = Group()` |
-| `event loop` | حلقة `while True` التي تعالج الأحداث | أساس كل لعبة `pygame` |
-| `blit` | رسم صورة على `Surface` | `screen.blit(image, rect)` |
-| `flip` | عرض الإطار المرسوم على الشاشة | `pygame.display.flip()` |
-| `KEYDOWN` | حدث ضغط مفتاح | `event.type == pygame.KEYDOWN` |
-| `KEYUP` | حدث رفع مفتاح | `event.type == pygame.KEYUP` |
-| `moving_right` / `moving_left` | راية تتحكم باتجاه حركة السفينة | `False` افتراضياً |
-| `ship_speed_factor` | سرعة السفينة بالبكسل في الإطار الواحد | `1.5` |
-| `bullets_allowed` | الحد الأقصى للطلقات على الشاشة | `3` |
+**النص الأصلي يقول:**
+> Bullet Settings: bullet_speed_factor=1, bullet_width=3, bullet_height=15, bullet_color=60,60,60, bullets_allowed=3 | Bullet class inheriting Sprite | Storing in Group | fire_bullet() | update_bullets() with bullets.copy() | Creating fire_bullet() function
 
----
+**ملاحظة على التغطية:**
+- ✓ تم شرح: كل جوانب الرصاص من الإعدادات إلى الحذف
+- ℹ️ إضافة: مخطط المحاور، جدول تتبع التنفيذ، شرح `copy()` vs `sprites()`
 
-### المكونات الرئيسية (مرجع سريع)
-
-| الأداة | الوظيفة | ملاحظة |
-| --- | --- | --- |
-| `pygame.init()` | تهيئة جميع وحدات `pygame` | أول شيء يُنفَّذ |
-| `pygame.display.set_mode()` | إنشاء نافذة اللعبة | تُعيد `Surface` |
-| `pygame.display.flip()` | عرض الإطار المحدّث | في نهاية كل دورة |
-| `pygame.event.get()` | استرجاع الأحداث المعلّقة | تُستدعى كل إطار |
-| `pygame.image.load()` | تحميل ملف صورة | يدعم `.bmp`, `.png`, `.jpg` |
-| `pygame.draw.rect()` | رسم مستطيل ملوّن | للطلقات بدلاً من الصور |
-| `screen.fill(color)` | طلاء الشاشة كاملها بلون | يُمسح محتوى الإطار السابق |
-| `Group.update()` | استدعاء `update()` لكل أعضاء المجموعة | تحريك كل الطلقات دفعة |
-| `Group.sprites()` | إرجاع قائمة بكل أعضاء المجموعة | للتكرار والرسم |
-| `Group.copy()` | نسخة من المجموعة للتكرار الآمن | عند الحذف أثناء loop |
+</details>
 
 ---
 
-### جداول مقارنات سريعة
+### 10. ملخص بنية المشروع (Quick Recap)
 
-| المقارنة | KEYDOWN | KEYUP |
-| --- | --- | --- |
-| التوقيت | لحظة الضغط | لحظة الرفع |
-| الاستخدام | تعيين الراية `True` | تعيين الراية `False` |
-| التكرار | مرة واحدة (أو مع `repeat`) | مرة واحدة |
+<!-- @render: {type: "prose-first", visualization: "none", coverage: "100%"} -->
 
-| المقارنة | `pygame.Rect` | موضع `float` |
-| --- | --- | --- |
-| النوع | أعداد صحيحة فقط | عشرية |
-| الاستخدام | الرسم والتصادم | الحساب الدقيق |
-| مثال | `self.rect.centerx` | `self.center` |
+#### 💡 الفكرة الأساسية
+**المشروع مقسّم على ملفات منفصلة، كل ملف له مسؤولية واضحة — هذا مبدأ Single Responsibility.**
 
 ---
 
-### قاموس المصطلحات
+#### 📊 المخطط: بنية ملفات المشروع
 
-| الفئة | المصطلحات |
-| --- | --- |
-| مكونات `pygame` | `Surface`, `Rect`, `Sprite`, `Group`, `event`, `KEYDOWN`, `KEYUP`, `QUIT` |
-| دوال اللعبة | `check_events()`, `update_screen()`, `fire_bullet()`, `check_keydown_events()`, `check_keyup_events()` |
-| فئات اللعبة | `Settings`, `Ship`, `Bullet` |
-| إعدادات | `ship_speed_factor`, `bullet_speed_factor`, `bullets_allowed`, `bg_color` |
-| أساليب الرسم | `blit()`, `flip()`, `fill()`, `draw.rect()`, `draw_bullet()` |
+#### ما هذا المخطط؟
+> يوضّح العلاقة بين ملفات المشروع الخمسة.
 
----
+#### وصف العُقد:
+| # | الملف | النوع | الدور |
+|---|-------|-------|-------|
+| 1 | `alien_invasions.py` | Main | نقطة البدء + Game Loop |
+| 2 | `settings.py` | Config | كل الإعدادات |
+| 3 | `ship.py` | Class | السفينة وحركتها |
+| 4 | `bullet.py` | Class | الرصاصة وحركتها |
+| 5 | `game_functions.py` | Functions | دوال Event/Screen |
 
-### أبرز النقاط الذهبية
-1. ترتيب الرسم لا يتغيّر: `fill()` → العناصر → `flip()`
-2. y=0 في الأعلى — تحريك للأعلى = طرح من y
-3. استخدم `self.center` (`float`) لحساب الحركة، و`self.rect.centerx` فقط للرسم
-4. استخدم `bullets.copy()` عند الحذف داخل الحلقة
-5. فصل الكود إلى ملفات منفصلة (`settings.py`, `game_functions.py`, `ship.py`) يُسهّل الصيانة
-6. `bullets_allowed` يتحكم في صعوبة اللعبة — قيمة أصغر = أصعب
+#### وصف الروابط:
+| من | إلى | التسمية | نوع السهم |
+|---|---|---|---|
+| `alien_invasions.py` | `settings.py` | `from settings import Settings` | import |
+| `alien_invasions.py` | `ship.py` | `from ship import Ship` | import |
+| `alien_invasions.py` | `game_functions.py` | `import game_functions as gf` | import |
+| `game_functions.py` | `bullet.py` | `from bullet import Bullet` | import |
 
----
-
-### الأخطاء الشائعة عند الطلاب ⚠️
-
-| الخطأ | التصحيح |
-| --- | --- |
-| `pygame.display.flip()` قبل الرسم | يجب أن يكون بعد كل عمليات `blit()` |
-| `screen.fill()` بعد `blitme()` | سيُغطّي الخلفية على العناصر — `fill()` أولاً |
-| حذف من `bullets` أثناء التكرار عليها | استخدم `bullets.copy()` |
-| نسيان `pygame.init()` | تظهر أخطاء غير واضحة عند محاولة فتح النافذة |
-| إضافة سرعة عشرية مباشرة لـ `rect.centerx` | استخدم `self.center` (`float`) ثم `rect.centerx = self.center` |
-| نسيان `ship.update()` في الحلقة | السفينة لا تتحرك رغم ضغط المفاتيح |
-
----
-
-### خطوات وإجراءات المحاضرة
-
-#### ⚙️ الخطوات / الخوارزمية: إعداد نافذة اللعبة
-
-> تهيئة `pygame` وفتح النافذة وتشغيل الحلقة الرئيسية.
-
-```algorithm
-1 | pygame.init() | pygame | تشغيل جميع وحدات pygame
-2 | Settings() | settings.py | إنشاء كائن الإعدادات
-3 | pygame.display.set_mode((w,h)) | pygame | فتح نافذة بالأبعاد المحددة
-4 | pygame.display.set_caption(title) | pygame | تعيين عنوان الشريط
-5 | while True | Python | بدء الحلقة الأبدية
-6 | pygame.event.get() | pygame | استرجاع الأحداث
-7 | screen.fill(bg_color) | pygame | مسح الإطار
-8 | pygame.display.flip() | pygame | عرض الإطار
+```mermaid
+flowchart TD
+    Main["alien_invasions.py\n(Game Loop)"] --> S["settings.py\nSettings class"]
+    Main --> Ship["ship.py\nShip class"]
+    Main --> GF["game_functions.py\ncheck_events, update_screen"]
+    GF --> Bullet["bullet.py\nBullet class"]
+    S --> Ship
+    S --> GF
+    S --> Bullet
 ```
 
-#### نقاط التنفيذ:
-- `pygame.init()` يجب أن يسبق أي استخدام لـ `pygame`
-- `flip()` يجب أن يكون في نهاية كل دورة
+#### 🎯 دور كل ملف:
+- **`alien_invasions.py`** → نقطة البدء الوحيدة. ينشئ الكائنات ويُشغّل الـ loop
+- **`settings.py`** → مخزن الإعدادات. `__init__()` فقط
+- **`ship.py`** → السفينة: صورتها، موضعها، حركتها (`update()`)، رسمها (`blitme()`)
+- **`bullet.py`** → الرصاصة: موضعها، حركتها للأعلى، رسمها (`draw_bullet()`)
+- **`game_functions.py`** → الدوال: فحص الأحداث، تحديث الرصاص، رسم الشاشة
 
----
+#### 📄 النص الأصلي من المحاضرة
+<details>
+<summary>عرض النص الأصلي (coverage: 100%)</summary>
 
-#### ⚙️ الخطوات / الخوارزمية: إضافة السفينة
+**النص الأصلي يقول:**
+> alien_invasion.py: creates important objects, stores main loop — while True calls check_events(), ship.update(), update_screen(). settings.py: Settings class, __init__() only. game_functions.py: check_events(), check_keydown/keyup, update_screen(). ship.py: __init__(), update(), blitme(), ship.bmp in images folder.
 
-> تحميل صورة السفينة وتموضعها وربطها بالحلقة الرئيسية.
+**ملاحظة على التغطية:**
+- ✓ تم شرح: دور كل ملف بالكامل
+- ℹ️ إضافة: مخطط Mermaid للعلاقات
 
-```algorithm
-1 | pygame.image.load('images/ship.bmp') | ship.py | تحميل صورة السفينة
-2 | image.get_rect() | pygame | الحصول على Rect الصورة
-3 | screen.get_rect() | pygame | الحصول على أبعاد الشاشة
-4 | rect.centerx = screen_rect.centerx | ship.py | توسيط أفقي
-5 | rect.bottom = screen_rect.bottom | ship.py | وضع في القاع
-6 | ship = Ship(ai_settings, screen) | alien_invasion.py | إنشاء كائن السفينة
-7 | ship.blitme() | alien_invasion.py | رسم السفينة في كل إطار
-```
-
-#### نقاط التنفيذ:
-- الصورة يجب أن تكون في مجلد `images/` المجاور للكود
-- `blitme()` تُستدعى بعد `screen.fill()` وقبل `flip()`
-
----
-
-#### ⚙️ الخطوات / الخوارزمية: تحريك السفينة بشكل مستمر
-
-> نظام الرايات لتمكين الحركة المستمرة ما دام المفتاح مضغوطاً.
-
-```algorithm
-1 | self.moving_right = False | ship.py __init__ | تعريف الراية الافتراضية
-2 | KEYDOWN + K_RIGHT | game_functions.py | رفع الراية إلى True
-3 | KEYUP + K_RIGHT | game_functions.py | خفض الراية إلى False
-4 | ship.update() | alien_invasion.py | استدعاء في كل إطار
-5 | if self.moving_right: center += speed | ship.py update() | التحريك بناءً على الراية
-6 | rect.centerx = self.center | ship.py update() | مزامنة Rect مع float
-```
-
-#### نقاط التنفيذ:
-- `ship.update()` يُستدعى قبل `update_screen()` في كل إطار
-
----
-
-#### ⚙️ الخطوات / الخوارزمية: إطلاق الطلقات
-
-> دورة حياة الطلقة من الإنشاء حتى الحذف.
-
-```algorithm
-1 | K_SPACE pressed | game_functions.py | كشف ضغط المسافة
-2 | len(bullets) < bullets_allowed | game_functions.py | التحقق من الحد
-3 | Bullet(ai_settings, screen, ship) | bullet.py | إنشاء طلقة عند قمة السفينة
-4 | bullets.add(new_bullet) | alien_invasion.py | إضافة للمجموعة
-5 | bullets.update() | alien_invasion.py | تحريك كل الطلقات للأعلى كل إطار
-6 | bullet.draw_bullet() | game_functions.py | رسم كل طلقة
-7 | if bullet.rect.bottom <= 0 | alien_invasion.py | التحقق من الخروج
-8 | bullets.remove(bullet) | alien_invasion.py | حذف الطلقة من المجموعة
-```
-
-#### نقاط التنفيذ:
-- استخدم `bullets.copy()` في الخطوة 7 وليس `bullets` مباشرة
-- الحذف في الخطوة 8 يمنع تراكم الطلقات وبطء اللعبة
-
----
-
-### أنماط الأكواد والبنى المتكررة
-
-| النمط | البنية الأساسية | متى تستخدمه |
-| --- | --- | --- |
-| الراية للحركة المستمرة | `flag=False` → `KEYDOWN: flag=True` → `KEYUP: flag=False` → `if flag: move` | أي جسم يتحرك باستمرار |
-| `float` للحركة الدقيقة | `self.center = float(rect.centerx)` → `center += speed` → `rect.centerx = center` | عند استخدام سرعة عشرية |
-| إنشاء وإضافة `Sprite` | `obj = MySprite(...)` → `group.add(obj)` | عند إنشاء طلقة أو فضائي |
-| حذف `Sprite` منتهي | `for item in group.copy(): if condition: group.remove(item)` | حذف ما خرج من الشاشة |
-| تفويض الدوال | `def check_events(): ... check_keydown_events() ... check_keyup_events()` | تقسيم الكود لأجزاء صغيرة |
-
----
-
-### أنماط التعامل والسلوك
-
-| السيناريو | التعامل الصحيح | لماذا؟ |
-| --- | --- | --- |
-| مستخدم يضغط مفتاحاً باستمرار | راية `bool` + `update()` في كل إطار | `KEYDOWN` يُطلق مرة واحدة |
-| سرعة عشرية مثل `1.5` | `self.center` (`float`) + مزامنة مع `rect` | `Rect` يُقرّب إلى أعداد صحيحة |
-| حذف عناصر أثناء التكرار | `group.copy()` | تعديل المجموعة أثناء التكرار يُسبب خطأ |
-| عدة ملفات تتشارك البيانات | تمرير المعاملات أو استخدام `Settings` | تجنّب المتغيرات العالمية |
-| طلقات غير محدودة | `if len(bullets) < allowed` | تحكّم في الصعوبة وتوفير الموارد |
-
----
-
-### الأفكار الرئيسية الشاملة
-
-**فصل المخاوف (Separation of Concerns):** كل ملف مسؤول عن شيء واحد — هذا المبدأ يجعل المشروع قابلاً للتوسّع. عند إضافة الفضائيين لاحقاً، لا يلزم تغيير `ship.py` أو `bullet.py`.
-
-**حلقة اللعبة (Game Loop):** الحلقة `while True` هي قلب أي لعبة — في كل دورة: معالجة المدخلات → تحديث الحالة → رسم الشاشة. هذا الترتيب ثابت.
-
-**الإحداثيات في pygame:** (0,0) في الزاوية العلوية اليسرى. x يزيد يميناً، y يزيد نحو الأسفل. لذا الأجسام التي تتحرك للأعلى تطرح من y.
+</details>
 
 ---
 
 ## الجزء الثالث: أسئلة اختيار من متعدد (MCQ)
 
-> **16 سؤالاً** — مستوى: متوسط/صعب. التوزيع: مقارنات 20% / سيناريو كود 35% / تطبيق 30% / تتبع خوارزمية 15%.
+> **16 سؤالاً** — مستوى: medium / hard
 
----
+### السؤال 1 (medium)
 
-### السؤال 1 (متوسط)
-ما الغرض من استدعاء `pygame.display.flip()` في نهاية كل إطار؟
+ما الغرض من استدعاء `pygame.display.flip()` في نهاية كل frame؟
 
-أ) مسح الشاشة من الرسومات القديمة
-ب) عرض محتوى الإطار المرسوم على الشاشة الحقيقية
-ج) تهيئة جميع وحدات `pygame`
-د) إنشاء نافذة جديدة
+أ) حذف كل الكائنات المرسومة  
+ب) عرض محتوى الـ frame المُحضَّر للمستخدم  
+ج) تحديث إحداثيات الـ sprites  
+د) إيقاف الـ game loop مؤقتاً  
 
 **الإجابة الصحيحة: ب**
-**التعليل:** `flip()` تُبدّل مخزن الرسم مع ما يُعرض (`double buffering`) — هذا يمنع الوميض. أ) خاطئ — المسح يتم بـ `fill()`. ج) خاطئ — التهيئة بـ `pygame.init()`. د) خاطئ — النافذة تُنشأ بـ `set_mode()`.
+
+**التعليل:**
+- ✅ **الخيار ب:** `pygame` يستخدم double buffering — ترسم في buffer خفي، ثم `flip()` يُظهره للمستخدم
+- ❌ **الخيار أ:** الحذف يحدث بـ `screen.fill()` في بداية الـ frame
+- ❌ **الخيار ج:** تحديث الإحداثيات يحدث في `update()` methods
+- ❌ **الخيار د:** `flip()` لا تُوقف الـ loop
 
 ---
 
-### السؤال 2 (متوسط)
-أي من التالي صحيح بخصوص ترتيب عمليات الرسم داخل حلقة اللعبة؟
+### السؤال 2 (medium)
 
-أ) `flip()` → `fill()` → `blitme()`
-ب) `blitme()` → `fill()` → `flip()`
-ج) `fill()` → `blitme()` → `flip()`
-د) `fill()` → `flip()` → `blitme()`
+لماذا نستخدم `self.center = float(self.rect.centerx)` في `Ship.__init__()`؟
+
+أ) لأن `pygame.Rect` يقبل float فقط  
+ب) للحصول على دقة sub-pixel عند السرعات الكسرية  
+ج) لتحويل الإحداثيات لنظام مختلف  
+د) لأن `centerx` يُعيد string  
+
+**الإجابة الصحيحة: ب**
+
+**التعليل:**
+- ✅ **الخيار ب:** `Rect` يخزّن integers فقط. سرعة 1.5 pixel/frame تفقد دقتها إذا خزّنتها في `rect` مباشرة. `self.center` float يحفظ الدقة
+- ❌ **الخيار أ:** `Rect` يقبل integers، لا float
+- ❌ **الخيار ج:** المحاور هي نفسها
+- ❌ **الخيار د:** `centerx` يُعيد int
+
+---
+
+### السؤال 3 (hard)
+
+ما الناتج لو كتبنا `for bullet in bullets:` بدل `for bullet in bullets.copy():` في `update_bullets()`؟
+
+أ) كود أسرع لأننا لا ننسخ  
+ب) احتمال `RuntimeError` أو تخطّي رصاصات  
+ج) لا فرق في النتيجة  
+د) سيُحذف ضعف الرصاصات  
+
+**الإجابة الصحيحة: ب**
+
+**التعليل:**
+- ✅ **الخيار ب:** تعديل collection أثناء التكرار عليها سلوك غير محدد في Python — قد تُتخطى عناصر أو تُرمى `RuntimeError`
+- ❌ **الخيار أ:** السرعة لا تستحق خطر الخطأ
+- ❌ **الخيار ج:** النتيجة غير مضمونة وقد تكون خاطئة
+- ❌ **الخيار د:** لا علاقة بمضاعفة الحذف
+
+---
+
+### السؤال 4 (medium)
+
+أي شرط يُوقف السفينة عند الحافة اليمنى للشاشة؟
+
+أ) `if self.moving_right and self.rect.right < self.screen_rect.right:`  
+ب) `if self.moving_right and self.rect.left < self.screen_rect.right:`  
+ج) `if self.moving_right:`  
+د) `if self.rect.centerx < self.screen_rect.width:`  
+
+**الإجابة الصحيحة: أ**
+
+**التعليل:**
+- ✅ **الخيار أ:** يتحرك يميناً فقط إذا كانت **الحافة اليمنى** للسفينة لم تصل **الحافة اليمنى** للشاشة
+- ❌ **الخيار ب:** `rect.left` يُقارن الجانب الخاطئ — السفينة ستختفي جزئياً
+- ❌ **الخيار ج:** لا حد للحركة — السفينة تخرج من الشاشة
+- ❌ **الخيار د:** منطق غير صحيح — `centerx` لا يحمي الحواف
+
+---
+
+### السؤال 5 (medium)
+
+في `Bullet.update()`، لماذا نكتب `self.y -= self.speed_factor` (ناقص) للحركة للأعلى؟
+
+أ) خطأ — يجب أن يكون `+=`  
+ب) لأن محور Y في `pygame` يزداد للأسفل، فللأعلى نُنقص  
+ج) لأن الرصاصة تتحرك للأسفل  
+د) لأن `speed_factor` قيمة سالبة  
+
+**الإجابة الصحيحة: ب**
+
+**التعليل:**
+- ✅ **الخيار ب:** في `pygame` (0,0) هو الزاوية العليا اليسرى — Y يزداد للأسفل. الأعلى = قيمة Y أصغر = ناقص
+- ❌ **الخيار أ:** `+=` سيُحرّك الرصاصة للأسفل
+- ❌ **الخيار ج:** الرصاصة تتحرك للأعلى نحو الأجانب
+- ❌ **الخيار د:** `speed_factor = 1` موجبة
+
+---
+
+### السؤال 6 (hard)
+
+ما الفرق بين `bullets.sprites()` و `bullets.copy()` في السياق التالي: `for b in ___: bullets.remove(b)`؟
+
+أ) `sprites()` يُعيد tuple، `copy()` يُعيد set  
+ب) كلاهما آمن للحذف أثناء التكرار  
+ج) `copy()` يُنشئ نسخة مستقلة — آمن للحذف. `sprites()` قد يُسبب مشاكل  
+د) `sprites()` أسرع دائماً  
 
 **الإجابة الصحيحة: ج**
-**التعليل:** `fill()` تمسح الشاشة أولاً → `blitme()` ترسم العناصر → `flip()` تعرض النتيجة. أي ترتيب آخر يُسبب: تغطية العناصر بالخلفية (ب)، أو عرض الشاشة فارغة (أ، د).
+
+**التعليل:**
+- ✅ **الخيار ج:** `bullets.copy()` يُعيد نسخة مستقلة من قائمة الـ sprites — التكرار عليها آمن أثناء تعديل الأصل. `sprites()` قد يُعيد view مرتبطاً بالأصل
+- ❌ **الخيار أ:** `copy()` يُعيد set/list حسب التنفيذ، لكن الأهم هو الاستقلالية
+- ❌ **الخيار ب:** `sprites()` ليس آمناً للتعديل المتزامن
+- ❌ **الخيار د:** السرعة ليست الاعتبار الرئيسي هنا
 
 ---
 
-### السؤال 3 (صعب)
-لماذا يستخدم الكود `self.center = float(self.rect.centerx)` بدلاً من تحديث `rect.centerx` مباشرة؟
+### السؤال 7 (medium)
 
-أ) لأن `pygame.Rect` لا تدعم الحركة
-ب) لأن `Rect` يُقرّب العدد العشري لعدد صحيح، مما يُفقد الدقة عند السرعات العشرية مثل `1.5`
-ج) لأن `float` يجعل الكود أسرع
-د) لأن `self.center` يُستخدم للكشف عن التصادم
+في أي ترتيب يجب أن يُستدعى `ship.blitme()` و `bullet.draw_bullet()` و `pygame.display.flip()`؟
+
+أ) `flip()` → `ship.blitme()` → `bullet.draw_bullet()`  
+ب) `bullet.draw_bullet()` → `ship.blitme()` → `flip()`  
+ج) `ship.blitme()` → `bullet.draw_bullet()` → `flip()`  
+د) `flip()` → `bullet.draw_bullet()` → `ship.blitme()`  
 
 **الإجابة الصحيحة: ب**
-**التعليل:** إضافة `1.5` لعدد صحيح تُعطي نفس النتيجة أحياناً (`1` بدل `1.5`) بسبب التقريب. باستخدام `float` نحافظ على الدقة الحقيقية. أ) خاطئ — `Rect` تدعم التحريك لكن بأعداد صحيحة. ج) خاطئ — لا علاقة بالسرعة. د) خاطئ — التصادم يستخدم `rect`.
+
+**التعليل:**
+- ✅ **الخيار ب:** ارسم الرصاص أولاً (يظهر خلف السفينة)، ثم السفينة فوقهم، ثم `flip()` يُظهر كل شيء
+- ❌ **الخيار أ:** `flip()` يأتي آخراً دائماً — يُظهر ما رُسم، لا يبدأ الرسم
+- ❌ **الخيار ج:** السفينة قبل الرصاص — الرصاص سيظهر فوق السفينة بصرياً
+- ❌ **الخيار د:** خطأ في ترتيب الـ flip
 
 ---
 
-### السؤال 4 (متوسط)
-ما الفرق بين `pygame.KEYDOWN` و`pygame.KEYUP`؟
+### السؤال 8 (hard)
 
-أ) `KEYDOWN` للفأرة، `KEYUP` للوحة المفاتيح
-ب) `KEYDOWN` يُطلق عند الضغط، `KEYUP` عند الرفع
-ج) `KEYDOWN` يُطلق بشكل مستمر، `KEYUP` مرة واحدة
-د) لا فرق بينهما في `pygame`
+ما الذي يحدث لو حذفت `screen.fill(ai_settings.bg_color)` من `update_screen()`؟
 
-**الإجابة الصحيحة: ب**
-**التعليل:** `KEYDOWN` يُطلق لحظة ضغط المفتاح، `KEYUP` لحظة رفعه. نحتاج كليهما لنظام الرايات: `KEYDOWN` يُعيّن `True`، `KEYUP` يُعيّن `False`. أ) كلاهما للوحة المفاتيح. ج) خاطئ — كلاهما لحظي.
-
----
-
-### السؤال 5 (صعب)
-لماذا نستخدم `bullets.copy()` بدلاً من `bullets` مباشرة عند حذف الطلقات؟
-
-أ) لأن `copy()` أسرع
-ب) لأن تعديل مجموعة أثناء التكرار عليها مباشرة يُسبب `RuntimeError`
-ج) لأن `copy()` تُعيد قائمة منتظمة
-د) لأن `bullets` مقفلة بعد `update()`
-
-**الإجابة الصحيحة: ب**
-**التعليل:** في بايثون، لا يُسمح بتعديل حجم مجموعة (أو أي iterable) أثناء التكرار عليها — ينتج عنه `RuntimeError: dictionary changed size during iteration`. `copy()` تُعطينا نسخة للتكرار بينما نُعدّل الأصلية. أ) ليس السبب. ج) تُعيد `Group` لا `list`. د) خاطئ.
-
----
-
-### السؤال 6 (متوسط)
-ما الهدف من `bullets_allowed = 3` في `Settings`؟
-
-أ) تحديد حجم كل طلقة
-ب) تقييد عدد الطلقات المرئية على الشاشة في لحظة واحدة
-ج) تحديد سرعة الطلقات
-د) تحديد عدد المرات التي يمكن للاعب الإطلاق يومياً
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `if len(bullets) < ai_settings.bullets_allowed` — اللعبة لا تُنشئ طلقة جديدة إذا كان عدد الطلقات الحالية على الشاشة قد وصل للحد. هذا يُضيف تحدياً: اللاعب يجب أن ينتظر حتى تُحذف طلقة قبل إطلاق أخرى. أ) الحجم في `bullet_width/height`. ج) السرعة في `bullet_speed_factor`.
-
----
-
-### السؤال 7 (صعب)
-ما الذي يُعيده `screen.get_rect()`؟
-
-أ) صورة الشاشة كـ `Surface`
-ب) `pygame.Rect` بأبعاد الشاشة موضوعاً في (0, 0)
-ج) مؤشر الفأرة على الشاشة
-د) قائمة بكل الكائنات على الشاشة
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `get_rect()` تُعيد `Rect` بأبعاد السطح (width, height) بنقطة أصل (0, 0). نستخدمها لمعرفة حدود الشاشة ووضع السفينة في القاع: `self.rect.bottom = self.screen_rect.bottom`. أ) الشاشة هي `Surface` لكن `get_rect()` تُعيد `Rect` لا `Surface`. ج) الفأرة بـ `pygame.mouse.get_pos()`. د) خاطئ.
-
----
-
-### السؤال 8 (متوسط)
-لماذا ترث فئة `Bullet` من `Sprite` بدلاً من أن تكون فئة عادية؟
-
-أ) لأن `Sprite` أسرع في الرسم
-ب) للاستفادة من `Group` — الذي يُتيح `update()` لكل العناصر دفعة واحدة وكشف التصادم
-ج) لأن `pygame` لا تدعم الفئات العادية
-د) لأن `Sprite` يحمل اللون تلقائياً
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `Sprite` + `Group` يُوفران بنية تحتية قوية: `group.update()` تستدعي `update()` لكل عضو، و`groupcollide()` تكشف التصادمات بين مجموعتين. هذا يُبسّط إدارة الفضائيين والطلقات لاحقاً. أ) الرسم نفسه. ج) `pygame` تدعم الفئات العادية. د) خاطئ.
-
----
-
-### السؤال 9 (صعب)
-ما السبب في أن تحريك الطلقة للأعلى يستلزم `self.y -= self.speed_factor` (طرح) وليس جمع؟
-
-أ) لأن الطلقة تُطلق من الأسفل
-ب) لأن `pygame` يستخدم نظام إحداثيات حيث y=0 في الأعلى — لذا التحرك للأعلى يعني تقليل y
-ج) لأن السرعة سالبة
-د) لأن مجموعة `bullets` تعكس الإشارة
-
-**الإجابة الصحيحة: ب**
-**التعليل:** في `pygame` الزاوية العلوية اليسرى هي (0,0) وy تزيد نحو الأسفل. للتحرك للأعلى يجب تقليل y. هذا عكس نظام الإحداثيات الرياضي المعتاد. أ) جزئياً صحيح لكن ليس السبب المنطقي للعملية. ج) السرعة موجبة دائماً. د) خاطئ.
-
----
-
-### السؤال 10 (متوسط)
-في أي ملف يجب وضع السفينة `Ship(ai_settings, screen)` لكي تُنشأ مرة واحدة فقط؟
-
-أ) داخل الحلقة `while True`
-ب) خارج الحلقة `while True` لكن داخل `run_game()`
-ج) في `settings.py`
-د) في بداية `game_functions.py`
-
-**الإجابة الصحيحة: ب**
-**التعليل:** كائنات تُنشأ مرة واحدة وتُعاد استخدامها = خارج الحلقة. لو وضعناها داخل `while True` ستُعاد تهيئتها في كل إطار (60 مرة/ثانية) مما يُعيد السفينة لمركزها في كل إطار. ج) `settings.py` لا يحتوي كائنات اللعبة. د) `game_functions.py` لا يُنشئ الكائنات الأساسية.
-
----
-
-### السؤال 11 (صعب)
-ما الذي يُفعله `super(Bullet, self).__init__()` في فئة `Bullet`؟
-
-أ) ينشئ طلقة جديدة
-ب) يستدعي منشئ فئة `Sprite` الأب لإعداد البنية التحتية للـ `Sprite`
-ج) يستدعي منشئ `Bullet` مجدداً
-د) يُهيّئ `pygame`
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `super()` تُستخدم في OOP لاستدعاء منشئ الفئة الأم. هنا `Sprite.__init__()` يُسجّل الكائن في نظام `pygame.sprite` ويُمكّنه من الانضمام لـ `Group`. بدونه لن يعمل `bullets.add()` بشكل صحيح. أ) الإنشاء بـ `Bullet()`. ج) استدعاء نفسه سيُسبب `RecursionError`. د) التهيئة بـ `pygame.init()`.
-
----
-
-### السؤال 12 (متوسط)
-ما الناتج التقريبي لتشغيل اللعبة مع `ship_speed_factor = 1.5` مقارنة بـ `ship_speed_factor = 1`؟
-
-أ) السفينة تتحرك أبطأ
-ب) السفينة تتحرك أسرع بنسبة 50%
-ج) السفينة لا تتحرك
-د) الحلقة الرئيسية تُنفَّذ أسرع
-
-**الإجابة الصحيحة: ب**
-**التعليل:** في كل إطار تتحرك السفينة بمقدار `speed_factor` بكسل. `1.5` بدلاً من `1` يعني 50% حركة إضافية في كل إطار. أ) عكس الصحيح. ج) `1.5` قيمة صالحة. د) السرعة تؤثر على الحركة لا تردد الحلقة.
-
----
-
-### السؤال 13 (صعب)
-في الكود التالي، ما الخطأ؟
-```python
-while True:
-    gf.update_screen(ai_settings, screen, ship, bullets)
-    gf.check_events(ai_settings, screen, ship, bullets)
-    ship.update()
-    bullets.update()
-```
-
-أ) `update_screen` يجب أن يُستدعى قبل `check_events`
-ب) `update_screen` يجب أن يكون آخر شيء — الترتيب الصحيح: أحداث → تحديث → رسم
-ج) `bullets.update()` يجب أن يكون قبل `ship.update()`
-د) لا خطأ في الكود
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `update_screen` يجب أن يأتي بعد تحديث كل الكائنات، لأنه يرسم الحالة الحالية. لو رُسم أولاً ستظهر الأوضاع القديمة لا الجديدة. الترتيب الصحيح: `check_events` → `ship.update()` → `bullets.update()` → `update_screen`. ج) ترتيب `ship` و`bullets` لا يؤثر في هذه الحالة. د) يوجد خطأ.
-
----
-
-### السؤال 14 (متوسط)
-ما الذي يُوفّره استخدام `class Settings` بدلاً من وضع القيم مباشرة في الكود؟
-
-أ) يجعل البرنامج أسرع
-ب) يُمركز كل القيم القابلة للتعديل في مكان واحد (مبدأ DRY)
-ج) يُخفي الكود عن المستخدمين
-د) يقلل من حجم الملف
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `DRY = Don't Repeat Yourself`. تغيير حجم الشاشة من `800x600` لـ `1024x768` يتم في ملف واحد فقط ويسري على كل الكود. أ) لا تأثير على الأداء. ج) الكود مفتوح. د) قد يزيد الحجم قليلاً لكن الفائدة أكبر.
-
----
-
-### السؤال 15 (صعب)
-ما الذي يُعيده `pygame.event.get()` إذا لم يضغط المستخدم أي شيء؟
-
-أ) يُسبب `ValueError`
-ب) يُعيد قائمة فارغة `[]`
-ج) يُعيد `None`
-د) يتوقف البرنامج
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `pygame.event.get()` دائماً تُعيد قائمة — فارغة إذا لم توجد أحداث. الحلقة `for event in []:` لا تُنفَّذ ببساطة. أ) لا توجد استثناءات. ج) دائماً قائمة. د) الحلقة الرئيسية تستمر.
-
----
-
-### السؤال 16 (صعب)
-السيناريو: اللاعب يضغط السهم الأيمن ثم بينما لا يزال مضغوطاً يضغط السهم الأيسر أيضاً. ماذا يحدث للسفينة؟
-
-أ) تتحرك يميناً فقط (آخر ضغطة تربح)
-ب) تتوقف لأن الاتجاهين متعاكسان
-ج) تستمر في التحرك يميناً لأن `moving_right = True` و`moving_left = True` معاً يتساوى صافيهما صفر
-د) تتحرك يميناً ويساراً معاً بسبب `if` مزدوج يُنفّذ كلا الزيادتين — تتوقف فعلياً
-
-**الإجابة الصحيحة: د**
-**التعليل:** كلا `moving_right` و`moving_left` يساوي `True`. في `update()` نُنفّذ `if moving_right: center += 1.5` ثم `if moving_left: center -= 1.5` (ليس `elif`!). الصافي = +1.5 - 1.5 = 0 → السفينة ثابتة. هذا سلوك مقصود ومنطقي — الضغط على كلا الاتجاهين يُوقف الحركة.
-
----
-
-### السيناريو 1: تتبع دورة حياة الطلقة
-
-> اللاعب يضغط `SPACE` وعلى الشاشة حالياً طلقتان. `bullets_allowed = 3`. السفينة في `centerx = 400`, `top = 550`.
-
-#### السؤال 1.1 (صعب)
-ماذا يحدث عند ضغط `SPACE`؟
-
-أ) لا يحدث شيء لأن هناك طلقتان بالفعل
-ب) تُنشأ طلقة ثالثة عند (400, 550) وتُضاف للمجموعة
-ج) تُحذف الطلقتان وتُنشأ واحدة جديدة
-د) يتوقف البرنامج
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `len(bullets) = 2 < bullets_allowed = 3` → الشرط صحيح → `Bullet(ai_settings, screen, ship)` تُنشأ بـ `centerx = 400`, `top = 550` → `bullets.add()`. لا تُحذف الطلقات القديمة.
-
-#### السؤال 1.2 (متوسط)
-بعد 10 إطارات (بافتراض `bullet_speed_factor = 1`)، أين موضع `rect.y` للطلقة الجديدة؟
-
-أ) `540`
-ب) `560`
-ج) `550 - 10 = 540`
-د) `550 + 10 = 560`
+أ) اللعبة تُغلق تلقائياً  
+ب) الشاشة تصبح سوداء  
+ج) تتراكم صور الـ frames السابقة — "ghosting"  
+د) الرصاصات لن تُرسم  
 
 **الإجابة الصحيحة: ج**
-**التعليل:** الطلقة تبدأ عند `y = 550`. كل إطار: `y -= 1` → بعد 10 إطارات: `y = 550 - 10 = 540`. الحركة للأعلى تعني طرح.
 
-#### السؤال 1.3 (صعب)
-متى تُحذف الطلقة من المجموعة؟
-
-أ) عند `rect.y == 0`
-ب) عند `rect.bottom <= 0` (الطلقة تجاوزت قمة الشاشة)
-ج) بعد 100 إطار
-د) عندما تُصيب فضائياً (في هذه المرحلة من المحاضرة)
-
-**الإجابة الصحيحة: ب**
-**التعليل:** `if bullet.rect.bottom <= 0: bullets.remove(bullet)`. `rect.bottom = rect.y + rect.height`. إذا كانت `height = 15`، فالحذف يحدث عندما `y <= -15`. في هذه المرحلة لا يوجد كشف تصادم مع الفضائيين بعد.
+**التعليل:**
+- ✅ **الخيار ج:** `fill()` يمسح الـ frame السابق. بدونه كل frame يُرسم **فوق** السابق — السفينة والرصاصات تترك "خطوطاً" خلفها
+- ❌ **الخيار أ:** pygame لن يُغلق
+- ❌ **الخيار ب:** الخلفية الافتراضية ليست بالضرورة سوداء
+- ❌ **الخيار د:** الرصاصات ستُرسم، لكن القديمة لن تُمحى
 
 ---
 
-## الجزء الرابع: أسئلة تصحيح الكود
+### السؤال 9 (medium)
 
-> غطِّ أنواع الأخطاء: منطقية، misconception، return_check، dead_code، syntax.
+لماذا نُمرر `screen` لـ `Ship.__init__()` بدلاً من إنشاء `screen` جديد داخلها؟
 
----
+أ) `pygame` لا يسمح بأكثر من `screen` واحدة  
+ب) إنشاء `screen` داخل Class غير ممكن تقنياً  
+ج) لضمان أن كل الكائنات ترسم على **نفس** الشاشة — injection pattern  
+د) لتوفير الذاكرة  
 
-### سؤال تصحيح 1
+**الإجابة الصحيحة: ج**
 
-**الكود (يحتوي خطأ — نوع: منطقي):**
-```python
-while True:
-    screen.fill(ai_settings.bg_color)   # clear screen
-    ship.blitme()                       # draw ship
-    gf.check_events(ship)               # handle events
-    ship.update()                       # update position
-    pygame.display.flip()               # show frame
-```
-**اكتشف الخطأ:** `check_events` يُعالج المدخلات بعد الرسم — أي تغيير في الموضع لن يظهر حتى الإطار التالي لكن الأسوأ أن `ship.update()` يأتي بعد الرسم فتُعرض المواضع القديمة دائماً.
-
-**التصحيح:**
-```python
-while True:
-    gf.check_events(ship)               # 1. handle events (update flags)
-    ship.update()                       # 2. update position
-    screen.fill(ai_settings.bg_color)   # 3. clear screen
-    ship.blitme()                       # 4. draw at NEW position
-    pygame.display.flip()               # 5. show frame
-```
-**شرح الحل:**
-1. الترتيب الصحيح: مدخلات → منطق → رسم
-2. `check_events` يضبط الرايات → `ship.update()` يتحرك → ثم يُرسم في الموضع الجديد
-3. `fill()` يجب أن يسبق `blitme()` لمسح الإطار القديم
+**التعليل:**
+- ✅ **الخيار ج:** Dependency Injection — نُمرّر الـ screen من الخارج لضمان أن السفينة والرصاص والأجانب كلهم يرسمون على نفس السطح
+- ❌ **الخيار أ:** `pygame` تقنياً تدعم surfaces متعددة
+- ❌ **الخيار ب:** ممكن تقنياً لكن سيُنشئ نافذة ثانية
+- ❌ **الخيار د:** الذاكرة ليست السبب الأساسي
 
 ---
 
-### سؤال تصحيح 2
+### السؤال 10 (hard)
 
-**الكود (يحتوي خطأ — نوع: misconception حول `bullets.copy()`):**
+ماذا يفعل هذا الكود؟
 ```python
-for bullet in bullets:                  # iterate directly
-    if bullet.rect.bottom <= 0:
-        bullets.remove(bullet)          # remove while iterating
-```
-**اكتشف الخطأ:** يُحاول حذف عناصر من `bullets` أثناء التكرار عليها مباشرة — سيُسبب `RuntimeError`.
-
-**التصحيح:**
-```python
-for bullet in bullets.copy():           # iterate over a copy
-    if bullet.rect.bottom <= 0:
-        bullets.remove(bullet)          # safe to remove from original
-```
-**شرح الحل:**
-1. `bullets.copy()` تُعيد نسخة للتكرار
-2. نُعدّل `bullets` الأصلية أثناء التكرار على النسخة
-3. هذا النمط ضروري في كل حالة حذف داخل حلقة
-
----
-
-### سؤال تصحيح 3
-
-**الكود (يحتوي خطأ — نوع: منطقي في حد الطلقات):**
-```python
-elif event.key == pygame.K_SPACE:
+if len(bullets) < ai_settings.bullets_allowed:
     new_bullet = Bullet(ai_settings, screen, ship)
-    bullets.add(new_bullet)             # always add — no limit check
-```
-**اكتشف الخطأ:** لا يوجد تحقق من حد `bullets_allowed` — يمكن للاعب إطلاق طلقات لا نهائية.
-
-**التصحيح:**
-```python
-elif event.key == pygame.K_SPACE:
-    if len(bullets) < ai_settings.bullets_allowed:   # check limit first
-        new_bullet = Bullet(ai_settings, screen, ship)
-        bullets.add(new_bullet)
-```
-**شرح الحل:**
-1. `len(bullets)` يعطي العدد الحالي للطلقات في المجموعة
-2. نُقارنه بـ `bullets_allowed` قبل إنشاء طلقة جديدة
-3. إذا وصلنا للحد، لا شيء يحدث عند ضغط `SPACE`
-
----
-
-### سؤال تصحيح 4
-
-**الكود (يحتوي خطأ — نوع: logic في حدود الشاشة):**
-```python
-def update(self):
-    if self.moving_right:
-        self.center += self.ai_settings.ship_speed_factor  # no bounds check
-    if self.moving_left:
-        self.center -= self.ai_settings.ship_speed_factor  # no bounds check
-    self.rect.centerx = self.center
-```
-**اكتشف الخطأ:** لا تحقق من حدود الشاشة — السفينة يمكنها الخروج من الشاشة يميناً ويساراً.
-
-**التصحيح:**
-```python
-def update(self):
-    if self.moving_right and self.rect.right < self.screen_rect.right:
-        self.center += self.ai_settings.ship_speed_factor
-    if self.moving_left and self.rect.left > 0:
-        self.center -= self.ai_settings.ship_speed_factor
-    self.rect.centerx = self.center
-```
-**شرح الحل:**
-1. `self.rect.right < self.screen_rect.right` — الحافة اليمنى لم تتجاوز حد الشاشة
-2. `self.rect.left > 0` — الحافة اليسرى لم تصل لبداية الشاشة
-3. استخدام `and` لدمج شرط الحركة مع شرط الحد
-
----
-
-### سؤال تصحيح 5
-
-**الكود (يحتوي خطأ — نوع: dead_code / نسيان استدعاء):**
-```python
-class Ship():
-    def __init__(self, ai_settings, screen):
-        self.moving_right = False
-        self.moving_left = False
-        self.center = float(self.rect.centerx)
-        self.ai_settings = ai_settings
-
-    def blitme(self):
-        self.screen.blit(self.image, self.rect)
-    # update() method is missing entirely!
-
-# In alien_invasion.py:
-while True:
-    gf.check_events(ship)
-    # ship.update() is missing!
-    gf.update_screen(ai_settings, screen, ship)
-```
-**اكتشف الخطأ:** دالة `update()` مفقودة من `Ship` ولا يُستدعى `ship.update()` في الحلقة — السفينة لن تتحرك أبداً.
-
-**التصحيح:**
-```python
-class Ship():
-    # ... __init__ ...
-    def update(self):
-        """Update the ship's position based on movement flags."""
-        if self.moving_right and self.rect.right < self.screen_rect.right:
-            self.center += self.ai_settings.ship_speed_factor
-        if self.moving_left and self.rect.left > 0:
-            self.center -= self.ai_settings.ship_speed_factor
-        self.rect.centerx = self.center
-
-# In alien_invasion.py:
-while True:
-    gf.check_events(ship)
-    ship.update()          # must call update every frame!
-    gf.update_screen(ai_settings, screen, ship)
-```
-**شرح الحل:**
-1. `update()` يجب أن تُعرَّف في فئة `Ship`
-2. `ship.update()` يجب أن يُستدعى في كل إطار في الحلقة الرئيسية
-3. الرايات وحدها لا تُحرّك السفينة — `update()` هي التي تُطبّق الحركة
-
----
-
-## الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)
-
-> **هذه تمارين إضافية من إعداد الدليل للتدريب** — ليست في المحاضرة الأصلية.
-
----
-
-### تمرين 1 (تمرين إضافي): تغيير لون الطلقة — fill_gaps
-
-**السيناريو / المطلوب:**
-أكمل الكود التالي ليجعل الطلقات حمراء بدلاً من الرمادي الداكن:
-
-```python
-# In settings.py
-self.bullet_color = _______    # (1) — fill the correct RGB value for red
+    bullets.add(new_bullet)
 ```
 
-**المطلوب:**
-1. اكتب قيمة `RGB` للأحمر الخالص
+أ) يُطلق رصاصة في كل frame  
+ب) يُطلق رصاصة واحدة فقط طوال اللعبة  
+ج) يُطلق رصاصة جديدة فقط إذا كان عدد الرصاصات الحالية أقل من الحد الأقصى  
+د) يُحذف الرصاصة الأقدم ويُضيف جديدة  
 
-**نموذج الحل:**
-```python
-self.bullet_color = (255, 0, 0)   # pure red: R=255, G=0, B=0
-```
-**الشرح:** `RGB = (255, 0, 0)` — الأحمر الكامل بلا أخضر أو أزرق.
+**الإجابة الصحيحة: ج**
 
----
-
-### تمرين 2 (تمرين إضافي): إضافة مفتاح الخروج — code_fix
-
-**السيناريو / المطلوب:**
-اللاعب يريد الخروج من اللعبة بضغط `Q`. أضف هذه الميزة:
-
-**المطلوب:**
-1. عدّل `check_keydown_events()` لإضافة خروج بـ `Q`
-
-**نموذج الحل:**
-```python
-def check_keydown_events(event, ai_settings, screen, ship, bullets):
-    """Respond to keypresses."""
-    if event.key == pygame.K_RIGHT:
-        ship.moving_right = True
-    elif event.key == pygame.K_LEFT:
-        ship.moving_left = True
-    elif event.key == pygame.K_SPACE:
-        fire_bullet(ai_settings, screen, ship, bullets)
-    elif event.key == pygame.K_q:    # Q key exits game
-        sys.exit()
-```
+**التعليل:**
+- ✅ **الخيار ج:** `len(bullets) < bullets_allowed` يتحقق من العدد الحالي — إذا وصل للحد الأقصى، لا رصاصة جديدة
+- ❌ **الخيار أ:** يُستدعى فقط عند `K_SPACE`، وفيه شرط
+- ❌ **الخيار ب:** يمكن إطلاق رصاصات جديدة بعد اختفاء القديمة
+- ❌ **الخيار د:** لا يُحذف أي شيء هنا
 
 ---
 
-### تمرين 3 (تمرين إضافي): تغيير موضع البداية — scenario
+### السؤال 11 (medium)
 
-**السيناريو / المطلوب:**
-عدّل `Ship.__init__()` لتبدأ السفينة في الزاوية اليسرى السفلى بدلاً من المنتصف.
+ما الفرق بين `pygame.KEYDOWN` و `pygame.KEYUP`؟
 
-**المطلوب:**
-1. عدّل سطر `centerx` ليجعل السفينة في أقصى اليسار
+أ) `KEYDOWN` للماوس، `KEYUP` للكيبورد  
+ب) `KEYDOWN` يُطلق مرة واحدة عند الضغط، `KEYUP` عند الرفع  
+ج) كلاهما نفس الحدث بأسماء مختلفة  
+د) `KEYDOWN` يعمل للحروف فقط  
 
-**نموذج الحل:**
-```python
-# Instead of:
-self.rect.centerx = self.screen_rect.centerx   # center
+**الإجابة الصحيحة: ب**
 
-# Use:
-self.rect.left = self.screen_rect.left          # left edge (x=0)
-self.center = float(self.rect.centerx)          # update center float
-```
-
----
-
-### تمرين 4 (تمرين إضافي): طلقات أسرع — fill_gaps
-
-**السيناريو / المطلوب:**
-اجعل الطلقات تتحرك بسرعة 3 بكسل في كل إطار بدلاً من 1.
-
-**المطلوب:**
-1. اكتب السطر الصحيح في `settings.py`
-
-**نموذج الحل:**
-```python
-self.bullet_speed_factor = 3    # 3 pixels per frame upward
-```
+**التعليل:**
+- ✅ **الخيار ب:** `KEYDOWN` يُولَّد مرة عند لحظة الضغط. `KEYUP` مرة عند لحظة الرفع — هذا الفرق هو أساس نظام الـ flags
+- ❌ **الخيار أ:** كلاهما لأحداث الكيبورد
+- ❌ **الخيار ج:** أحداث مختلفة تماماً
+- ❌ **الخيار د:** يعمل لجميع المفاتيح
 
 ---
 
-### تمرين 5 (تمرين إضافي): منع الإطلاق أثناء التحرك — scenario
+### السؤال 12 (hard)
 
-**السيناريو / المطلوب:**
-المطلوب منع اللاعب من إطلاق الطلقات أثناء تحرّك السفينة (لزيادة الصعوبة).
+لماذا يرث `Bullet` من `Sprite` وليس من class عادية؟
 
-**المطلوب:**
-1. عدّل `fire_bullet()` لإضافة هذا الشرط
+أ) لاستخدام `pygame.Rect` فقط  
+ب) للاستفادة من `Group` — الذي يُتيح `update()` و `remove()` الجماعيين  
+ج) لأن `pygame.image.load()` تشترط ذلك  
+د) للوصول لـ `ai_settings`  
 
-**نموذج الحل:**
-```python
-def fire_bullet(ai_settings, screen, ship, bullets):
-    """Fire a bullet if limit not reached and ship is not moving."""
-    # Prevent firing while moving
-    if ship.moving_right or ship.moving_left:
-        return                         # do not fire if moving
-    if len(bullets) < ai_settings.bullets_allowed:
-        new_bullet = Bullet(ai_settings, screen, ship)
-        bullets.add(new_bullet)
-```
+**الإجابة الصحيحة: ب**
+
+**التعليل:**
+- ✅ **الخيار ب:** `Sprite` مع `Group` يُتيح `bullets.update()` (يُحدث كل sprite دفعة واحدة)، `bullets.remove()` الذكي، وفحوصات الاصطدام لاحقاً
+- ❌ **الخيار أ:** `Rect` مستقل عن `Sprite`
+- ❌ **الخيار ج:** `load()` لا تشترط Sprite
+- ❌ **الخيار د:** `ai_settings` يُمرَّر في `__init__`
 
 ---
 
-### تمرين 6 (تمرين إضافي): عرض عدد الطلقات — code_fix
+### السؤال 13 (medium)
 
-**السيناريو / المطلوب:**
-الكود التالي يجب أن يطبع عدد الطلقات على الشاشة لكنه يطبع كلمة خاطئة:
+أي قيمة `bg_color` تُعطي شاشة سوداء تماماً؟
 
-```python
-print(bullets)     # prints Group object representation — wrong!
-```
+أ) `(255, 255, 255)`  
+ب) `(0, 0, 0)`  
+ج) `(128, 128, 128)`  
+د) `(230, 230, 230)`  
 
-**المطلوب:**
-1. صحّح السطر ليطبع العدد الصحيح
+**الإجابة الصحيحة: ب**
 
-**نموذج الحل:**
-```python
-print(len(bullets))    # prints integer count of bullets in group
-```
-
----
-
-## الجزء الرابع: تمارين تحليل وتطبيق (إضافية — من إعداد الدليل)
-
-> تمارين تحليلية إضافية — سيناريوهات مؤسسية، إكمال مخططات، جداول قرار.
+**التعليل:**
+- ✅ **الخيار ب:** RGB (0,0,0) = لا أحمر، لا أخضر، لا أزرق = أسود
+- ❌ **الخيار أ:** (255,255,255) = أبيض كامل
+- ❌ **الخيار ج:** (128,128,128) = رمادي متوسط
+- ❌ **الخيار د:** (230,230,230) = رمادي فاتح — لون الخلفية في المثال
 
 ---
 
-### تمرين 1: تحليل بنية الملفات
+### السؤال 14 (hard)
 
-**السيناريو:**
-مطور أراد إضافة نوع جديد من الأسلحة للعبة (صاروخ بدلاً من رصاصة). عنده 5 ملفات: `alien_invasion.py`, `settings.py`, `game_functions.py`, `ship.py`, `bullet.py`.
+ما الذي يحدد **موضع** الرصاصة عند إنشائها؟
 
-**المطلوب:**
-1. أي الملفات يجب تعديلها؟
-2. أي الملفات لا تحتاج تعديل؟
+أ) موضع السفينة في لحظة إطلاق الرصاصة  
+ب) مركز الشاشة دائماً  
+ج) موضع السفينة عند بداية اللعبة  
+د) موضع عشوائي  
 
-**نموذج الحل:**
+**الإجابة الصحيحة: أ**
 
-| الملف | يُعدَّل؟ | السبب |
-| --- | --- | --- |
-| `settings.py` | ✅ | إضافة إعدادات الصاروخ (حجم، سرعة، تأثير) |
-| `game_functions.py` | ✅ | إضافة دالة `fire_missile()` ومعالجة مفتاح جديد |
-| `alien_invasion.py` | ✅ | إضافة `missiles = Group()` وتحديث الحلقة |
-| `bullet.py` | ✅ أو ❌ | يمكن إنشاء `missile.py` منفصل أو توسيع `Bullet` |
-| `ship.py` | ❌ | السفينة لا تتغير — فقط ما تُطلقه يتغير |
+**التعليل:**
+- ✅ **الخيار أ:** `self.rect.centerx = ship.rect.centerx` و `self.rect.top = ship.rect.top` في `Bullet.__init__()` — القيم تُقرأ في **لحظة الإنشاء**
+- ❌ **الخيار ب:** تظهر من الشاشة بالكامل لو كانت في المركز دائماً
+- ❌ **الخيار ج:** السفينة قد تكون تحركت منذ بداية اللعبة
+- ❌ **الخيار د:** لا عشوائية في الإنشاء
 
 ---
 
-### تمرين 2: تحليل نظام الرايات
+### السؤال 15 (medium)
 
-**السيناريو:**
-طالب نفّذ نظام حركة لكنه استخدم `elif` بدلاً من `if` في `update()`:
-```python
-def update(self):
-    if self.moving_right:
-        self.center += 1.5
-    elif self.moving_left:       # using elif
-        self.center -= 1.5
-```
+في الـ Game Loop، ما الترتيب الصحيح للعمليات؟
 
-**المطلوب:**
-1. ما الفرق بين `if/if` و`if/elif` هنا؟
-2. أيهما أفضل ولماذا؟
+أ) `update_screen` → `check_events` → `ship.update` → `update_bullets`  
+ب) `check_events` → `ship.update` → `update_bullets` → `update_screen`  
+ج) `ship.update` → `check_events` → `update_screen` → `update_bullets`  
+د) `update_bullets` → `update_screen` → `check_events` → `ship.update`  
 
-**نموذج الحل:**
-- `if/if`: كلا الشرطين يُفحصان — إذا ضُغط كلا المفتاحين في نفس اللحظة: `+1.5 - 1.5 = 0` → السفينة ثابتة (سلوك مقبول)
-- `if/elif`: إذا ضُغط كلاهما، فقط `moving_right` يُنفَّذ → السفينة تتحرك دائماً يميناً (تحيّز)
-- **المحاضرة تستخدم `if/if`** — أكثر عدالة وأكثر توافقاً مع توقع اللاعب
+**الإجابة الصحيحة: ب**
+
+**التعليل:**
+- ✅ **الخيار ب:** 1) اقرأ المدخلات → 2) حدّث الحالة → 3) ارسم. المدخلات أولاً لأنها تُغيّر الحالة، الرسم آخراً لأنه يعكس الحالة النهائية
+- ❌ **الخيار أ:** الرسم أولاً سيُظهر الحالة القديمة دائماً
+- ❌ **الخيار ج:** التحديث قبل قراءة المدخلات — تأخير frame واحد
+- ❌ **الخيار د:** ترتيب عشوائي
 
 ---
 
-### تمرين 3: تصميم قرار السرعة
+### السؤال 16 (hard)
 
-**السيناريو:**
-اللعبة تريد أن تكون السفينة أسرع كلما طال الوقت (كل 30 ثانية تزيد السرعة).
+ما فائدة `import game_functions as gf` مقارنة بـ `from game_functions import *`؟
 
-**المطلوب:**
-1. أي ملف يحتوي `ship_speed_factor`؟
-2. كيف تُعدّله بمرور الوقت؟
+أ) `as gf` أسرع في التنفيذ  
+ب) `as gf` يُوضح مصدر الدالة — `gf.check_events()` أوضح من `check_events()`  
+ج) `from ... import *` يُسبب خطأ في `pygame`  
+د) لا فرق بينهما  
 
-**نموذج الحل:**
-```python
-# In settings.py
-self.ship_speed_factor = 1.5
-self.speedup_scale = 1.1    # increase by 10% each level
+**الإجابة الصحيحة: ب**
 
-# In game_functions.py (new function)
-def increase_speed(ai_settings):
-    """Speed up ship when player advances."""
-    ai_settings.ship_speed_factor *= ai_settings.speedup_scale
-```
+**التعليل:**
+- ✅ **الخيار ب:** `gf.check_events()` يُوضّح أن الدالة من `game_functions` — يمنع تعارض الأسماء ويُسهّل قراءة الكود
+- ❌ **الخيار أ:** السرعة متماثلة عملياً
+- ❌ **الخيار ج:** `import *` يعمل لكن يُلوّث `namespace`
+- ❌ **الخيار د:** الفرق في وضوح المصدر مهم
 
 ---
 
-### تمرين 4: تحليل إحداثيات pygame
+## الجزء الثالث: بطاقات سؤال وجواب (Q&A Cards)
 
-**السيناريو:**
-شاشة `800x600`. سفينة عرضها `50` بكسل في المنتصف. طلقة عرضها `3` وارتفاعها `15`.
+### البطاقة 1
+**Q1:** ما هو الـ Game Loop وما ترتيب خطواته الثلاث الرئيسية؟
+**A:** حلقة `while True` لا تنتهي تُشغّل اللعبة. الترتيب: (1) `check_events` — قراءة المدخلات، (2) تحديث الحالة (`ship.update`, `update_bullets`)، (3) `update_screen` — رسم الـ frame الجديد.
 
-**المطلوب:**
-1. ما إحداثي `rect.centerx` للسفينة؟
-2. ما إحداثي `rect.bottom` للسفينة؟
-3. عند إطلاق الطلقة، ما `rect.centerx` و`rect.top` للطلقة؟
+### البطاقة 2
+**Q2:** لماذا نستخدم `movement flags` بدل تحريك السفينة مباشرة في `check_events()`؟
+**A:** الـ flags (`moving_right`, `moving_left`) تُشعَل عند `KEYDOWN` وتُطفأ عند `KEYUP`، والحركة الفعلية تحدث في `ship.update()` في كل frame — ينتج عنه حركة سلسة مستمرة بدل حركة متقطعة.
 
-**نموذج الحل:**
-1. `rect.centerx = 800/2 = 400`
-2. `rect.bottom = 600` (قاع الشاشة)
-3. `bullet.rect.centerx = 400` (مركز السفينة), `bullet.rect.top = ship.rect.top` (أعلى السفينة)
+### البطاقة 3
+**Q3:** لماذا نحفظ موضع السفينة في `self.center = float(...)` بدل تحديث `self.rect.centerx` مباشرة؟
+**A:** لأن `Rect` يخزّن integers فقط. سرعة كسرية كـ 1.5 تفقد دقتها إذا خُزِّنت في `rect`. `self.center` float يحفظ التراكم الدقيق، ويُنقل للـ `rect` عند الرسم.
 
----
+### البطاقة 4
+**Q4:** ما وظيفة `Settings class`؟ لماذا نضعها في ملف منفصل؟
+**A:** تخزّن كل إعدادات اللعبة (أبعاد الشاشة، السرعات، ألوان...) في مكان واحد. ملف منفصل يعني تغيير إعداد واحد يؤثر على اللعبة كلها بدون البحث في الكود.
 
-## الجزء الرابع: تمارين تتبع التنفيذ
+### البطاقة 5
+**Q5:** ما فرق `KEYDOWN` عن `KEYUP`؟
+**A:** `KEYDOWN` يُولَّد لحظة الضغط على المفتاح (مرة واحدة). `KEYUP` عند رفعه. معاً يُشكّلان أساس نظام الـ movement flags.
 
-> هذه تمارين إضافية من إعداد الدليل لاختبار الفهم العميق بتتبع التنفيذ خطوة بخطوة.
+### البطاقة 6
+**Q6:** لماذا تُنشئ `Bullet` في موضع السفينة الحالي وليس ثابتاً؟
+**A:** لأن السفينة تتحرك — عند الضغط على Space، نقرأ `ship.rect.centerx` و`ship.rect.top` في لحظة الإطلاق فتخرج الرصاصة من موضع السفينة الحالي بدقة.
 
----
+### البطاقة 7
+**Q7:** لماذا نكتب `for bullet in bullets.copy():` لا `for bullet in bullets:`؟
+**A:** لأننا نحذف من `bullets` داخل نفس الحلقة. التعديل على collection أثناء التكرار عليها يُسبب `RuntimeError` أو تخطّي عناصر. `copy()` يُعطينا نسخة ثابتة آمنة.
 
-### تمرين تتبع 1: تتبع حركة السفينة
+### البطاقة 8
+**Q8:** كيف يعمل `pygame.sprite.Group()`؟ ما ميزته على list عادية؟
+**A:** `Group` وعاء مخصص للـ sprites يُتيح: `bullets.update()` (يُحدّث كل sprite)، `bullets.add/remove()` (إضافة وحذف آمن)، `bullets.sprites()` (الحصول على الـ list)، وفحوصات الاصطدام مستقبلاً.
 
-**المدخل:**
-```python
-# Initial state:
-ship.center = 400.0
-ship.moving_right = False
-ship.moving_left = False
-ship_speed_factor = 1.5
-screen_width = 800  # screen_rect.right = 800
-```
-الأحداث (بالترتيب): ضغط K_RIGHT → إطار 1 → إطار 2 → رفع K_RIGHT → إطار 3
+### البطاقة 9
+**Q9:** ما دور `super(Bullet, self).__init__()` في `Bullet class`؟
+**A:** يستدعي `__init__` الـ parent class وهي `Sprite` — ضروري لإعداد المتغيرات الداخلية للـ Sprite وضمان أنها تعمل مع `Group` بشكل صحيح.
 
-**تتبّع خطوة بخطوة (أكمل الجدول):**
+### البطاقة 10
+**Q10:** ما هو RGB وكيف يُعبَّر عنه في `pygame`؟
+**A:** Red-Green-Blue — كل قناة بين 0 و255. في `pygame` يُكتب كـ tuple: `(230, 230, 230)` = رمادي فاتح، `(0,0,0)` = أسود، `(255,255,255)` = أبيض.
 
-| الحدث | moving_right | moving_left | center بعد update() |
-| --- | --- | --- | --- |
-| ابتداء | False | False | ؟ |
-| K_RIGHT ضغط | ؟ | False | (لم يُستدعَ update بعد) |
-| إطار 1: update() | True | False | ؟ |
-| إطار 2: update() | True | False | ؟ |
-| K_RIGHT رُفع | ؟ | False | (لم يُستدعَ update بعد) |
-| إطار 3: update() | False | False | ؟ |
+### البطاقة 11
+**Q11:** لماذا يحدث `screen.fill(bg_color)` في بداية كل frame لا نهايته؟
+**A:** لأنه يمسح الـ frame السابق قبل رسم الجديد. ترتيب نهاية frame: fill → draw all objects → flip. إذا وضعته بعد الرسم ستمسح ما رسمته للتو.
 
-**نموذج الحل:**
+### البطاقة 12
+**Q12:** ما الشرطان اللذان يمنعان السفينة من الخروج من الشاشة؟
+**A:** للحركة اليمنى: `self.rect.right < self.screen_rect.right` — الحافة اليمنى للسفينة لم تصل للحافة اليمنى للشاشة. لليسار: `self.rect.left > 0` — الحافة اليسرى للسفينة لم تصل الحد الأيسر (0).
 
-| الحدث | moving_right | moving_left | center بعد update() |
-| --- | --- | --- | --- |
-| ابتداء | False | False | 400.0 |
-| K_RIGHT ضغط | True | False | — |
-| إطار 1: update() | True | False | 401.5 |
-| إطار 2: update() | True | False | 403.0 |
-| K_RIGHT رُفع | False | False | — |
-| إطار 3: update() | False | False | 403.0 (لا تغيير) |
+### البطاقة 13
+**Q13:** ما فائدة `bullets_allowed = 3` في الإعدادات؟
+**A:** تُحدّد أقصى عدد رصاصات على الشاشة في نفس الوقت — تُضيف تحدياً للعبة وتمنع الـ spamming. عند الضغط على Space، ننشئ رصاصة جديدة فقط إذا `len(bullets) < bullets_allowed`.
 
-**النتيجة:** السفينة تحركت من `400.0` إلى `403.0` ثم توقفت.
-
-**سؤال MCQ على هذا التتبع:**
-ما قيمة `ship.center` بعد 5 إطارات متتالية مع `moving_right = True` و`speed = 1.5`؟
-
-أ) `405.0`
-ب) `407.5`
-ج) `410.0`
-د) `400.5`
-
-**الإجابة: ب** → `400 + (5 × 1.5) = 407.5`
+### البطاقة 14
+**Q14:** ما الفرق بين `blit()` و `draw.rect()`؟
+**A:** `screen.blit(image, rect)` يرسم **صورة** (ملف .bmp/.png) في موضع محدد — تُستخدم للسفينة. `pygame.draw.rect(screen, color, rect)` يرسم **مستطيلاً** مملوءاً بلون — تُستخدم للرصاصات لأنها مستطيل لا صورة.
 
 ---
 
-### تمرين تتبع 2: تتبع دورة حياة الطلقات
-
-**المدخل:**
-```python
-bullets = Group()      # empty
-bullets_allowed = 3
-bullet_height = 15
-screen_height = 600    # screen top = y=0
-bullet starts at y = 550
-bullet_speed_factor = 1
-```
-الأحداث: ضغط K_SPACE مرتين → 560 إطار (بدون أي ضغط)
-
-**تتبّع خطوة بخطوة (أكمل الجدول):**
-
-| اللحظة | عدد الطلقات | y للطلقة 1 | y للطلقة 2 | تحذير |
-| --- | --- | --- | --- | --- |
-| البداية | 0 | — | — | — |
-| K_SPACE (أول مرة) | ؟ | ؟ | — | — |
-| K_SPACE (ثاني مرة) | ؟ | ؟ | ؟ | — |
-| بعد 10 إطارات | ؟ | ؟ | ؟ | — |
-| بعد 560 إطار | ؟ | ؟ | ؟ | ؟ |
-| بعد 565 إطار | ؟ | ؟ | ؟ | ؟ |
-
-**نموذج الحل:**
-
-| اللحظة | عدد الطلقات | y للطلقة 1 | y للطلقة 2 | ملاحظة |
-| --- | --- | --- | --- | --- |
-| البداية | 0 | — | — | — |
-| K_SPACE (1) | 1 | 550 | — | أُنشئت طلقة 1 |
-| K_SPACE (2) | 2 | 550 | 550 | أُنشئت طلقة 2 في نفس اللحظة |
-| بعد 10 إطارات | 2 | 540 | 540 | تحركتا للأعلى 10 بكسل |
-| بعد 560 إطار | 2 | -10 | -10 | `rect.bottom = y + 15 = 5` > 0 بعد |
-| بعد 565 إطار | 0 | — | — | حُذفتا عندما `rect.bottom <= 0` |
-
-**النتيجة:** الطلقتان تُحذفان عندما `y = -15` (بعد `550 + 15 = 565` إطار من البداية).
-
----
-
-### تمرين تتبع 3: تتبع check_events
-
-**المدخل:**
-```python
-# Initial state:
-ship.moving_right = False
-ship.moving_left = False
-len(bullets) = 2
-bullets_allowed = 3
-```
-تسلسل الأحداث: `KEYDOWN K_LEFT` → `KEYDOWN K_SPACE` → `KEYUP K_LEFT` → `KEYDOWN K_SPACE`
-
-**تتبّع (أكمل الجدول):**
-
-| الحدث | moving_right | moving_left | len(bullets) |
-| --- | --- | --- | --- |
-| البداية | False | False | 2 |
-| KEYDOWN K_LEFT | ؟ | ؟ | ؟ |
-| KEYDOWN K_SPACE | ؟ | ؟ | ؟ |
-| KEYUP K_LEFT | ؟ | ؟ | ؟ |
-| KEYDOWN K_SPACE | ؟ | ؟ | ؟ |
-
-**نموذج الحل:**
-
-| الحدث | moving_right | moving_left | len(bullets) |
-| --- | --- | --- | --- |
-| البداية | False | False | 2 |
-| KEYDOWN K_LEFT | False | True | 2 |
-| KEYDOWN K_SPACE | False | True | 3 (طلقة جديدة) |
-| KEYUP K_LEFT | False | False | 3 |
-| KEYDOWN K_SPACE | False | False | 3 (لا يزيد — الحد) |
-
-**النتيجة:** بعد الضغطة الأخيرة لـ SPACE لا تُضاف طلقة لأن `len(bullets) = 3 = bullets_allowed` — الشرط `< 3` فاشل.
-
----
-
-## الجزء الرابع: أسئلة تصميم
-
----
-
-### سؤال تصميم 1: مخطط بنية ملفات المشروع
-
-**المطلوب:**
-ارسم مخططاً (class diagram) يُبيّن العلاقات بين ملفات المشروع: `alien_invasion.py`, `Settings`, `Ship`, `Bullet`, `game_functions`.
-
-**نموذج الإجابة:**
-
-#### 📊 المخطط: بنية مشروع Alien Invasion
-
-#### ما هذا المخطط؟
-> يوضّح تبعيات واستيرادات بين وحدات المشروع الخمس.
-
-#### وصف العُقد:
-| # | العُقدة | النوع `kind` | الشرح |
-| --- | --- | --- | --- |
-| 1 | alien_invasion | process | نقطة البداية — الحلقة الرئيسية |
-| 2 | Settings | process | فئة الإعدادات |
-| 3 | Ship | process | فئة السفينة |
-| 4 | Bullet | process | فئة الطلقة — ترث Sprite |
-| 5 | game_functions | process | وحدة الدوال المساعدة |
-
-#### وصف الروابط:
-| من | إلى | التسمية | نوع السهم | الشرح |
-| --- | --- | --- | --- | --- |
-| alien_invasion | Settings | import | → | يستورد Settings |
-| alien_invasion | Ship | import | → | يستورد Ship |
-| alien_invasion | game_functions | import as gf | → | يستورد gf |
-| game_functions | Bullet | import | → | يستورد Bullet لإنشاء الطلقات |
-| Ship | Settings | uses | → | يستخدم ai_settings.ship_speed_factor |
-| Bullet | Settings | uses | → | يستخدم bullet_speed_factor, bullet_color |
-
-```diagram
-type: flowchart
-title: Alien Invasion — File Dependencies
-direction: TD
-nodes:
-  - id: main
-    label: alien_invasion.py\n(Entry Point)
-    kind: event
-    level: 0
-  - id: settings
-    label: Settings\n(settings.py)
-    kind: process
-    level: 1
-  - id: ship
-    label: Ship\n(ship.py)
-    kind: process
-    level: 1
-  - id: gf
-    label: game_functions\n(game_functions.py)
-    kind: process
-    level: 1
-  - id: bullet
-    label: Bullet\n(bullet.py)
-    kind: process
-    level: 2
-edges:
-  - from: main
-    to: settings
-    label: "import Settings"
-  - from: main
-    to: ship
-    label: "import Ship"
-  - from: main
-    to: gf
-    label: "import as gf"
-  - from: gf
-    to: bullet
-    label: "import Bullet"
-  - from: ship
-    to: settings
-    label: "uses ai_settings"
-  - from: bullet
-    to: settings
-    label: "uses bullet settings"
-```
-
-**معايير التقييم:**
-- تحديد جميع الوحدات الخمس (2 نقطة)
-- رسم اتجاه الاستيراد بشكل صحيح (2 نقطة)
-- تسمية العلاقات (1 نقطة)
-
----
-
-### سؤال تصميم 2: تصميم نظام المستويات
-
-**المطلوب:**
-صمّم كيف يمكن إضافة نظام مستويات للعبة (كل ما يُباد سرب الفضائيين → مستوى جديد أسرع). أذكر: الملفات المتأثرة، الدوال الجديدة، وكيف تتغير الإعدادات.
-
-**نموذج الإجابة:**
-
-```algorithm
-1 | تتبّع level_number | Settings | إضافة self.level = 1
-2 | الكشف عن إبادة كل الفضائيين | game_functions | if len(aliens) == 0: next_level()
-3 | زيادة السرعات | Settings | alien_speed *= speedup_scale, ship_speed *= 1.1
-4 | إنشاء سرب جديد | game_functions | create_fleet(ai_settings, screen, ship, aliens)
-5 | تحديث العداد | game_functions | ai_settings.level += 1
-6 | عرض المستوى | update_screen | draw level number on screen
-```
-
-**الملفات المتأثرة:**
-- `settings.py`: إضافة `level`, `speedup_scale`
-- `game_functions.py`: إضافة `next_level()`, `create_fleet()`, تعديل `update_screen()`
-- `alien_invasion.py`: إضافة `aliens = Group()` وتحديث الحلقة
-
-**معايير التقييم:**
-- تحديد الملفات المتأثرة بشكل صحيح (2 نقطة)
-- وصف منطق التقدم للمستوى التالي (2 نقطة)
-- ذكر آلية زيادة الصعوبة (1 نقطة)
-
----
-
-## الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)
-
-**Q1:** ما وظيفة `pygame.init()`؟
-A: تُشغّل جميع وحدات `pygame` الفرعية (صوت، شاشة، حوادث) — يجب استدعاؤها قبل أي شيء آخر.
-
-**Q2:** ما الفرق بين `pygame.KEYDOWN` و`pygame.KEYUP`؟
-A: `KEYDOWN` حدث يُطلق لحظة ضغط المفتاح، `KEYUP` لحظة رفعه — كلاهما يحدث مرة واحدة.
-
-**Q3:** لماذا نستخدم `self.center = float(self.rect.centerx)` في `Ship`؟
-A: لأن `Rect` يقبل أعداداً صحيحة فقط، وتخزين الموضع كـ `float` يُتيح سرعات عشرية دقيقة مثل `1.5`.
-
-**Q4:** ما وظيفة `screen.fill(bg_color)`؟
-A: تطلي الشاشة كاملها بلون واحد — تُستخدم لمسح الإطار السابق في بداية كل دورة.
-
-**Q5:** ما الفرق بين `Sprite` و`Group` في `pygame`؟
-A: `Sprite` فئة أساسية للكائنات المتحركة، `Group` وعاء يُجمّع `Sprite` ويُتيح `update()` لكلها دفعة واحدة.
-
-**Q6:** لماذا يتحرك الكائن للأعلى عند طرح من y؟
-A: في `pygame` الإحداثي (0,0) في الزاوية العلوية اليسرى وy يزيد نحو الأسفل — لذا طرح من y = تحرك للأعلى.
-
-**Q7:** ما وظيفة `bullets.copy()` عند الحذف؟
-A: تُعيد نسخة للتكرار عليها بأمان بينما نُعدّل المجموعة الأصلية — تعديل المجموعة أثناء التكرار المباشر يُسبب `RuntimeError`.
-
-**Q8:** ما الذي يُعيده `image.get_rect()`؟
-A: `pygame.Rect` بنفس أبعاد الصورة موضوعاً في (0,0) — يُستخدم لتحديد موضع الصورة على الشاشة.
-
-**Q9:** ما وظيفة `screen.blit(image, rect)`؟
-A: ترسم (تلصق) صورة على `Surface` في الموضع المحدد بـ `rect`.
-
-**Q10:** أين يجب وضع `pygame.display.flip()` في الحلقة؟
-A: في نهاية كل دورة من `while True:` — بعد جميع عمليات الرسم وقبل بدء الدورة التالية.
-
-**Q11:** ما معنى `bullets_allowed = 3` في `Settings`؟
-A: الحد الأقصى للطلقات المسموح بوجودها على الشاشة في آنٍ واحد — إذا وصلنا للحد لا تُطلَق طلقات جديدة.
-
-**Q12:** ما الغرض من تقسيم `check_events()` لـ 3 دوال؟
-A: مبدأ `Single Responsibility` — كل دالة مسؤولة عن شيء واحد (`keydown` / `keyup` / توزيع الأحداث) — يُسهّل القراءة والصيانة.
-
-**Q13:** كيف تُحدَّد موضع الطلقة عند إنشائها؟
-A: `rect.centerx = ship.rect.centerx` (مركز السفينة أفقياً) و`rect.top = ship.rect.top` (أعلى السفينة عمودياً).
-
-**Q14:** ما الفائدة من `class Settings` بدلاً من الأرقام المباشرة؟
-A: تجميع كل القيم القابلة للتعديل في مكان واحد (مبدأ `DRY`) — تغيير أي قيمة يسري على كل الكود تلقائياً.
-
-**Q15:** لماذا تُنشأ السفينة `Ship(ai_settings, screen)` خارج `while True`؟
-A: لأنها تُنشأ مرة واحدة وتُعاد استخدامها — وضعها داخل الحلقة يُعيد تهيئتها في كل إطار وكأنها جديدة.
-
-**Q16:** ما الاختلاف في السلوك بين `if/if` و`if/elif` في `update()` للحركة؟
-A: `if/if` يُفحص كلا الشرطين — عند ضغط كلا المفتاحين: `+speed - speed = 0` → توقف. `if/elif` يُنفّذ الأول فقط → تحيّز للاتجاه الأول.
-
-**Q17:** ما الذي يُعيده `pygame.event.get()` عند غياب أي حدث؟
-A: قائمة فارغة `[]` — الحلقة `for event in []` لا تُنفَّذ ويستمر البرنامج.
-
-**Q18:** كيف تُحدّث `update_screen()` عند إضافة الطلقات؟
-A: نضيف `for bullet in bullets.sprites(): bullet.draw_bullet()` بعد `fill()` وقبل `ship.blitme()` لرسم الطلقات خلف السفينة.
-
----
-
-## الجزء الخامس: أسئلة نظرية متوقعة بالامتحان
-
----
-
-### سؤال 1: اشرح مبدأ الحلقة الرئيسية في لعبة `pygame`
-
-**نموذج الإجابة:**
-1. **التعريف:** حلقة `while True:` لا تنتهي تُشكّل قلب اللعبة — تُنفَّذ عشرات المرات في الثانية.
-2. **المكونات:** ثلاث مراحل في كل دورة: (أ) معالجة المدخلات (`check_events`) → (ب) تحديث الحالة (`ship.update`, `bullets.update`) → (ج) رسم الشاشة (`update_screen`, `flip`)
-3. **مثال:** في كل إطار: نفحص هل المستخدم ضغط شيئاً → نُحرّك الكائنات → نرسم كل شيء من جديد
-4. **متى نستخدم:** في كل لعبة `pygame` — هذا النمط لا يتغيّر مهما كان حجم اللعبة
-
----
-
-### سؤال 2: ما الفرق بين `Sprite` و`Group` ولماذا يُستخدمان معاً؟
-
-**نموذج الإجابة:**
-1. **التعريف:** `Sprite` = فئة أساسية لكائنات اللعبة القابلة للتحديث والرسم. `Group` = وعاء يُدير مجموعة `Sprite`.
-2. **المكونات:** `Group.update()` تستدعي `update()` لكل عضو / `Group.sprites()` تُعيد القائمة / `Group.remove()` للحذف
-3. **مثال:** `bullets = Group()` → `bullets.update()` تُحرّك كل الطلقات بسطر واحد
-4. **متى نستخدم:** عند وجود عناصر متعددة من نفس النوع (طلقات، فضائيين) — `Group` تُبسّط إدارتها بشكل جذري
-
----
-
-### سؤال 3: لماذا نفصل الكود إلى ملفات متعددة (`settings.py`, `game_functions.py`, `ship.py`)؟
-
-**نموذج الإجابة:**
-1. **التعريف:** مبدأ `Separation of Concerns` — كل ملف/وحدة مسؤول عن جانب واحد من النظام
-2. **المكونات:** `settings.py` = إعدادات فقط / `ship.py` = سلوك السفينة فقط / `game_functions.py` = منطق اللعبة العام
-3. **مثال:** لتغيير سرعة السفينة: نُعدّل سطراً واحداً في `settings.py` — لا نبحث في كل الكود
-4. **متى نستخدم:** في أي مشروع أكبر من 50 سطر — الملف الواحد يصعب قراءته وصيانته
-
----
-
-### سؤال 4: اشرح نظام الرايات (`flags`) للتحكم في حركة السفينة
-
-**نموذج الإجابة:**
-1. **التعريف:** `bool` يُمثّل حالة الحركة — `True` = متحرك، `False` = ثابت
-2. **المكونات:** (أ) تعريف الراية في `__init__` → (ب) `KEYDOWN` يرفعها `True` → (ج) `KEYUP` يخفضها `False` → (د) `update()` يتحرك إذا كانت `True`
-3. **مثال:** `moving_right` و`moving_left` — السفينة تتحرك ما دام المفتاح مضغوطاً
-4. **متى نستخدم:** كلما أردت حركة مستمرة — `KEYDOWN` وحده يُطلق مرة واحدة فقط
-
----
-
-### سؤال 5: ما إحداثيات `pygame` وكيف تختلف عن الإحداثيات الرياضية؟
-
-**نموذج الإجابة:**
-1. **التعريف:** (0,0) في الزاوية العلوية اليسرى، x يزيد يميناً، y يزيد نحو الأسفل
-2. **المكونات:** `rect.top` = أعلى / `rect.bottom` = أسفل / `rect.left` = يسار / `rect.right` = يمين / `rect.centerx` / `rect.centery`
-3. **مثال:** للتحرك للأعلى: `y -= speed` (طرح) — عكس الإحداثيات الرياضية التي تُضيف للأعلى
-4. **متى نستخدم:** في كل عملية تموضع ورسم وكشف تصادم في `pygame`
-
----
-
-### سؤال 6: ما هو `double buffering` ولماذا يستخدمه `pygame.display.flip()`؟
-
-**نموذج الإجابة:**
-1. **التعريف:** تقنية استخدام مخزنين: نرسم في المخزن الخلفي بينما يُعرض المخزن الأمامي
-2. **المكونات:** `screen.fill()` و`blit()` تُعدّلان المخزن الخلفي — `flip()` تُبدّلهما
-3. **مثال:** بدون `flip()` قد يرى المستخدم الشاشة في حالات رسم وسيطة → وميض مزعج
-4. **متى نستخدم:** `flip()` في نهاية كل إطار — ضروري في كل لعبة `pygame`
-
----
-
-### سؤال 7: اشرح فئة `Bullet` من حيث الإنشاء والتحرك والحذف
-
-**نموذج الإجابة:**
-1. **التعريف:** `Bullet(Sprite)` كائن يمثّل طلقة — تُنشأ، تتحرك، تُحذف عند الخروج
-2. **المكونات:** `__init__()` يُحدد الموضع → `update()` يُحرّك للأعلى → `draw_bullet()` يرسمها كمستطيل
-3. **مثال:** `self.y -= self.speed_factor` → `self.rect.y = self.y` في كل إطار
-4. **متى نُحذف:** `if bullet.rect.bottom <= 0: bullets.remove(bullet)`
-
----
-
-### سؤال 8: لماذا نستخدم `pygame.draw.rect()` للطلقات بدلاً من صورة `image.load()`؟
-
-**نموذج الإجابة:**
-1. **التعريف:** `pygame.draw.rect()` يرسم مستطيلاً ملوناً — أبسط وأسرع من تحميل صورة لكائن صغير
-2. **المكونات:** `pygame.draw.rect(surface, color, rect)` — السطح، اللون كـ `RGB`، المستطيل
-3. **مثال:** طلقة 3×15 بكسل رمادية — لا تستحق ملف صورة منفصل
-4. **متى نستخدم:** للأشكال البسيطة (مستطيلات، دوائر) — `image.load()` للأشكال المعقدة
-
----
-
-### سؤال 9: كيف تعمل `Group.update()` وما ميزتها؟
-
-**نموذج الإجابة:**
-1. **التعريف:** تستدعي دالة `update()` لكل `Sprite` داخل المجموعة تلقائياً
-2. **المكونات:** `bullets.update()` = تُحرّك كل الطلقات دفعة واحدة
-3. **مثال:** 10 طلقات على الشاشة → سطر واحد `bullets.update()` يُحرّكها جميعاً
-4. **متى نستخدم:** دائماً عند إدارة مجموعات كائنات — بديل أنيق لـ `for bullet in bullets: bullet.update()`
-
----
-
-### سؤال 10: اشرح لماذا يجب استدعاء `screen.fill()` في بداية كل إطار
-
-**نموذج الإجابة:**
-1. **التعريف:** `fill()` يطلي الشاشة بلون واحد — يمحو كل ما رُسم في الإطار السابق
-2. **المكونات:** بدون `fill()`، تتراكم الإطارات: السفينة تترك أثراً في كل مكان تحركت إليه
-3. **مثال:** السفينة تبدأ في 400 تتحرك يميناً → بدون `fill()` ترى السفينة في كل المواقع
-4. **متى نستخدم:** أول شيء في قسم الرسم — قبل أي `blit()` أو `draw_bullet()`
-
----
-
-## الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅
-
-- [ ] أعرف وظيفة كل من: `pygame.init()`, `set_mode()`, `set_caption()`, `flip()`, `fill()`
-- [ ] أفهم ترتيب عمليات الرسم: `fill()` → العناصر → `flip()`
-- [ ] أعرف الفرق بين `KEYDOWN` و`KEYUP` وكيف يعمل نظام الرايات
-- [ ] أفهم لماذا نستخدم `self.center (float)` بدلاً من `rect.centerx` مباشرة
-- [ ] أعرف كيف تعمل `Group` و`Sprite` معاً
-- [ ] أستطيع شرح دورة حياة الطلقة: إنشاء → تحريك → حذف
-- [ ] أعرف لماذا نستخدم `bullets.copy()` عند الحذف
-- [ ] أفهم نظام إحداثيات `pygame` (y=0 أعلى، يزيد نحو الأسفل)
-- [ ] أعرف وظيفة كل ملف: `alien_invasion.py`, `settings.py`, `game_functions.py`, `ship.py`, `bullet.py`
-- [ ] أستطيع شرح فائدة `class Settings` (مبدأ DRY)
-- [ ] أعرف الفرق بين `pygame.draw.rect()` و`pygame.image.load()` ومتى أستخدم كلاً منهما
-- [ ] أفهم مبدأ `double buffering` ودور `flip()`
-- [ ] أستطيع كتابة `check_keydown_events()` و`check_keyup_events()` من الذاكرة
-- [ ] أعرف كيف تُقيّد `bullets_allowed` عدد الطلقات
-
----
-
-## الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)
-
-### 🔑 خريطة العلاقات بين المحاضرات
-| المحاضرة | ترتبط مع | كيف؟ |
-| --- | --- | --- |
-| 13 (Game Project) | OOP / Classes | `Ship`, `Bullet`, `Settings` كلها فئات |
-| 13 (Game Project) | Inheritance | `Bullet` ترث `Sprite` |
-| 13 (Game Project) | Python Basics | `while`, `for`, `if`, `elif`, `bool` flags |
-| 13 (Game Project) | محاضرات قادمة | إضافة الفضائيين، كشف التصادم، النقاط |
-
----
-
-### 🔑 أهم النقاط الذهبية
-| الموضوع | النقاط |
-| --- | --- |
-| ترتيب الحلقة | `check_events` → `update` → `fill` → `draw` → `flip` |
-| إحداثيات `pygame` | (0,0) أعلى اليسار، y يزيد للأسفل |
-| `float` للحركة | `self.center` للحساب، `rect.centerx` للرسم |
-| حذف آمن | دائماً `group.copy()` عند الحذف أثناء loop |
-| رايات الحركة | `KEYDOWN` → `True`، `KEYUP` → `False`، `update()` يتحرك |
-
----
-
-### 🔑 مرجع سريع
-| الرمز/المصطلح | المعنى | يُستخدم في |
-| --- | --- | --- |
-| `pygame.QUIT` | إغلاق النافذة | `check_events()` |
-| `pygame.KEYDOWN` | ضغط مفتاح | `check_keydown_events()` |
-| `pygame.KEYUP` | رفع مفتاح | `check_keyup_events()` |
-| `pygame.K_RIGHT` | مفتاح السهم الأيمن | شرط الحركة |
-| `pygame.K_LEFT` | مفتاح السهم الأيسر | شرط الحركة |
-| `pygame.K_SPACE` | مفتاح المسافة | إطلاق طلقة |
-| `pygame.K_q` | مفتاح Q | خروج اختياري |
-| `rect.centerx` | إحداثي المركز أفقياً | تموضع وتحريك |
-| `rect.bottom` | إحداثي الحافة السفلية | تموضع، كشف الخروج |
-| `rect.right` | إحداثي الحافة اليمنى | حدود الشاشة |
-| `rect.left` | إحداثي الحافة اليسرى | حدود الشاشة |
-
----
+## الجزء الرابع: ورقة المراجعة السريعة (Cheat Sheet)
+
+### 🔑 التعاريف السريعة
+| المصطلح | التعريف القصير |
+|---------|---------------|
+| `Game Loop` | حلقة `while True` تُكرر: قرأ المدخلات → حدّث الحالة → ارسم |
+| `pygame.Rect` | مستطيل يمثل موضع وحجم كائن — يخزّن integers فقط |
+| `Sprite` | كائن قابل للرسم في `pygame` — يعمل مع `Group` |
+| `Group` | وعاء `pygame` يدير مجموعة sprites بكفاءة |
+| `Movement Flag` | boolean يُشعل/يُطفأ للتحكم في الحركة المستمرة |
+| `blit()` | رسم صورة على سطح عند موضع محدد |
+| `flip()` | عرض الـ frame المُحضَّر على الشاشة |
+| `double buffering` | رسم في buffer خفي ثم عرضه دفعة واحدة بـ `flip()` |
+| `KEYDOWN` | حدث لحظة الضغط على مفتاح |
+| `KEYUP` | حدث لحظة رفع المفتاح |
+
+### 🔑 جداول المقارنة
+
+#### Direct Move vs Movement Flags
+| المعيار | Direct Move | Movement Flags |
+|---------|-------------|----------------|
+| **الحركة** | pixel واحد لكل ضغطة | مستمرة طوال الضغط |
+| **السلاسة** | متقطعة | ناعمة |
+| **الكود** | سطر في `check_events` | `update()` + flags |
+| **متى تستخدم** | أوامر لمرة واحدة | حركة اللاعب |
+
+#### تحديث الموضع: `self.center` vs `self.rect.centerx`
+| المعيار | `self.center` (float) | `self.rect.centerx` (int) |
+|---------|----------------------|--------------------------|
+| **الدقة** | كسرية (1.5, 2.7...) | صحيحة فقط |
+| **التراكم** | دقيق | يفقد كسور السرعة |
+| **الاستخدام** | للحساب الداخلي | للرسم فقط |
+
+### 🔑 المكتبات والأدوات
+| الأداة | الوظيفة | متى تستخدم |
+|--------|---------|-----------|
+| `pygame.init()` | تهيئة كل وحدات pygame | مرة واحدة في البداية |
+| `pygame.display.set_mode((w,h))` | إنشاء نافذة | مرة واحدة |
+| `pygame.event.get()` | قراءة الأحداث | في كل frame |
+| `pygame.image.load(path)` | تحميل صورة | في `__init__` الكائنات |
+| `pygame.Rect(x, y, w, h)` | إنشاء مستطيل يدوياً | للرصاص وغيرها |
+| `pygame.draw.rect(surf, color, rect)` | رسم مستطيل | للرصاص |
+| `pygame.sprite.Group()` | وعاء sprites | لإدارة رصاصات/أجانب |
+| `pygame.display.flip()` | عرض الـ frame | آخر خطوة في كل frame |
 
 ### 🔑 قواعد ذهبية لا تُنسى
 | # | القاعدة |
-| --- | --- |
-| 1 | `pygame.init()` → `set_mode()` → الحلقة → `flip()` — هذا الترتيب لا يتغير |
-| 2 | `fill()` أولاً في كل إطار — قبل أي رسم |
-| 3 | `flip()` آخر شيء في كل إطار — بعد كل الرسم |
-| 4 | `float` للحساب، `int (rect)` للرسم — لا تخلطهما |
-| 5 | `bullets.copy()` عند الحذف — لا `bullets` مباشرة |
-| 6 | `y -= speed` للأعلى، `y += speed` للأسفل — عكس الحدس |
-| 7 | فصل الكود: `settings.py` للقيم، `game_functions.py` للمنطق، `ship.py` للسفينة |
-| 8 | `ship.update()` في الحلقة — بدونه الرايات لا تُحرّك شيئاً |
+|---|---------|
+| 1 | ترتيب Game Loop: Events → Update State → Draw Screen |
+| 2 | استخدم `float` لحفظ الموضع، `int` (rect) للرسم فقط |
+| 3 | `for x in collection.copy(): collection.remove(x)` — لا تُعدّل أثناء التكرار |
+| 4 | `screen.fill()` أول ما يحدث في رسم الـ frame |
+| 5 | `display.flip()` آخر ما يحدث في رسم الـ frame |
+| 6 | Y يزداد للأسفل في pygame — للأعلى = ناقص Y |
+| 7 | كل كيان في ملف منفصل (Ship.py, Bullet.py) — Single Responsibility |
 
----
+### 🔑 قاموس المصطلحات
+| المصطلح | المعنى |
+|---------|-------|
+| `surface` | سطح الرسم في pygame — الشاشة أو صورة |
+| `blit` | رسم surface فوق surface أخرى |
+| `sprite` | كائن رسومي يحمل صورة ومستطيلاً |
+| `frame` | صورة واحدة تُعرض — اللعبة تُنتج عشرات frames/ثانية |
+| `fps` | Frames Per Second — عدد التحديثات في الثانية |
+| `event` | حدث مستخدم (ضغط مفتاح، تحريك ماوس) |
+| `namespace` | مساحة الأسماء — منع تعارض أسماء المتغيرات |
 
-<!-- VALIDATION
-schema: 1.0
-parts: integration_map, detail, summary, mcq, debug, exercise, analysis_exercise, trace_exercise, design_question, qa_cards, theory, self_check, cheat_sheet
-mcq_count: 19
-code_blocks: 22
--->
+### 🔑 الخطوات السريعة
+
+#### الخطوات لإنشاء كائن لعبة جديد
+```algorithm
+1 | إنشاء ملف class  | New .py file | مثل weapon.py
+2 | import pygame + Sprite  | from pygame.sprite import Sprite | للاستفادة من Group
+3 | تعريف __init__ | def __init__(self, ai_settings, screen, ...) | حمّل الصورة/الـ Rect
+4 | تعريف update() | def update(self) | منطق الحركة هنا
+5 | تعريف draw method | blit() أو draw.rect() | حسب نوع الكائن
+6 | استيراد في alien_invasions.py | from weapon import Weapon | وإضافة للـ Group
+```
+
+#### الخطوات لإطلاق رصاصة
+```algorithm
+1 | اكتشاف K_SPACE | elif event.key == pygame.K_SPACE | في check_keydown_events
+2 | التحقق من الحد | if len(bullets) < ai_settings.bullets_allowed | لمنع الـ spam
+3 | إنشاء رصاصة | new_bullet = Bullet(ai_settings, screen, ship) | موضعها = موضع السفينة
+4 | إضافة للـ Group | bullets.add(new_bullet) | تُدار تلقائياً بعدها
+5 | تحديث في الـ loop | bullets.update() | يُحرّكها للأعلى
+6 | حذف الخارجة | for b in bullets.copy(): if b.rect.bottom <= 0: | تنظيف تلقائي
+```

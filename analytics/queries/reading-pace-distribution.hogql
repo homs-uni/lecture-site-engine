@@ -1,0 +1,22 @@
+-- Sanity check for the reading-time estimate itself: distribution of reading_pace_ratio
+-- (active_seconds / expected_read_seconds) per subject. A ratio near 1.0 means active time
+-- roughly matches what the content would take to read at a normal pace — a plausible real
+-- read-through. Very low ratios (<0.2) suggest fly-bys; ratios well above 2-3x may mean the
+-- reading-speed constant (READING_WORDS_PER_MINUTE) needs tuning for that subject's content
+-- (heavy in formulas/diagrams reads slower than plain text).
+SELECT
+  properties.subject AS subject,
+  properties.content_id AS lecture_id,
+  count() AS sessions,
+  round(avg(toFloat(properties.reading_pace_ratio)), 2) AS avg_pace_ratio,
+  round(quantile(0.5)(toFloat(properties.reading_pace_ratio)), 2) AS median_pace_ratio,
+  countIf(toFloat(properties.reading_pace_ratio) < 0.2) AS likely_fly_bys,
+  countIf(toFloat(properties.reading_pace_ratio) BETWEEN 0.5 AND 2) AS plausible_reads
+FROM events
+WHERE event = 'study_session_end'
+  AND properties.content_type = 'lecture'
+  AND toFloat(properties.expected_read_seconds) > 0
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject, lecture_id
+ORDER BY sessions DESC
+LIMIT 50

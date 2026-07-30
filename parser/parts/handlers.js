@@ -81,7 +81,7 @@ function parseQuestionContent(content, arabicKey) {
   // silently "answered" the question — reproduced with a real دورات extract
   // (subjects/year-4/android-dev-fundamentals/exams/exams.md): every blank
   // answer resolved to "a" for exactly this reason.
-  const answerRe = /الإجابة(?:\s+الصحيحة)?[:\s*]*([أابجدabcd])(?![؀-ۿ])/i;
+  const answerRe = /الإجابة(?:\s+الصحيحة)?[:\s*]*([أابجدهabcde])(?![؀-ۿ])/i;
   const answerM = content.match(answerRe);
   let correct = answerM ? (arabicKey[answerM[1].toLowerCase()] || answerM[1].toLowerCase()) : '';
 
@@ -89,7 +89,7 @@ function parseQuestionContent(content, arabicKey) {
   // marked with a trailing "✅" instead. Only used as a fallback when the
   // label-based match above found nothing.
   if (!correct) {
-    const ckM = content.match(/([أابجدabcd])\)[^\n]*?✅/);
+    const ckM = content.match(/([أابجدهabcde])\)[^\n]*?✅/);
     if (ckM) correct = arabicKey[ckM[1].toLowerCase()] || ckM[1].toLowerCase();
   }
 

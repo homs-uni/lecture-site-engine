@@ -4,11 +4,19 @@
   "themes": [
     {
       "id": "amber-default",
-      "name_ar": "الهوية الرسمية",
-      "name_en": "Official Brand",
-      "description": "الافتراضي — هوية الهيئة الإدارية الرسمية (tokens-base)",
+      "name_ar": "الذهبي الكلاسيكي",
+      "name_en": "Classic Amber",
+      "description": "الافتراضي — لا يغيّر شيئاً (tokens-base palette)",
       "file": "amber-default.css",
       "usedBy": ["generic"]
+    },
+    {
+      "id": "official-brand",
+      "name_ar": "الهوية الرسمية",
+      "name_en": "Official Brand",
+      "description": "هوية الهيئة الإدارية الرسمية — مصدر الألوان الحرفي",
+      "file": "official-brand.css",
+      "usedBy": ["generic", "advanced-programming-2"]
     },
     {
       "id": "kotlin-pink-blue",

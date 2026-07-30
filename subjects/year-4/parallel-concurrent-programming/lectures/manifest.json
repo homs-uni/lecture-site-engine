@@ -5,17 +5,74 @@
     "year": "2025-2026",
     "academicYear": 4,
     "theme": "parallel-teal",
+    "enabledLectures":true,
     "department": "نظري"
   },
   "title": "البرمجة التفرعية — Parallel and Concurrent Programming",
   "subtitle": "توازي تزامن خيوط مسيرات",
   "files": [
     {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2.md",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٣"
+    },
+    {
       "path": "par4.md",
       "num": 4,
       "icon": "📌",
       "matIcon": "school",
       "badge": "المحاضرة ٤"
+    },
+    {
+      "path": "par5.md",
+      "num": 5,
+      "icon": "📝",
+      "matIcon": "description",
+      "badge": "المحاضرة ٥"
+    },
+    {
+      "path": "par6-sec1.md",
+      "num": 6,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ٦ — جزء ١"
+    },
+    {
+      "path": "par6-sec2.md",
+      "num": 6,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٦ — جزء ٢"
+    },
+    {
+      "path": "par7.md",
+      "num": 7,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٧"
+    },
+    {
+      "path": "par8.md",
+      "num": 8,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٨"
     }
   ],
   "lectureIcons": [

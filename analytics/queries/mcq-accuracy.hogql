@@ -1,0 +1,13 @@
+-- MCQ correctness by subject (learning UX)
+SELECT
+  properties.subject AS subject,
+  properties.source AS source,
+  countIf(toBool(properties.is_correct) OR properties.is_correct = 'true' OR properties.is_correct = true) AS correct,
+  count() AS answered,
+  round(100.0 * correct / answered, 1) AS pct_correct
+FROM events
+WHERE event = 'mcq_answered'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject, source
+ORDER BY answered DESC
+LIMIT 50

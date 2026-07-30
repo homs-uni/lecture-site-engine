@@ -10,66 +10,219 @@ function escTip(s) {
     .replace(/"/g, '&quot;');
 }
 
-export function pickMCQ(btn) {
-  const card = btn.closest('.mcq-card');
-  if (!card || card.dataset.locked) return;
+function showMcqResetBtn(card) {
+  const btn = card.querySelector('[data-mcq-reset]');
+  if (btn) btn.classList.remove('hidden');
+}
+
+function hideMcqResetBtn(card) {
+  const btn = card.querySelector('[data-mcq-reset]');
+  if (btn) btn.classList.add('hidden');
+}
+
+/**
+ * Apply a picked option onto a card (lock + feedback + explain).
+ * Used both for live clicks and for restoring a saved answer.
+ *
+ * @param {HTMLElement} card
+ * @param {string} pickedKey
+ * @param {{ animate?: boolean, dispatchEvent?: boolean }} [opts]
+ * @returns {boolean}
+ */
+export function applyMcqPick(card, pickedKey, opts = {}) {
+  if (!card || card.dataset.locked || !pickedKey) return false;
+  const btn = card.querySelector(`.mcq-opt[data-key="${CSS.escape(pickedKey)}"]`);
+  if (!btn) return false;
+
+  const animate = opts.animate !== false;
+  const shouldDispatch = opts.dispatchEvent !== false;
 
   const correct = btn.dataset.correct;
-  const picked = btn.dataset.key;
-  const opts = card.querySelectorAll('.mcq-opt');
+  const optsEls = card.querySelectorAll('.mcq-opt');
   const feedback = card.querySelector('.mcq-feedback');
   const explain = card.querySelector('.mcq-explain');
 
-  opts.forEach(o => {
+  optsEls.forEach(o => {
     o.disabled = true;
     o.classList.add('opacity-50', 'pointer-events-none');
   });
 
-  const isOk = picked === correct;
+  const isOk = pickedKey === correct;
 
   if (isOk) {
     btn.classList.remove('opacity-50', 'border-outline-variant');
     btn.classList.add('bg-primary', 'text-on-primary', 'border-primary', 'opacity-100');
-    btn.animate([
-      { transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' },
-    ], { duration: 300 });
-    feedback.textContent = '✅ إجابة صحيحة — أحسنت!';
-    feedback.className = 'mcq-feedback mt-md font-label-md font-bold text-primary';
+    if (animate) {
+      btn.animate([
+        { transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' },
+      ], { duration: 300 });
+    }
+    if (feedback) {
+      feedback.textContent = '✅ إجابة صحيحة — أحسنت!';
+      feedback.className = 'mcq-feedback mt-md font-label-md font-bold text-primary';
+    }
     card.classList.add('answered-correct');
   } else {
     btn.classList.remove('opacity-50', 'border-outline-variant');
     btn.classList.add('bg-error', 'text-on-primary', 'border-error', 'opacity-100');
-    btn.animate([
-      { transform: 'translateX(0)' }, { transform: 'translateX(-5px)' },
-      { transform: 'translateX(5px)' }, { transform: 'translateX(0)' },
-    ], { duration: 200, iterations: 2 });
-    opts.forEach(o => {
+    if (animate) {
+      btn.animate([
+        { transform: 'translateX(0)' }, { transform: 'translateX(-5px)' },
+        { transform: 'translateX(5px)' }, { transform: 'translateX(0)' },
+      ], { duration: 200, iterations: 2 });
+    }
+    optsEls.forEach(o => {
       if (o.dataset.key === correct) {
         o.classList.remove('opacity-50');
         o.classList.add('bg-primary', 'text-on-primary', 'border-primary', 'opacity-100');
       }
     });
-    feedback.textContent = '❌ إجابة خاطئة — الإجابة: ' + correct.toUpperCase();
-    feedback.className = 'mcq-feedback mt-md font-label-md font-bold text-error';
+    if (feedback) {
+      feedback.textContent = '❌ إجابة خاطئة — الإجابة: ' + String(correct || '').toUpperCase();
+      feedback.className = 'mcq-feedback mt-md font-label-md font-bold text-error';
+    }
     card.classList.add('answered-wrong');
   }
 
   if (explain) explain.classList.remove('hidden');
   card.dataset.locked = '1';
+  card.dataset.picked = pickedKey;
+  showMcqResetBtn(card);
   updateMCQProgress(card.closest('.section-block'));
+
+  if (shouldDispatch) {
+    try {
+      const inExam = !!card.closest('#examRoot') || !!card.dataset.examQid;
+      window.dispatchEvent(new CustomEvent('study:mcq-answered', {
+        detail: {
+          isCorrect: isOk,
+          pickedKey,
+          cardId: card.id || '',
+          qid: card.dataset.examQid || card.dataset.qid || card.id || '',
+          source: inExam ? 'exam' : 'lecture',
+        },
+      }));
+    } catch {
+      /* ignore analytics bridge errors */
+    }
+  }
+
+  return true;
+}
+
+export function pickMCQ(btn) {
+  const card = btn.closest('.mcq-card');
+  if (!card || card.dataset.locked) return;
+  applyMcqPick(card, btn.dataset.key, { animate: true, dispatchEvent: true });
+}
+
+/** Unlock a card and clear visual answer state (does not touch storage). */
+export function resetMcqCard(card, { dispatchEvent = true } = {}) {
+  if (!card) return;
+  const opts = card.querySelectorAll('.mcq-opt');
+  const feedback = card.querySelector('.mcq-feedback');
+  const explain = card.querySelector('.mcq-explain');
+
+  opts.forEach(o => {
+    o.disabled = false;
+    o.classList.remove(
+      'opacity-50', 'pointer-events-none',
+      'bg-primary', 'bg-error', 'text-on-primary', 'border-primary', 'border-error', 'opacity-100',
+    );
+    o.classList.add('border-outline-variant');
+  });
+
+  card.classList.remove('answered-correct', 'answered-wrong');
+  delete card.dataset.locked;
+  delete card.dataset.picked;
+  delete card.dataset.qidRecorded;
+  if (feedback) {
+    feedback.textContent = '';
+    feedback.className = 'mcq-feedback mt-md font-label-md font-bold min-h-[1.4em]';
+  }
+  if (explain) explain.classList.add('hidden');
+  hideMcqResetBtn(card);
+  updateMCQProgress(card.closest('.section-block'));
+
+  if (!dispatchEvent) return;
+  try {
+    window.dispatchEvent(new CustomEvent('study:mcq-reset', {
+      detail: {
+        cardId: card.id || '',
+        qid: card.dataset.examQid || card.dataset.qid || card.id || '',
+      },
+    }));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Reset every answered card in an MCQ section (progress bar “reset all”). */
+export function resetAllMcqInSection(section) {
+  if (!section) return [];
+  const cards = [...section.querySelectorAll('.mcq-card[data-locked="1"]')];
+  const ids = cards.map(c => c.id).filter(Boolean);
+  cards.forEach(card => resetMcqCard(card, { dispatchEvent: false }));
+  updateMCQProgress(section);
+  try {
+    window.dispatchEvent(new CustomEvent('study:mcq-reset-all', {
+      detail: { cardIds: ids },
+    }));
+  } catch {
+    /* ignore */
+  }
+  return ids;
 }
 
 export function updateMCQProgress(section) {
   if (!section) return;
-  const cards = section.querySelectorAll('.mcq-card');
-  const answered = section.querySelectorAll('.mcq-card[data-locked="1"]');
-  const correct = section.querySelectorAll('.mcq-card.answered-correct');
+  const cards = [...section.querySelectorAll('.mcq-card')];
   const progress = section.querySelector('.mcq-progress');
   if (!progress) return;
+
+  let correctCount = 0;
+  let wrongCount = 0;
+  const states = cards.map(card => {
+    if (card.dataset.locked !== '1') return 'pending';
+    if (card.classList.contains('answered-correct')) {
+      correctCount += 1;
+      return 'correct';
+    }
+    wrongCount += 1;
+    return 'wrong';
+  });
+  const answeredCount = correctCount + wrongCount;
+
+  const answeredEl = progress.querySelector('.mcq-answered-count');
   const scoreEl = progress.querySelector('.mcq-score');
-  const fill = progress.querySelector('.mcq-progress-fill');
-  if (scoreEl) scoreEl.textContent = String(correct.length);
-  if (fill) fill.style.width = `${(answered.length / cards.length) * 100}%`;
+  const wrongEl = progress.querySelector('.mcq-wrong-count');
+  const resetAllBtn = progress.querySelector('[data-mcq-reset-all]');
+  if (answeredEl) answeredEl.textContent = String(answeredCount);
+  if (scoreEl) scoreEl.textContent = String(correctCount);
+  if (wrongEl) wrongEl.textContent = String(wrongCount);
+  if (resetAllBtn) resetAllBtn.classList.toggle('hidden', answeredCount === 0);
+
+  const track = progress.querySelector('.mcq-progress-track');
+  if (!track) return;
+
+  // Rebuild segments only when the question count changes; otherwise just
+  // flip classes so the bar updates without thrashing the DOM.
+  if (track.childElementCount !== states.length) {
+    track.replaceChildren(...states.map(state => {
+      const seg = document.createElement('span');
+      seg.className = `mcq-progress-seg mcq-progress-seg--${state}`;
+      return seg;
+    }));
+  } else {
+    [...track.children].forEach((seg, i) => {
+      seg.className = `mcq-progress-seg mcq-progress-seg--${states[i]}`;
+    });
+  }
+
+  progress.setAttribute(
+    'aria-label',
+    `تقدّم الإجابة: ${answeredCount} من ${cards.length} — صحيح ${correctCount}، خطأ ${wrongCount}`,
+  );
 }
 
 function positionLineExplainTip(tip, anchor) {
@@ -103,6 +256,25 @@ export function initInteractivity(root = document) {
   }
 
   root.addEventListener('click', e => {
+    const resetAllBtn = e.target.closest('[data-mcq-reset-all]');
+    if (resetAllBtn) {
+      const section = resetAllBtn.closest('.section-block');
+      if (!section) return;
+      const answered = section.querySelectorAll('.mcq-card[data-locked="1"]').length;
+      if (!answered) return;
+      const ok = window.confirm('إعادة تعيين كل تقدّم الإجابات في هذه الدورات؟ سيتم مسح الإجابات المحفوظة.');
+      if (!ok) return;
+      resetAllMcqInSection(section);
+      return;
+    }
+
+    const resetBtn = e.target.closest('[data-mcq-reset]');
+    if (resetBtn) {
+      const card = resetBtn.closest('.mcq-card');
+      if (card) resetMcqCard(card);
+      return;
+    }
+
     const mcqBtn = e.target.closest('.mcq-opt');
     if (mcqBtn) {
       pickMCQ(mcqBtn);

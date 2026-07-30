@@ -1,0 +1,10 @@
+-- Scroll depth funnel: how many sessions reached each milestone
+SELECT
+  properties.subject AS subject,
+  toInt(properties.milestone_pct) AS milestone_pct,
+  count() AS hits
+FROM events
+WHERE event = 'scroll_milestone'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject, milestone_pct
+ORDER BY subject, milestone_pct

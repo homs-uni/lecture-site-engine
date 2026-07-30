@@ -20,6 +20,12 @@ import {
   parseQid,
   formatElapsed,
 } from './exam-core.js';
+import {
+  trackExamModeOpened,
+  trackExamStarted,
+  trackExamFinished,
+  trackContentLoadFailed,
+} from './analytics.js';
 
 const COUNT_OPTIONS = [
   { value: 10, label: '10 أسئلة' },
@@ -133,8 +139,13 @@ export function createExamMode(deps) {
     teardown();
     showView('exam');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (hash === 'exam-mistakes') startMistakesExam();
-    else renderSetup();
+    if (hash === 'exam-mistakes') {
+      trackExamModeOpened('mistakes');
+      startMistakesExam();
+    } else {
+      trackExamModeOpened('exam');
+      renderSetup();
+    }
     return true;
   }
 
@@ -307,6 +318,11 @@ export function createExamMode(deps) {
     try {
       pool = await loadPool(config.idxs);
     } catch (err) {
+      trackContentLoadFailed({
+        failureKind: 'exam_pool',
+        contentType: 'exam',
+        message: err?.message || 'exam pool failed',
+      });
       showError(err.message || 'تعذّر تحميل المحاضرات', () => startExam(config));
       return;
     }
@@ -389,6 +405,12 @@ export function createExamMode(deps) {
     };
     session.entries.forEach(e => session.byCardId.set(e.cardId, e));
 
+    trackExamStarted({
+      mode: config.mode,
+      questionCount: session.entries.length,
+      lectureCount: new Set(session.entries.map((e) => e.lectureId)).size,
+    });
+
     host.innerHTML = `
       <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg custom-shadow mb-lg flex items-center justify-between flex-wrap gap-md">
         <div class="flex items-center gap-md">
@@ -458,6 +480,16 @@ export function createExamMode(deps) {
     const results = summarizeResults(session.entries);
     quizStats.recordExam({ total: results.total, correct: results.correctCount, mode: session.mode });
     notifyStatsChanged();
+
+    trackExamFinished({
+      mode: session.mode,
+      total: results.total,
+      correctCount: results.correctCount,
+      wrongCount: results.wrongCount,
+      unansweredCount: results.unansweredCount,
+      percent: results.percent,
+      elapsedSeconds: Math.round((Date.now() - session.startedAt) / 1000),
+    });
 
     const wrongCount = quizStats.getWrongQids().length;
     const host = root();

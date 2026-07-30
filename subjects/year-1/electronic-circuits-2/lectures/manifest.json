@@ -9,19 +9,58 @@
   },
   "title": "الدارات الإلكترونية 2 — Electronic Circuits 2",
   "subtitle": "BJT MOSFET Solar Power Batteries",
-  "files": [],
-  "lectureIcons": [
-    "📌",
-    "📖",
-    "💻",
-    "🎯",
-    "📝"
+  "sections": [
+    {
+      "key": "theory",
+      "label": "النظري",
+      "icon": "📖"
+    },
+    {
+      "key": "lab",
+      "label": "العملي",
+      "icon": "🔧"
+    }
   ],
-  "lectureMatIcons": [
-    "school",
-    "menu_book",
-    "code",
-    "quiz",
-    "description"
+  "files": [
+    {
+      "path": "lab/par1.md",
+      "section": "lab",
+      "num": 1,
+      "icon": "🔧",
+      "matIcon": "build",
+      "badge": "عملي ١"
+    },
+    {
+      "path": "theory/par1.md",
+      "section": "theory",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "نظري ١"
+    },
+    {
+      "path": "theory/par2.md",
+      "section": "theory",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "نظري ٢"
+    },
+    {
+      "path": "theory/par3.md",
+      "section": "theory",
+      "num": 3,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "نظري ٣"
+    },
+    {
+      "path": "theory/par4.md",
+      "section": "theory",
+      "num": 4,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "نظري ٤"
+    }
   ]
 }

@@ -1,217 +1,157 @@
 # Lecture Site Engine
 
-Token-efficient prompt pipeline for turning PDF lectures into interactive study-guide sites. Output is **marker-based Markdown** (not JSON) — compatible with existing site parsers in `kotlin/`, `software_eng/`, `data-operations/`, `programming_lang/`.
+محرك مواقع دلائل دراسية تفاعلية: محتوى Markdown على GitHub → بناء إلى JSON → عرض HTML من جهة المتصفح → نشر ثابت على GitHub Pages.
 
-## Quick start
+---
 
-### 1. Choose or create a subject brief
+## المنطق العام (اقرأ هذا أولاً)
 
-Copy the master template:
+### الفكرة باختصار
 
-```bash
-cp subject-brief.template.yaml my-subject.yaml
+| الطبقة | وين | الدور |
+|--------|-----|--------|
+| **التخزين** | GitHub (`subjects/`) | قاعدة المحتوى — بدل قاعدة بيانات كلاود |
+| **التحويل (parse/build)** | GitHub Actions + `parser/` + `build/` | يقرأ Markdown ويطلّع JSON داخل `dist/` |
+| **العرض** | المتصفح + ملفات من `dist/` | الـ renderer يحوّل JSON → HTML على الـ **client-side** |
+| **النشر** | GitHub Pages | يرفع مجلد `dist/` فقط كموقع static |
+
+```text
+subjects/**/*.md     ← التخزين على GitHub (المصدر)
+        │
+        ▼  push / PR → workflow
+parser + build/      ← يفهم القوالب والكلمات المفتاحية والفقرات
+        │
+        ▼
+dist/**/lectures/*.json  +  site-shell (HTML/CSS/JS)
+        │
+        ▼  GitHub Pages
+المتصفح: app.js يحمّل JSON → renderer يرسم HTML
 ```
 
-Or start from an example in [`examples/`](examples/):
+### التفاصيل خطوة بخطوة
 
-| File | Subject |
-| --- | --- |
-| `kotlin-android.yaml` | Android / Kotlin & Compose |
-| `data-operations.yaml` | Systems Analysis & Design |
-| `software-eng.yaml` | Software Engineering 2 |
-| `programming-lang.yaml` | Programming Languages labs |
-| `generic-cs.yaml` | Generic CS (OS, signals, etc.) |
+1. **ملفات الشرح** تعيش تحت `subjects/year-N/subject-id/lectures/par*.md`  
+   هاد المحتوى الخام (محاضرات، جداول، MCQ…) بتنسيق SCHEMA.  
+   **GitHub هو المخزن** — مش SQL ولا Firebase.
 
-Edit `enabled: true/false` for parts and blocks your subject needs.
+2. **الـ parser** (`parser/`) يلتقط التنسيق والقوالب والكلمات المفتاحية  
+   (مثلاً عنوان فيه `MCQ` أو `تمارين`) ويعرف نوع كل فقرة، ويحوّلها لبنية بيانات.
 
-### 2. Generate `custom_prompt.md` (one time per subject)
+3. **سكربتات الـ build** (`build/cli.mjs` وغيرها) تشغّل الـ parser وقت الـ CI أو محلياً،  
+   وتكتب النتائج كـ **JSON** داخل `dist/year-N/subject-id/lectures/`.  
+   كمان بتنسخ واجهة الموقع من `site-shell/` و`themes/` و`renderer/` إلى نفس مجلد المادة في `dist/`.
 
-Send to Claude (attach all files in one message):
+4. **مجلد `dist/`** هو اللي بيرتفع على الموقع الثابت (GitHub Pages).  
+   ما بيرتفع الريبو كامل — بس ناتج البناء.
 
-1. [`meta-prompt.md`](meta-prompt.md)
-2. [`SCHEMA.md`](SCHEMA.md)
-3. Your `my-subject.yaml` (or an example)
-4. Relevant files from [`templates/`](templates/) for enabled parts/blocks
+5. **العرض**: بعد ما الصفحة تفتح، JavaScript على الـ client  
+   يحمّل ملف JSON للمحاضرة ويستدعي الـ **renderer** (`engine/renderer` جوّا `dist`) ليحوّله لـ HTML تفاعلي  
+   (أسئلة، مخططات، شريط جانبي…).
 
-Prompt:
+6. **متى يتحدّث `dist/`؟**  
+   لما يصير تغيير يهم الموقع (محاضرة جديدة، تعديل محتوى، تغيير شيل/ثيم…) ويندمج على `main`،  
+   workflow الـ deploy يشغّل سكربتات البناء ويضيف/يعدّل JSON والتنسيق داخل `dist/` فقط، بعدين ينشر Pages.
 
-```
-Generate custom_prompt.md for the attached subject brief.
-Follow meta-prompt.md rules. Keep output under 120 lines.
-```
+### جملة تلخيص
 
-Save the response as `custom_prompt.md` in your subject folder (e.g. `kotlin/custom_prompt.md`).
+**تخزين → GitHub · تحويل → GitHub Actions + parser/build · عرض → client-side من `dist/` · نشر → GitHub Pages**
 
-### 3. Extract each lecture (per PDF)
+---
 
-Send:
+## أنواع المساهمة
 
-1. `custom_prompt.md`
-2. The PDF lecture (or pasted text)
+شوف التفاصيل الكاملة في [`CONTRIBUTING.md`](CONTRIBUTING.md):
 
-Save output as `lectures/parN.md`.
+| نوع المساهمة | عادةً تعدّل |
+|--------------|-------------|
+| محتوى محاضرات | `subjects/.../lectures/*.md` |
+| محرك / واجهة / بناء | `parser/`, `renderer/`, `site-shell/`, `build/` (مشرفين) |
+| تحليل بيانات الاستخدام | PostHog + [`analytics/`](analytics/) — دليل الفريق: [`analytics/TEAM-GUIDE.md`](analytics/TEAM-GUIDE.md) |
 
-### 4. Deploy the site
+**أسهل رفع محاضرة:**  
+https://shahd-abbara.github.io/lecture-site-engine/contrib/
 
-Add the file to `lectures/manifest.json` and serve statically:
+---
 
-```bash
-python3 -m http.server 8080
-```
-
-### 5. Theme & site metadata
-
-Each subject declares theme and display name in `lectures/manifest.json`:
-
-```json
-"settings": {
-  "subjectName": "تطوير تطبيقات Android",
-  "subjectNameEn": "Kotlin & Compose",
-  "year": "2025-2026",
-  "theme": "kotlin-pink-blue"
-}
-```
-
-See [`themes/README.md`](themes/README.md) for available palettes and wiring.
-
-## Folder layout
+## هيكل المجلدات
 
 ```
 lecture-site-engine/
-├── subjects/                   # Content per year + subject (contributors edit here)
-│   ├── _template/
-│   ├── year-1/ … year-5/
-├── site-shell/                 # Generic HTML/CSS/JS student UI
-├── build/                      # validate.mjs + cli.mjs
-├── dist/                       # Build output (gitignored)
-├── parser/                     # MD → JSON
-├── renderer/                   # JSON → HTML
-├── themes/                     # Shared palettes + apply-theme.js
-├── meta-prompt.md              # Meta-prompt → custom_prompt.md
-├── SCHEMA.md                   # Fixed block markers
-├── templates/                  # Compact snippets for prompts
-└── examples/                   # Filled subject-brief YAMLs
+├── subjects/          # المحتوى (التخزين) — مساهمو المحتوى يشتغلوا هون
+├── parser/            # Markdown → بنية محاضرة (JSON لاحقاً عبر build)
+├── renderer/          # JSON → HTML (يُستدعى من المتصفح بعد النسخ إلى dist)
+├── site-shell/        # هيكل الصفحة المشتركة (HTML/CSS/JS)
+├── build/             # validate + cli + deploy — يملأ dist/
+├── dist/              # ناتج البناء (gitignored) — ما ينشر على Pages
+├── themes/            # ألوان المواد
+├── analytics/         # PostHog: أحداث، استعلامات، دليل الفريق
+├── SCHEMA.md          # قواعد تنسيق المحاضرات
+└── .github/workflows/ # validate على PR · deploy على main
 ```
 
-## Build & validate
+---
+
+## أوامر سريعة
 
 ```bash
 npm test
-npm run validate -- --subject year-1/my-subject
-npm run build -- --subject year-1/my-subject
-cd dist/year-1/my-subject && python3 -m http.server 8080
+npm run validate -- --subject year-4/databases-2
+node build/cli.mjs --subject year-4/databases-2    # بناء مادة → dist/
+npm run build                                      # صفحة الـ hub فقط (مش كل المواد)
+npm run dev -- --subject year-4/databases-2
 ```
 
-## Pipeline
+تنبيه: `npm run build` يولّد أساساً `dist/index.html` (الفهرس). بناء مادة كاملة = `node build/cli.mjs --subject ...`.
+
+---
+
+## خط إنتاج المحتوى (من PDF لمحاضرة)
 
 ```
-subject-brief.yaml  ──┐
-SCHEMA.md           ──┼──► meta-prompt.md ──► custom_prompt.md
-templates/          ──┘                              │
-                                                     ▼
-                                              PDF lecture
-                                                     │
-                                                     ▼
-                                              lectures/parN.md
-                                                     │
-                                                     ▼
-                                    parser/ → renderer/ → static site
+subject-brief / SCHEMA / templates
+        → custom_prompt.md
+        → PDF
+        → lectures/parN.md   (على GitHub)
+        → build/parser → dist/.../*.json
+        → المتصفح + renderer → صفحة تفاعلية
 ```
 
-## Parts reference (enable in brief)
+تفاصيل الـ markers: [`SCHEMA.md`](SCHEMA.md).  
+قوالب البرومبت: [`templates/`](templates/).
 
-| Key | Site parser type | Typical use |
-| --- | --- | --- |
-| `integration_map` | detail | Course roadmap table |
-| `detail` | detail | Main explanation |
-| `summary` | summary | Tables, glossary |
-| `mcq` | mcq | Multiple choice |
-| `debug` | debug | Fix buggy code |
-| `exercise` | exercise | Fill gaps, code fix |
-| `analysis_exercise` | exercise | Case studies (no code) |
-| `trace_exercise` | exercise | Execution trace tables |
-| `design_question` | exercise | ER / UML / architecture design |
-| `theory` | theory | Exam essay questions |
-| `cheat_sheet` | cheat | Quick reference |
-| `qa_cards` | qa | Q&A flip cards |
-| `reference_code` | reference | Assembled full program when lecture fragments one codebase |
-| `checklist` | summary | Self-review checklist |
+---
 
-## Blocks reference (enable in brief)
+## CI والنشر
 
-| Key | Use when |
-| --- | --- |
-| `code` | Real code snippets |
-| `line_explain` | Line-by-line code explanation |
-| `diagrams` | BPMN, flowchart, DFD + `diagram` YAML |
-| `uml` | Use case, class, activity diagrams |
-| `screen_description` | GIS / IDE screenshots (text only) |
-| `structured_english` | Analysis pseudocode (not real code) |
-| `fill_gaps` / `code_fix` | Exercise subtypes |
-| `think_prompt` | Self-check questions |
-| `callouts` | Exam tips, notes, lessons |
-| `equations` | LaTeX formulas (KaTeX) — Work, Span, complexity, etc. |
+| Workflow | متى | ماذا |
+|----------|-----|------|
+| Validate lectures | Pull Request | اختبارات + تحقق من المواد المتغيّرة |
+| Deploy GitHub Pages | دمج إلى `main` | تحديث `dist/` ونشر Pages |
 
-Full marker syntax: [`SCHEMA.md`](SCHEMA.md).
-
-## Token tips (free Claude tier)
-
-- Do **not** re-attach `SCHEMA.md` with every lecture — only `custom_prompt.md` + PDF.
-- Keep `custom_prompt.md` under 120 lines (meta-prompt enforces this).
-- If a lecture is cut off, ask for parts separately: "الجزء الأول والثاني فقط".
-- Markdown markers use fewer tokens than JSON.
-
-## Aligning with `guide-config.js`
-
-Set in your brief:
-
-- `lecture.unit_label` → must match parser split (`المختبر` vs `المحاضرة`)
-- `lecture.split_regex` → same as `lectureSplit` in guide-config
-- Part headings → must contain keywords in `partTypes` regex (e.g. `MCQ`, `تصحيح`, `تمارين`)
-
-## CI / GitHub Pages
-
-| Workflow | When | What |
-| --- | --- | --- |
-| [`.github/workflows/validate.yml`](.github/workflows/validate.yml) | Pull Request | Validate changed `subjects/…/lectures/*.md` — **merge blocked if red** (enable branch protection) |
-| [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | Push to `main` | Build → `dist/` → deploy one Pages site |
-
-**Pages URLs:**
 - Hub: `https://<user>.github.io/<repo>/`
-- Subject: `https://<user>.github.io/<repo>/year-3/my-subject/`
+- مادة: `https://<user>.github.io/<repo>/year-N/subject-id/`
 
-**One-time GitHub setup:**
-1. Settings → Pages → Source: **GitHub Actions**
-2. Settings → Branches → `main` → require **Validate lectures** check before merge
+لا تدفع مباشرة على `main` — دائماً عبر Pull Request.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+---
 
-## رفع محاضرة (طريقة سهلة — موصى بها)
+## تحليل الاستخدام (PostHog + Clarity)
 
-**بدون Decap CMS ولا OAuth.**
+الموقع يرسل أحداث دراسة (فتح محاضرة، سكرول، MCQ، بحث…).  
+الدليل للفريق: [`analytics/TEAM-GUIDE.md`](analytics/TEAM-GUIDE.md)  
+الإعداد التقني: [`analytics/README.md`](analytics/README.md)
 
-1. افتح: **https://shahd-abbara.github.io/lecture-site-engine/contrib/**
-2. اختر المادة → **محاضرة جديدة** أو **رفع ملف**
-3. سمِّ الملف `parN.md` → الصق المحتوى → احفظ على GitHub
-4. افتح Pull Request → Merge بعد ✅ validate
+---
 
-أو مباشرة على GitHub:
-`https://github.com/Shahd-Abbara/lecture-site-engine/new/main/subjects/year-4/YOUR-SUBJECT/lectures?filename=parN.md`
+## وثائق إضافية
 
-## Decap CMS (متقدّم — يحتاج OAuth)
-
-واجهة ويب لرفع `parN.md` على GitHub بدون تعديل يدوي لـ `manifest.json`.
-
-```bash
-npm run cms:config          # توليد admin/config.yml من subjects/
-npx decap-server            # محلي — terminal منفصل
-# افتح dist/admin/ بعد npm run build
-```
-
-- **الرابط:** `/admin/` على GitHub Pages
-- **الإعداد:** [admin/README.md](admin/README.md) — GitHub OAuth proxy (مرة واحدة)
-- المحتوى يُحفظ بـ frontmatter — البناء يزيله تلقائياً قبل التحليل
-
-## Future work
-
-- Wire remaining legacy sites to shared engine
+| ملف | المحتوى |
+|-----|---------|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | كل مسارات المساهمة |
+| [AGENTS.md](AGENTS.md) | أوامر وملاحظات للمساعدين الآليين / المشرفين |
+| [parser/README.md](parser/README.md) | كيف يشتغل الـ parser |
+| [renderer/README.md](renderer/README.md) | كيف يشتغل الـ renderer |
+| [site-shell/README.md](site-shell/README.md) | واجهة الطالب |
+| [build/README.md](build/README.md) | سكربتات البناء |
+| [themes/README.md](themes/README.md) | الثيمات |
+| [admin/README.md](admin/README.md) | Decap CMS (متقدم) |

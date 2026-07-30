@@ -4,7 +4,7 @@
   "description": "Parser, renderer, build pipeline, and prompts for faculty study-guide sites",
   "type": "module",
   "scripts": {
-    "test": "node renderer/smoke-test.mjs && node build/lib/scaffold-subject.test.mjs && node build/lib/normalize-lecture-md.test.mjs && node build/lib/lecture-routing.test.mjs && node build/lib/exam-core.test.mjs && node build/lib/quiz-stats.test.mjs && node parser/parts/mcq.test.mjs",
+    "test": "node renderer/smoke-test.mjs && node build/lib/scaffold-subject.test.mjs && node build/lib/normalize-lecture-md.test.mjs && node build/lib/lecture-routing.test.mjs && node build/lib/exam-core.test.mjs && node build/lib/quiz-stats.test.mjs && node parser/parts/mcq.test.mjs && node site-shell/js/analytics.test.mjs && node build/lib/patch-analytics.test.mjs && node site-shell/js/search.test.mjs",
     "cms:config": "node build/generate-cms-config.mjs",
     "cms:local": "LOCAL_BACKEND=true node build/generate-cms-config.mjs",
     "admin:generate": "node build/generate-admin.mjs",
@@ -16,7 +16,9 @@
     "dev": "node build/watch.mjs",
     "scaffold": "node build/scaffold-subjects.mjs --all",
     "ci:validate-changed": "node build/detect-changed-subjects.mjs | node build/validate-changed.mjs",
-    "ci:deploy-build": "node build/deploy-build.mjs"
+    "ci:deploy-build": "node build/deploy-build.mjs",
+    "analytics:setup": "node analytics/setup.mjs",
+    "analytics:export": "node analytics/export.mjs"
   },
   "engines": {
     "node": ">=18"

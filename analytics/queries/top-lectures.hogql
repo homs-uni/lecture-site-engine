@@ -1,0 +1,14 @@
+-- Top lectures by session count and average focused seconds
+SELECT
+  properties.subject AS subject,
+  properties.content_id AS lecture_id,
+  count() AS sessions,
+  avg(toFloat(properties.active_seconds)) AS avg_focus_sec,
+  avg(toFloat(properties.max_scroll_pct)) AS avg_max_scroll
+FROM events
+WHERE event = 'study_session_end'
+  AND properties.content_type = 'lecture'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY subject, lecture_id
+ORDER BY sessions DESC
+LIMIT 50

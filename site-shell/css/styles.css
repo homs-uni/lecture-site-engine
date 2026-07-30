@@ -158,6 +158,45 @@ body {
   background: linear-gradient(90deg, var(--color-primary), var(--color-secondary-accent)) !important;
 }
 
+.mcq-progress-track {
+  display: flex;
+  gap: 2px;
+  height: 0.65rem;
+  width: 100%;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: var(--color-surface-container-high);
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 70%, transparent);
+}
+
+.mcq-progress-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  transition: background-color 0.25s ease;
+}
+
+.mcq-progress-seg--pending {
+  background: color-mix(in srgb, var(--color-outline-variant) 70%, transparent);
+}
+
+.mcq-progress-seg--correct {
+  background: var(--color-primary);
+}
+
+.mcq-progress-seg--wrong {
+  background: var(--color-error);
+}
+
+.dark .mcq-progress-track {
+  background: color-mix(in srgb, var(--dm-elevated-2, #1c2440) 80%, transparent);
+}
+
+.dark .mcq-progress-seg--pending {
+  background: color-mix(in srgb, var(--dm-border, #2b3a8f) 45%, transparent);
+}
+
 #jumpQuizBtn {
   background: linear-gradient(135deg, var(--color-primary-container), var(--color-primary)) !important;
   box-shadow: 0 4px 16px -4px var(--shadow-primary-md);
@@ -287,6 +326,22 @@ body {
   border-color: var(--color-primary);
 }
 
+/* داخل صف عنوان المحاضرة بالفهرس (ديسكتوب وموبايل) — زر أيقونة صغير بدل المستطيل الطويل، مشان يبقى
+   مكان لاسم المحاضرة. بطاقات المحاضرات بالصفحة الرئيسية (.lecture-complete-btn) تحتفظ بشكلها الأصلي. */
+.lecture-sidebar__course .lecture-complete-toggle,
+.mobile-toc-drawer__course .lecture-complete-toggle {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 0.5rem;
+}
+
+.lecture-sidebar__course .lecture-complete-toggle .material-symbols-outlined,
+.mobile-toc-drawer__course .lecture-complete-toggle .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+
 .dark .subject-progress-card {
   background: linear-gradient(150deg, color-mix(in srgb, var(--color-primary) 18%, var(--dm-elevated)) 0%, var(--dm-elevated) 74%);
   border-color: var(--dm-border);
@@ -381,11 +436,7 @@ body {
 }
 
 .dark .lecture-picker-card {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-primary) 12%, var(--dm-elevated)) 0%,
-    var(--dm-elevated) 60%
-  ) !important;
+  background: var(--dm-elevated) !important;
   border-color: var(--dm-border) !important;
 }
 
@@ -481,7 +532,7 @@ body {
 
 .toc-nav-link.active,
 .toc-nav-link.bg-primary-container {
-  background: var(--color-primary-container) !important;
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-container-low)) !important;
   border-left: 3px solid var(--color-primary);
   padding-left: 9px;
   font-weight: 600;
@@ -612,22 +663,14 @@ body {
   overflow: hidden;
   opacity: 0;
   animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-primary-fixed) 45%, var(--color-surface-container-lowest)) 0%,
-    var(--color-surface-container-lowest) 55%
-  ) !important;
-  border-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-outline-variant)) !important;
+  background: var(--color-surface-container-lowest) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-outline-variant)) !important;
+  border-radius: 1.25rem !important;
+  padding: 1.5rem !important;
 }
 
 .lecture-picker-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary-accent), var(--color-tertiary-fixed-dim));
-  opacity: 0.85;
+  display: none !important;
 }
 
 .lecture-picker-card:hover {
@@ -2290,19 +2333,23 @@ html.is-lecture-view .site-navbar__actions {
   gap: 0.125rem;
 }
 
-.site-navbar__toggle.is-active {
+.site-navbar__toggle.is-active,
+.site-navbar__toggle[aria-pressed="true"] {
   background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface-variant));
 }
 
-.site-navbar__toggle.is-active .material-symbols-outlined {
+.site-navbar__toggle.is-active .material-symbols-outlined,
+.site-navbar__toggle[aria-pressed="true"] .material-symbols-outlined {
   color: var(--color-primary);
 }
 
-.dark .site-navbar__toggle.is-active {
+.dark .site-navbar__toggle.is-active,
+.dark .site-navbar__toggle[aria-pressed="true"] {
   background: color-mix(in srgb, var(--color-primary) 24%, var(--dm-elevated-2));
 }
 
-.dark .site-navbar__toggle.is-active .material-symbols-outlined {
+.dark .site-navbar__toggle.is-active .material-symbols-outlined,
+.dark .site-navbar__toggle[aria-pressed="true"] .material-symbols-outlined {
   color: var(--color-inverse-primary, #f8fafc);
 }
 
@@ -2537,6 +2584,163 @@ body.laser-pointer-enabled button {
 
 .dark .source-quote__body p {
   color: var(--dm-text);
+}
+
+/* Original text at top of topic (toggle mode) */
+#content.expand-original-mode .original-text-collapsible {
+  border-right: 3px solid var(--color-secondary);
+  background: color-mix(in srgb, var(--color-secondary-fixed) 30%, var(--color-surface-container-lowest));
+}
+
+#content.expand-original-mode .original-text-collapsible summary {
+  pointer-events: none;
+  cursor: default;
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-secondary) 18%, transparent);
+}
+
+#content.expand-original-mode .original-text-collapsible summary .acc-chevron {
+  display: none;
+}
+
+#content.expand-original-mode .original-text-collapsible summary .acc-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+#content.expand-original-mode .original-text-collapsible .acc-body {
+  border-top: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.original-text-collapsible .acc-body {
+  padding-bottom: 0.5rem !important;
+}
+
+.original-text-collapsible .acc-body.prose-content blockquote {
+  margin: 0 0 0.2rem 0 !important;
+}
+
+.original-text-collapsible .acc-body > :last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.dark #content.expand-original-mode .original-text-collapsible {
+  border-right-color: var(--color-secondary-accent);
+  background: color-mix(in srgb, var(--color-secondary) 8%, var(--dm-elevated));
+}
+
+.dark #content.expand-original-mode .original-text-collapsible summary {
+  border-bottom-color: color-mix(in srgb, var(--color-secondary-accent) 15%, transparent);
+}
+
+.dark #content.expand-original-mode .original-text-collapsible summary .acc-title {
+  color: var(--color-secondary-accent);
+}
+
+/* Tight spacing: quote → coverage hint */
+.original-text-collapsible .acc-body blockquote {
+  margin-bottom: 0.2rem !important;
+}
+
+.original-text-collapsible .acc-body blockquote ~ p,
+.original-text-collapsible .acc-body blockquote ~ ul,
+.original-text-collapsible .acc-body blockquote ~ ol {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--color-on-surface-variant);
+  opacity: 0.75;
+  margin-top: 0.1rem;
+  margin-bottom: 0;
+}
+
+.original-text-collapsible .acc-body blockquote ~ ul,
+.original-text-collapsible .acc-body blockquote ~ ol {
+  padding-right: 1rem;
+}
+
+.dark .original-text-collapsible .acc-body blockquote ~ p,
+.dark .original-text-collapsible .acc-body blockquote ~ ul,
+.dark .original-text-collapsible .acc-body blockquote ~ ol {
+  color: var(--dm-text-muted, var(--color-on-surface-variant));
+  opacity: 0.7;
+}
+
+/* Inside original text blocks, coverage notes should be tiny muted hints (no card) */
+.original-text-collapsible .acc-body .callout-note {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0.1rem 0 0 !important;
+  gap: 0.2rem !important;
+  color: var(--color-on-surface-variant) !important;
+  opacity: 0.65;
+}
+
+.original-text-collapsible .acc-body .callout-note .material-symbols-outlined {
+  display: none;
+}
+
+.original-text-collapsible .acc-body .callout-note h5,
+.original-text-collapsible .acc-body .callout-note .font-body-md,
+.original-text-collapsible .acc-body .callout-note p,
+.original-text-collapsible .acc-body .callout-note li {
+  font-size: 0.68rem !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+}
+
+.original-text-collapsible .acc-body .callout-note h5 {
+  display: inline;
+}
+
+.original-text-collapsible .acc-body .callout-note .flex-1 {
+  display: inline;
+}
+
+.original-text-collapsible .acc-body .callout-note ul,
+.original-text-collapsible .acc-body .callout-note ol {
+  margin: 0.1rem 0 0 !important;
+  padding-right: 0.9rem !important;
+}
+
+.dark .original-text-collapsible .acc-body .callout-note {
+  color: var(--dm-text-muted, var(--color-on-surface-variant)) !important;
+  opacity: 0.58;
+}
+
+.expand-original-hint-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-outline-variant));
+  background: color-mix(in srgb, var(--color-primary-container) 40%, var(--color-surface-container-low));
+  color: var(--color-on-surface-variant);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  cursor: pointer;
+  user-select: none;
+}
+
+.expand-original-hint-toggle input[type="checkbox"] {
+  width: 0.9rem;
+  height: 0.9rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.dark .expand-original-hint-toggle {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--dm-border));
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--dm-elevated));
+  color: var(--dm-text-muted, var(--color-on-surface-variant));
 }
 
 /* ── Numbered code snippets ── */
@@ -4125,8 +4329,17 @@ body.laser-pointer-enabled button {
 .think-prompt__icon { color: var(--color-secondary); }
 .think-prompt__label { font-weight: 700; font-size: 0.875rem; }
 .think-prompt__body {
-  margin: 0; padding: 0.5rem 1rem 1rem; border: none; background: transparent;
-  font-size: 0.9375rem; line-height: 1.65; color: var(--color-on-surface-variant);
+  display: block;
+  margin: 0 !important;
+  padding: 0.5rem 1rem 1rem !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--color-on-surface-variant);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dark .think-prompt {
@@ -4167,6 +4380,119 @@ body.laser-pointer-enabled button {
 .dark .expected-output__head {
   background: var(--dm-elevated-2);
   color: var(--dm-text);
+}
+
+/* Nested mini-MCQ — compact check under a ### paragraph (not a full MCQ part) */
+.mini-mcq {
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--color-outline-variant) 85%, transparent);
+  border-inline-start: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--color-surface-container-low) 70%, transparent);
+  box-shadow: none;
+}
+.mini-mcq__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-on-surface-variant);
+  text-transform: none;
+}
+.mini-mcq__source {
+  margin-inline-start: auto;
+  font-weight: 500;
+  opacity: 0.75;
+  font-size: 0.7rem;
+}
+.mini-mcq__question {
+  margin: 0 0 0.65rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--color-on-surface);
+}
+.mini-mcq__options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+}
+.mini-mcq__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: right;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 0.55rem;
+  background: var(--color-surface-container-lowest);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.mini-mcq__opt:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  background: var(--color-surface-container-low);
+}
+.mini-mcq__key {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--color-secondary-fixed);
+  color: var(--color-secondary);
+}
+.mini-mcq__feedback {
+  min-height: 0;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.mini-mcq__explain {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border-inline-start: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-on-surface-variant);
+}
+.mini-mcq__reset {
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--color-outline-variant);
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+}
+.dark .mini-mcq {
+  background: color-mix(in srgb, var(--dm-elevated) 80%, transparent);
+  border-color: var(--dm-border);
+}
+.dark .mini-mcq__opt {
+  background: var(--dm-elevated);
+  border-color: var(--dm-border);
+  color: var(--dm-text);
+}
+.dark .mini-mcq__question { color: var(--dm-text); }
+.dark .mini-mcq__explain {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--dm-elevated-2));
+  color: var(--dm-text-muted);
 }
 
 .qa-card {
@@ -4619,9 +4945,18 @@ body.laser-pointer-enabled button {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: var(--lecture-pad-sm, 0.5rem) var(--lecture-pad-default, 1.5rem);
+  padding: var(--lecture-pad-sm, 0.5rem) var(--lecture-pad-default, 1.5rem) var(--lecture-pad-sm, 0.5rem) 0.5rem;
   min-height: 2.75rem;
   border-bottom: 1px solid var(--color-outline-variant);
+}
+
+/* السهم بزاوية أقصى اليسار دايماً، وعنوان الفهرس بالطرف المقابل */
+.lecture-sidebar__head .lecture-sidebar__toggle {
+  order: 2;
+}
+
+.lecture-sidebar__head .lecture-sidebar__head-label {
+  order: 1;
 }
 
 .lecture-sidebar__head-label {
@@ -4673,50 +5008,117 @@ body.laser-pointer-enabled button {
   display: none;
 }
 
-/* شريط التقدم الرفيع على حافة الفهرس */
-.lecture-sidebar__rail {
-  position: relative;
-  width: 3px;
-  margin-inline: 0.625rem;
-  align-self: stretch;
+/* رأس المادة المضغوط أعلى الفهرس — أيقونة + عنوان/عنوان فرعي بسطر واحد، مع سهمي تنقل بين المحاضرات */
+.lecture-sidebar__course {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem var(--lecture-pad-default, 1.5rem);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.lecture-sidebar__course-icon {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+}
+
+.lecture-sidebar__course-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lecture-sidebar__course-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.35;
+}
+
+.lecture-sidebar__course-sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--color-on-surface-variant);
+  line-height: 1.3;
+}
+
+.lecture-sidebar__nav-arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  color: var(--color-on-surface-variant);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.lecture-sidebar__nav-arrow:hover:not(:disabled) {
+  background: var(--color-surface-container-high, var(--color-surface));
+  color: var(--color-primary);
+  border-color: var(--color-outline-variant);
+}
+
+.lecture-sidebar__nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.lecture-sidebar__nav-arrow .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+/* شريط تقدم أفقي بسيط بدل الطابة العائمة السابقة — أوضح وأصعب ينكسر */
+.lecture-sidebar__progress {
+  padding: 0.65rem var(--lecture-pad-default, 1.5rem);
+  border-bottom: 1px solid var(--color-outline-variant);
+}
+
+.lecture-sidebar__progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.lecture-sidebar__progress-label {
+  font-size: 0.7rem;
+  color: var(--color-on-surface-variant);
+}
+
+.lecture-sidebar__progress-pct {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.lecture-sidebar__progress-track {
+  height: 4px;
   background: var(--color-outline-variant);
   border-radius: 999px;
-  overflow: visible;
-  pointer-events: none;
-  transition: opacity 0.18s ease;
+  overflow: hidden;
 }
 
-/* لما الفهرس مطوي، الطابة تضل موجودة بس تلتصق بحافة زر الفتح بدل ما تطفو لحالها بمسافة كبيرة */
-.lecture-sidebar.is-collapsed .lecture-sidebar__rail {
-  margin-inline: 0.375rem;
-}
-
-.lecture-sidebar__rail-fill {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 0%;
+.lecture-sidebar__progress-fill {
+  height: 100%;
+  width: 0%;
   background: var(--color-primary);
   border-radius: 999px;
-  transition: height 0.12s linear;
+  transition: width 0.12s linear;
 }
 
-.lecture-sidebar__rail-dot {
-  position: absolute;
-  inset-inline-start: 50%;
-  top: 0%;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--color-primary);
-  border: 2px solid var(--color-surface-container-lowest);
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 1px var(--color-primary-container);
-  transition: top 0.12s linear;
+/* تمييز خفيف للعنوان الرئيسي بالفهرس لما يكون أحد عناوينه الفرعية هو الفعّال حالياً */
+.toc-nav-link.is-parent-active {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  color: var(--color-primary);
 }
 
-.dark .lecture-sidebar__rail-dot {
-  border-color: var(--color-surface);
+.dark .toc-nav-link.is-parent-active {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 /* عناوين فرعية بالفهرس فيها كود مثل `Tree Search` — تنسيق أنظف بدل إظهار العلامات الفاصلة كنص خام */

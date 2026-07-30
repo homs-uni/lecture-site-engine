@@ -2,8 +2,8 @@ import { esc } from '../core/escape.js';
 import { inlineMd } from '../core/inline-md.js';
 import { ms } from '../core/icons.js';
 import { renderBlocks } from '../blocks/index.js';
-import { calloutHtml } from '../blocks/handlers.js';
-import { mcqSectionAnchor } from '../core/slug.js';
+import { calloutHtml, renderMermaid } from '../blocks/handlers.js';
+import { mcqSectionAnchor, normalizeMcqSection } from '../core/slug.js';
 
 function diffBadgeClass(d) {
   if (d === 'سهل') return 'bg-primary/20 text-primary';
@@ -48,10 +48,46 @@ function extractTadhkira(explain) {
   return { body, tadhkira: tadhkiraLines.join('\n').trim() };
 }
 
-/** Renders MCQ rationale: paragraph breaks preserved, optional تذكرة callout. */
+/** Split text on fenced blocks; render ```mermaid via Mermaid, other fences as <pre>. */
+function renderFencedSegments(text, { plainClass, wrapClass } = {}) {
+  if (!text.includes('```')) {
+    return null;
+  }
+  let html = wrapClass ? `<div class="${wrapClass}">` : '<div>';
+  const parts = text.split(/```(\w*)\n?([\s\S]*?)```/g);
+  for (let i = 0; i < parts.length; i += 3) {
+    const plain = parts[i];
+    if (plain && plain.trim()) {
+      const paras = plain
+        .split(/\n{2,}/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p class="${plainClass}">${inlineMd(p).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+      html += paras;
+    }
+    const lang = parts[i + 1] !== undefined ? String(parts[i + 1] || '').toLowerCase() : undefined;
+    const code = parts[i + 1] !== undefined ? parts[i + 2] : undefined;
+    if (code !== undefined && code.trim()) {
+      if (lang === 'mermaid') {
+        html += `<div class="mb-md">${renderMermaid({ code: code.trim() })}</div>`;
+      } else {
+        html += `<pre class="bg-surface-container-high dark:bg-[#0d0f1a] rounded-lg p-md mb-md overflow-x-auto font-code-sm text-code-sm"><code>${esc(code.trim())}</code></pre>`;
+      }
+    }
+  }
+  return html + '</div>';
+}
+
+/** Renders MCQ rationale: paragraph breaks preserved, optional تذكرة callout.
+ * Also renders ```mermaid fences inside the rationale (teaching diagrams). */
 function renderMcqExplain(explain) {
   const { body, tadhkira } = extractTadhkira(explain || '');
-  const paras = body
+  const fenced = renderFencedSegments(body, {
+    plainClass: 'mb-sm last:mb-0',
+    wrapClass: '',
+  });
+  const paras = fenced || body
     .split(/\n{2,}/)
     .map(p => p.trim())
     .filter(Boolean)
@@ -64,25 +100,16 @@ function renderMcqExplain(explain) {
 }
 
 /** Renders an MCQ question stem — plain text via inlineMd, or (for a shared
- * code/paragraph stimulus feeding several questions) text + fenced code
- * segments, code rendered as a real <pre> block instead of collapsed inline. */
+ * code/paragraph/diagram stimulus feeding several questions) text + fenced
+ * segments. ```mermaid becomes a live Mermaid diagram; other fences stay <pre>. */
 function renderQuestionStem(text) {
   if (!text.includes('```')) {
     return `<p class="font-headline-sm text-headline-sm mb-lg">${inlineMd(text)}</p>`;
   }
-  let html = '<div class="mb-lg">';
-  const parts = text.split(/```(\w*)\n?([\s\S]*?)```/g);
-  for (let i = 0; i < parts.length; i += 3) {
-    const plain = parts[i];
-    if (plain && plain.trim()) {
-      html += `<p class="font-headline-sm text-headline-sm mb-md">${inlineMd(plain.trim())}</p>`;
-    }
-    const code = parts[i + 1] !== undefined ? parts[i + 2] : undefined;
-    if (code !== undefined && code.trim()) {
-      html += `<pre class="bg-surface-container-high dark:bg-[#0d0f1a] rounded-lg p-md mb-md overflow-x-auto font-code-sm text-code-sm"><code>${esc(code.trim())}</code></pre>`;
-    }
-  }
-  return html + '</div>';
+  return renderFencedSegments(text, {
+    plainClass: 'font-headline-sm text-headline-sm mb-md',
+    wrapClass: 'mb-lg',
+  });
 }
 
 /** A small pill next to the difficulty badge, shown only when the question
@@ -117,6 +144,9 @@ function renderMcqCard(q, cardId, { showSource = true } = {}) {
       <strong class="text-primary">التعليل:</strong>
       <div class="mt-sm">${renderMcqExplain(q.explain)}</div>
     </div>
+    <button type="button" data-mcq-reset class="mcq-reset-btn hidden mt-md inline-flex items-center gap-xs px-md py-sm rounded-lg border border-outline-variant bg-surface-container-high text-on-surface font-label-md hover:bg-surface-variant transition-all" aria-label="إعادة تعيين الإجابة">
+      ${ms('restart_alt', false, 'text-sm')} إعادة تعيين الإجابة
+    </button>
   </article>`;
   return html;
 }
@@ -144,14 +174,22 @@ function renderMcqGroup(q, partId) {
 export function renderMCQ(questions, partId) {
   const totalCount = questions.reduce((n, q) => n + (q.type === 'group' ? q.questions.length : 1), 0);
 
-  let html = `<div class="mcq-progress sticky top-16 z-10 bg-surface-container-lowest dark:bg-[#10121f]/90 border border-outline-variant dark:border-[#1e40af] rounded-xl p-md mb-lg custom-shadow box-animate box-hover backdrop-blur-sm" data-part="${partId}">
-    <div class="flex items-center gap-md mb-sm">
-      ${ms('quiz', false, 'text-primary')}
-      <span class="font-label-md text-on-surface-variant">تقدّم الاختبار: <strong class="text-primary mcq-score">0</strong> / ${totalCount}</span>
+  let html = `<div class="mcq-progress sticky top-16 z-10 bg-surface-container-lowest dark:bg-[#10121f]/90 border border-outline-variant dark:border-[#1e40af] rounded-xl p-md mb-lg custom-shadow box-animate box-hover backdrop-blur-sm" data-part="${partId}" data-total="${totalCount}">
+    <div class="flex items-center justify-between gap-md mb-sm flex-wrap">
+      <div class="flex items-center gap-md">
+        ${ms('quiz', false, 'text-primary')}
+        <span class="font-label-md text-on-surface-variant">تقدّم الإجابة: <strong class="text-on-surface mcq-answered-count">0</strong> / ${totalCount}</span>
+      </div>
+      <div class="flex items-center gap-sm font-label-md flex-wrap">
+        <span class="text-primary">✓ <strong class="mcq-score">0</strong></span>
+        <span class="text-on-surface-variant">·</span>
+        <span class="text-error">✗ <strong class="mcq-wrong-count">0</strong></span>
+        <button type="button" data-mcq-reset-all class="mcq-reset-all-btn hidden inline-flex items-center gap-xs px-sm py-xs rounded-lg border border-outline-variant bg-surface-container-high text-on-surface font-label-md hover:bg-error-container hover:text-on-error-container hover:border-error/40 transition-all" aria-label="إعادة تعيين كل التقدّم">
+          ${ms('restart_alt', false, 'text-sm')} إعادة تعيين التقدّم
+        </button>
+      </div>
     </div>
-    <div class="h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-      <div class="mcq-progress-fill h-full bg-primary rounded-full transition-all duration-300" style="width:0%"></div>
-    </div>
+    <div class="mcq-progress-track" role="img" aria-label="شريط تقدّم الإجابات">${Array.from({ length: totalCount }, () => '<span class="mcq-progress-seg mcq-progress-seg--pending"></span>').join('')}</div>
   </div>
   <div class="space-y-lg">`;
 
@@ -162,13 +200,14 @@ export function renderMCQ(questions, partId) {
     // `section` string on every question — insert a heading whenever it
     // changes so consecutive questions from the same section stay grouped
     // visually without repeating the label on every card.
-    if (q.section && q.section !== lastSection) {
-      const secId = `${partId}-${mcqSectionAnchor(q.section)}`;
+    const sectionKey = normalizeMcqSection(q.section);
+    if (sectionKey && sectionKey !== lastSection) {
+      const secId = `${partId}-${mcqSectionAnchor(sectionKey)}`;
       html += `<h3 id="${esc(secId)}" class="font-headline-md text-headline-md text-primary dark:text-inverse-primary flex items-center gap-sm pt-md first:pt-0 scroll-mt-16">
-        ${ms('menu_book', false, 'text-lg')} ${esc(q.section)}
+        ${ms('menu_book', false, 'text-lg')} ${esc(sectionKey)}
       </h3>`;
     }
-    lastSection = q.section || lastSection;
+    lastSection = sectionKey || lastSection;
 
     if (q.type === 'group') {
       html += renderMcqGroup(q, partId);

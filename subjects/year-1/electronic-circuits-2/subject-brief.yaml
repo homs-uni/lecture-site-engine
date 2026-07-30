@@ -1,5 +1,6 @@
-schema_version: "1.0"
+schema_version: "2.0"
 
+# ─── Subject identity ─────────────────────────────────────────────────────────
 subject:
   id: electronic-circuits-2
   name_ar: "الدارات الإلكترونية 2"
@@ -7,6 +8,7 @@ subject:
   tagline: "BJT MOSFET Solar Power Batteries"
   section_label: "القسم النظري"
 
+# ─── Locale & terminology ─────────────────────────────────────────────────────
 locale:
   language: ar
   direction: rtl
@@ -15,6 +17,7 @@ locale:
   extra_explanation_tag: "(شرح زيادة للفهم)"
   not_in_lecture_tag: "(غير مشروحة في المحاضرة)"
 
+# ─── Domain & Content Organization ─────────────────────────────────────────────
 domain: mixed
 
 domain_profile:
@@ -27,50 +30,84 @@ domain_profile:
   forbid_adding: ["Java", "Python", "C++"]
   prerequisites: ["أساسيات التيار المستمر", "قانون أوم وقوانين كيرشوف", "مبادئ الديودات"]
 
+# ─── Content Ordering Rules ────────────────────────────────────────────────────
+content_ordering:
+  section_type_rules:
+    equation_subjects: [electronic-circuits-2]
+    code_subjects: []
+    diagram_subjects: []
+
+  default_type: "equation-first"
+
+# ─── Visualization Templates Available ─────────────────────────────────────────
+visualization_templates:
+  enabled_types:
+    - inline-text
+    - inline-algorithm
+    - full-width-algorithm
+    - comparison-table
+    - cycle
+    - sequence
+    - tree
+    - flowchart
+
+  diagram_types: [flowchart, circuit-schematic, decision-tree]
+
+# ─── Coverage Tracking ──────────────────────────────────────────────────────────
+coverage_tracking:
+  enabled: true
+  require_metadata: true
+  acceptable_coverage_threshold: 90
+
+# ─── Original Text Display ──────────────────────────────────────────────────────
+original_text_display:
+  enabled: true
+  format: "collapsible"
+  show_coverage_badge: true
+  location: "after-explanation"
+
+# ─── Lecture heading ────────────────────────────────────────────────────────────
 lecture:
   unit_label: "المحاضرة"
   split_regex: "^# المحاضرة "
   title_pattern: "# {unit_label} {num} — {title_en} ({title_ar})"
   intro_blockquote: true
+  combine_related_topics: false
 
+# ─── Parts ──────────────────────────────────────────────────────────────────────
 parts:
-
   integration_map:
-    enabled: true
+    enabled: false
     heading: "📌 خريطة التكامل (أين تقع هذه المحاضرة في الدورة؟)"
-
-  detail:
-    enabled: true
-    heading: "الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)"
-    numbered_sections: true
-    require_per_section:
-      - original_quote
-      - simplified_explanation
 
   summary:
     enabled: true
-    heading: "الجزء الثاني: ملخص منظم"
+    heading: "الجزء الأول: ملخص منظم (اقرأ قبل المحاضرة!)"
     subsections:
-      - definitions_table
-      - components_table
-      - comparisons_table
-      - glossary
-      - golden_points
-      - common_mistakes_table
-      - patterns
-      - main_ideas
+      - lecture_overview
+      - learning_objectives
+      - prerequisites
+      - main_concepts
+      - connections
+      - common_mistakes
+
+  detail:
+    enabled: true
+    heading: "الجزء الثاني: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)"
+    numbered_sections: true
+    require_per_section: []
 
   mcq:
     enabled: true
     heading: "الجزء الثالث: أسئلة اختيار من متعدد (MCQ)"
-    count: 18
-    min_count: 16
+    count: 16
+    min_count: 14
     difficulty: [medium, hard]
-    forbid_easy_literal: true
+    forbid_easy_literal: false
     distribution:
-      comparisons: 20
+      comparisons: 25
       code_scenario: 35
-      application: 35
+      application: 30
       algorithm_trace: 10
 
   debug:
@@ -80,7 +117,7 @@ parts:
     cover: [logic, misconception, return_check, dead_code]
 
   exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)"
     count_min: 4
     count_max: 7
@@ -91,7 +128,7 @@ parts:
       - scenario
 
   analysis_exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين تحليل وتطبيق (إضافية — من إعداد الدليل)"
     count_min: 3
     count_max: 6
@@ -102,7 +139,7 @@ parts:
       - written_analysis
 
   trace_exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين تتبع التنفيذ"
     count_min: 3
     note: "كل تمرين: مدخل + جدول/شجرة ناقصة للطالب + نموذج الحل الكامل"
@@ -118,13 +155,13 @@ parts:
       - schema_design
 
   theory:
-    enabled: true
+    enabled: false
     heading: "الجزء الخامس: أسئلة نظرية متوقعة بالامتحان"
-    count_min: 10
+    count_min: 8
 
   cheat_sheet:
     enabled: true
-    heading: "الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)"
+    heading: "الجزء الرابع: ورقة المراجعة السريعة (Cheat Sheet)"
     subsections:
       - integration_map_table
       - golden_rules_table
@@ -132,8 +169,8 @@ parts:
 
   qa_cards:
     enabled: true
-    heading: "الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)"
-    count_min: 14
+    heading: "الجزء الثالث: بطاقات سؤال وجواب (Q&A Cards)"
+    count_min: 12
 
   reference_code:
     enabled: false
@@ -144,12 +181,16 @@ parts:
     note: ""
 
   checklist:
-    enabled: true
+    enabled: false
     heading: "الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅"
 
+# ─── Blocks ─────────────────────────────────────────────────────────────────────
 blocks:
 
   original_quote:
+    enabled: false
+
+  render_metadata:
     enabled: true
 
   simplified_explanation:
@@ -158,7 +199,7 @@ blocks:
   code:
     enabled: false
     languages: []
-    require_line_explain: false
+    require_line_explain: true
 
   line_explain:
     enabled: false
@@ -221,10 +262,10 @@ blocks:
     enabled: true
 
   trade_off:
-    enabled: false
+    enabled: true
 
   before_after:
-    enabled: false
+    enabled: true
 
   trace:
     enabled: true
@@ -235,6 +276,70 @@ blocks:
     require_explanation: true
     common_symbols: ["V_BE", "V_CE", "V_GS", "V_DS", "I_C", "I_D", "β", "α", "g_m", "r_π"]
 
+# ─── Section Structure Template ────────────────────────────────────────────────
+section_template:
+  structure:
+    - element: "heading"
+      label: "### 1.1 Topic Name"
+      required: true
+
+    - element: "render_metadata"
+      format: "<!-- @render: {type: \"...\", visualization: \"...\", coverage: \"...\", connectivity: {...}} -->"
+      required: true
+
+    - element: "context"
+      label: "📍 أين نحن الآن؟"
+      format: "#### [one sentence]"
+      required: false
+
+    - element: "connectivity"
+      label: "⬅️ الربط مع السابق"
+      format: "#### [one sentence — prerequisite or connection to previous topic]"
+      required: true
+      note: "يحل محل 'النص الأصلي يقول' في النموذج"
+
+    - element: "core_idea"
+      label: "💡 الفكرة الأساسية"
+      format: "#### **[One sentence core idea — bold, high contrast]**"
+      required: true
+
+    - element: "definition_or_formula"
+      label: "[📐 التعريف / الصيغة] أو [💻 الكود] أو [📊 المخطط]"
+      format: "#### [Depends on content_type]"
+      required: false
+      conditional: "if type: equation-first then required"
+
+    - element: "explanation"
+      label: "📖 الشرح"
+      format: "#### [2-4 short paragraphs, NOT one dense block]"
+      required: true
+
+    - element: "summary"
+      label: "🎯 الملخص السريع"
+      format: "#### [Bullets — 3-5 key points]"
+      required: false
+
+    - element: "application"
+      label: "📚 التطبيق / استخدام"
+      format: "#### [Where is this used next? How does it connect forward?]"
+      required: false
+
+    - element: "original_text_collapsible"
+      label: "📄 النص الأصلي من المحاضرة"
+      format: |
+        <details>
+        <summary>عرض النص الأصلي (coverage: XX%)</summary>
+        > [EXACT QUOTE]
+        </details>
+      required: true
+      note: "Collapsible by default — not visible unless clicked"
+
+    - element: "common_mistakes"
+      label: "⚠️ أخطاء شائعة"
+      format: "#### [List with ❌ and ✓]"
+      required: false
+
+# ─── Pedagogy flags ──────────────────────────────────────────────────────────
 pedagogy:
   cover_every_line: true
   complete_gaps: true
@@ -242,145 +347,51 @@ pedagogy:
   explain_why: true
   daily_analogy_plus_example: true
   follow_lecture_order: true
-  adapt_to_lecture_type: true
+  adapt_to_lecture_type: false
 
-  lecture_types:
-    - id: bjt_basics
-      match: "BJT Basics"
-      tools: ["NPN/PNP", "β (Beta)", "α (Alpha)", "I_C = β I_B", "V_BE = 0.7 V"]
-    - match: "BJT Configurations"
-      tools: ["Common Emitter", "Common Base", "Common Collector", "Load Line", "Q-point"]
-    - match: "MOSFET Basics"
-      tools: ["NMOS/PMOS", "V_t (Threshold)", "V_GS", "V_DS", "Triode Region", "Saturation Region"]
+  lecture_types: []
 
+# ─── Assessment ───────────────────────────────────────────────────────────────
 assessment:
   mcq_option_letters: arabic
 
+# ─── Automation Question Types ────────────────────────────────────────────────
 automation_question_types:
-
   flash_qa:
-    enabled: true
-    label_ar: "مراجعة سريعة (سؤال / جواب)"
-    difficulty: easy
-    count_min: 14
-    parts: [qa_cards, theory]
-    blocks: [qa_inline, callouts]
-    format: |
-      **Q{N}:** سؤال مراجعة مباشر (تعريف، فرق، متى نستخدم)
-      **A:** إجابة مختصرة قابلة للمقارنة الآلية (جملة أو جملتان)
-    examples:
-      - "ما الفرق بين ترانزستور NPN و PNP؟"
-      - "متى نستخدم تشكيلة الباعث المشترك؟"
+    enabled: false
 
   scenario_cluster:
-    enabled: true
-    label_ar: "تحدي مركّب (سيناريو + أسئلة متعددة)"
-    difficulty: hard
-    count_min: 3
-    questions_per_scenario: 4
-    parts: [mcq, theory]
-    blocks: [diagrams, tables, equations, trace]
-    format: |
-      ### السيناريو {N}: {عنوان}
-      > [وصف الحالة: دارة، جدول، أو مسألة رياضية كاملة]
-      ثم 3–5 أسئلة MCQ **كلها مبنية على نفس السيناريو**:
-      ### السؤال {N}.1 (hard) … أ) ب) ج) د) + تعليل
-    scenario_sources:
-      - circuit_analysis
-      - numerical_case
-      - algorithm_state
+    enabled: false
 
   hands_on:
-    enabled: true
-    label_ar: "تطبيق عملي (أكمل / صحّح / نفّذ)"
-    difficulty: medium
-    count_min: 5
-    parts: [exercise, analysis_exercise]
-    blocks: [fill_gaps, algorithm, expected_output, tables]
-    types:
-      - fill_gaps
-      - table_fill
-      - numerical_solve
-      - diagram_completion
-    format: |
-      كل تمرين: **المعطيات** + **المطلوب** (مرقّم) + **نموذج الحل الكامل**
+    enabled: false
 
   step_trace:
-    enabled: true
-    label_ar: "تتبع خطوة بخطوة (جدول ناقص)"
-    difficulty: medium
-    count_min: 3
-    parts: [trace_exercise, mcq]
-    blocks: [trace, algorithm, tables]
-    format: |
-      **المدخل:** {حالة ابتدائية}
-      **أكمل الجدول:**
-      | الخطوة | العملية | الحالة |
-      | 1 | ... | ؟ |
-      **نموذج الحل:** جدول مكتمل + **النتيجة النهائية**
-    trace_targets:
-      - algorithm_iterations
-      - variable_state
-      - search_tree_expansion
+    enabled: false
 
   compare_analyze:
-    enabled: true
-    label_ar: "مقارنة وتحليل (أيهما أفضل؟ لماذا؟)"
-    difficulty: medium
-    count_min: 4
-    parts: [mcq, theory]
-    blocks: [compare, trade_off, tables]
-    format: |
-      سؤال مقارنة بخيارات (أ، ب، ج، د) + تعليل لماذا الباقي خاطئ
-      أو جدول: | المعيار | الخيار A | الخيار B |
+    enabled: false
 
   find_the_bug:
-    enabled: true
-    label_ar: "اكتشف الخطأ (في دارة أو تحليل)"
-    difficulty: hard
-    count_min: 4
-    parts: [debug, exercise]
-    blocks: [code_fix, compare, troubleshooting]
-    bug_types: [logic, misconception, off_by_one, wrong_formula]
-    format: |
-      **الدارة/التحليل (يحتوي خطأ):** …
-      **اكتشف الخطأ:** [وصف موجز]
-      **التصحيح:** … + **شرح الحل** (3 نقاط)
+    enabled: false
 
   structured_theory:
-    enabled: true
-    label_ar: "نظري منظم (تعريف + مكونات + مثال)"
-    difficulty: medium
-    count_min: 10
-    parts: [theory, mcq]
-    blocks: [compare, tables, callouts]
-    format: |
-      ### السؤال {N}: {السؤال}
-      **نموذج الإجابة:**
-      1. التعريف: …
-      2. المكونات/الشروط: …
-      3. مثال: …
-      4. متى نستخدم: …
+    enabled: false
 
+# ─── Output ───────────────────────────────────────────────────────────────────
 output:
   validation_footer: true
-  schema_reference: "SCHEMA.md v1.0"
+  schema_reference: "SCHEMA.md v2.0"
   closing_line: "ابدأ الآن. سأرسل المحاضرة في الرسالة التالية."
 
   checklist_items:
     - "غطّيت كل معلومة وردت في المحاضرة"
-    - "كل قسم يبدأ بـ «النص الأصلي يقول» + «الشرح المبسّط»"
+    - "الملخص (Part 1): يشرح ماذا ستتعلم + لماذا مهم + المتطلبات السابقة"
+    - "الملخص بدون جداول مقارنات (تلك في Cheat Sheet)"
+    - "كل قسم detail يبدأ بـ '⬅️ الربط مع السابق' + '💡 الفكرة الأساسية' + الشرح"
     - "الأقسام مرقّمة هرمياً (1، 1.1، 2 …)"
-    - "استخدمت جداول لكل مقارنة وقائمة تعريفات"
     - "كل مصطلح إنجليزي بين backticks"
-    - "≥16 سؤال MCQ مع تعليل كامل لكل خيار"
-    - "≥10 أسئلة نظرية مع نموذج إجابة منظم"
-    - "تمارين تتبع: كل تمرين له جدول ناقص + نموذج حل كامل"
-    - "تمارين تطبيقية من إعداد الدليل مع نموذج حل"
-    - "مراجعة سريعة: ≥14 بطاقة Q/A (flash_qa)"
-    - "تحدي مركّب: ≥3 سيناريوهات × 3–5 أسئلة MCQ لكل سيناريو (scenario_cluster)"
-    - "تطبيق عملي: ≥5 تمارين مع نموذج حل (hands_on)"
-    - "تتبع خطوة بخطوة: ≥3 جداول ناقصة + نموذج حل (step_trace)"
-    - "مقارنة وتحليل: ≥4 أسئلة مقارنة (compare_analyze)"
-    - "اكتشف الخطأ: ≥4 أسئلة تصحيح (find_the_bug)"
-    - "نظري منظم: ≥10 أسئلة بهيكل ثابت (structured_theory)"
+    - "النص الأصلي موجود في <details> collapsible مع @coverage metadata"
+    - "≥16 سؤال MCQ مع تعليل كامل"
+    - "≥12 بطاقة Q&A مع إجابات مختصرة"
+    - "Cheat Sheet: جداول + مقارنات + قواميس + خطوات سريعة"

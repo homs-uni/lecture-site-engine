@@ -47,6 +47,10 @@ export async function ensureSearchIndex() {
 /**
  * Score an entry against a normalized query.
  * Higher = better match.
+ *
+ * Kind boosts only apply after a real title/context/text hit — otherwise every
+ * lecture/part/section would rank for every query and bury content matches
+ * (especially painful on large subjects like databases-2).
  */
 function scoreEntry(entry, query, queryLower) {
   const title = (entry.title || '').trim();
@@ -64,27 +68,29 @@ function scoreEntry(entry, query, queryLower) {
     if (titleLower === queryLower) score += 50;
   }
 
-  // Title contains query as a word
-  if (titleLower.includes(queryLower)) {
+  // Title contains query
+  if (fieldMatches(titleLower, queryLower)) {
     score += 60;
   }
 
   // Context match (section / part names)
-  if (contextLower.includes(queryLower)) {
+  if (fieldMatches(contextLower, queryLower)) {
     score += 20;
   }
 
   // Full text match
-  if (textLower.includes(queryLower)) {
-    // For content entries, lower weight
+  if (fieldMatches(textLower, queryLower)) {
     if (entry.kind === 'content') {
-      score += 5;
+      score += 25;
     } else {
       score += 30;
     }
   }
 
-  // Boost by entry kind
+  // No textual hit → not a result (do not rank by kind alone)
+  if (score === 0) return 0;
+
+  // Boost by entry kind (only for real matches)
   switch (entry.kind) {
     case 'lecture':  score += 40; break;
     case 'part':     score += 25; break;
@@ -92,11 +98,57 @@ function scoreEntry(entry, query, queryLower) {
   }
 
   // Prefer shorter titles (likely more relevant)
-  if (score > 0 && title.length > 0) {
+  if (title.length > 0) {
     score += Math.max(0, 30 - title.length) * 0.5;
   }
 
   return score;
+}
+
+/** Escape a string for use inside a RegExp. */
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Field match helper.
+ * Latin/ASCII token queries use word-ish boundaries so "aries" does not hit
+ * "boundaries". Arabic / mixed queries keep substring includes().
+ */
+function fieldMatches(haystackLower, queryLower) {
+  if (!haystackLower || !queryLower) return false;
+  if (!haystackLower.includes(queryLower)) return false;
+  if (/^[a-z0-9][a-z0-9+._/-]*$/i.test(queryLower)) {
+    const re = new RegExp(
+      `(^|[^a-z0-9+])${escapeRegExp(queryLower)}($|[^a-z0-9+])`,
+      'i',
+    );
+    return re.test(haystackLower);
+  }
+  return true;
+}
+
+/**
+ * Rank entries against a query (pure — no fetch).
+ * @param {SearchEntry[]} entries
+ * @param {string} query
+ * @param {number} [max=20]
+ * @returns {{ entry: SearchEntry, score: number }[]}
+ */
+export function searchEntries(entries, query, max = 20) {
+  if (!query || !query.trim() || !entries?.length) return [];
+
+  const q = query.trim().slice(0, 200);
+  const qLower = q.toLowerCase();
+
+  const scored = [];
+  for (const entry of entries) {
+    const score = scoreEntry(entry, q, qLower);
+    if (score > 0) scored.push({ entry, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, max);
 }
 
 /**
@@ -107,22 +159,7 @@ function scoreEntry(entry, query, queryLower) {
  */
 export async function search(query, max = 20) {
   const entries = await ensureSearchIndex();
-  if (!query || !query.trim() || !entries.length) return [];
-
-  const q = query.trim().slice(0, 200);
-  const qLower = q.toLowerCase();
-
-  const scored = [];
-
-  for (const entry of entries) {
-    const score = scoreEntry(entry, q, qLower);
-    if (score > 0) {
-      scored.push({ entry, score });
-    }
-  }
-
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, max);
+  return searchEntries(entries, query, max);
 }
 
 /**
@@ -145,7 +182,11 @@ export function snippet(entry, query, maxLen = 80) {
   const q = query.trim().toLowerCase();
   if (!q || !text) return truncate(text, maxLen);
 
-  const idx = text.toLowerCase().indexOf(q);
+  const textLower = text.toLowerCase();
+  let idx = -1;
+  if (fieldMatches(textLower, q)) {
+    idx = textLower.indexOf(q);
+  }
   if (idx < 0) return truncate(text, maxLen);
 
   const start = Math.max(0, idx - Math.floor((maxLen - q.length) / 2));

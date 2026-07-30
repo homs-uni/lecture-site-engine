@@ -15,6 +15,7 @@ import { runSchemaChecks, hasErrors } from './lib/schema-checks.mjs';
 import { ensureSubjectScaffold } from './lib/scaffold-subject.mjs';
 import { normalizeLectureMd } from './lib/normalize-lecture-md.mjs';
 import { patchSubjectIndexHtml, patchSubjectStoragePrefix } from './lib/patch-subject-index.mjs';
+import { patchAnalyticsInDir } from './lib/patch-analytics.mjs';
 import { patchBuildMeta } from './lib/patch-build-meta.mjs';
 import { generateServiceWorker } from './lib/generate-sw.mjs';
 import { lectureSummaryFromLec } from './lib/lecture-summary.mjs';
@@ -165,6 +166,7 @@ async function buildExamsJson(subjectDir, examsOut, parser) {
         id: entry.id || srcPath.replace(/\.md$/i, ''),
         title: entry.label || manifest.title || 'دورات سنوات سابقة',
         tag: manifest.subtitle || '',
+        notice: entry.notice || manifest.notice || '',
         parts: [mcqPart],
       };
       const jsonName = srcPath.replace(/\.md$/i, '.json');
@@ -280,6 +282,7 @@ async function main() {
   await copyDir(path.join(ENGINE_ROOT, 'renderer'), path.join(outDir, 'engine/renderer'));
 
   await patchSubjectIndexHtml(outDir, subjectRel);
+  await patchAnalyticsInDir(outDir);
 
   const guideSrc = path.join(subjectDir, 'guide-config.js');
   const guideDest = path.join(outDir, 'js/guide-config.js');

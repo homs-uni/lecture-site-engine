@@ -1,6 +1,6 @@
 import { parseMCQ } from './handlers.js';
 
-const arabicKey = { أ: 'a', ا: 'a', ب: 'b', ج: 'c', د: 'd', a: 'a', b: 'b', c: 'c', d: 'd' };
+const arabicKey = { أ: 'a', ا: 'a', ب: 'b', ج: 'c', د: 'd', ه: 'e', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' };
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -84,6 +84,25 @@ a) A  b) **B**  c) C  d) D
 *المصدر: [محاضرة]*
 `, { arabicKey });
   assert(qs.length === 0, `compact Q form should not parse, got ${qs.length}`);
+}
+
+// Fifth option (ه) as the correct answer must parse, not silently drop to ''
+{
+  const qs = parseMCQ(`
+### السؤال 1 (متوسط)
+Which are true?
+أ) one
+ب) two
+ج) three
+د) four
+ه) all wrong
+**الإجابة الصحيحة: ه**
+**التعليل:** none of the above
+`, { arabicKey });
+
+  assert(qs.length === 1, `expected 1 question, got ${qs.length}`);
+  assert(qs[0].options.length === 5 && qs[0].options[4].key === 'e', `5th option key=${qs[0].options[4]?.key}`);
+  assert(qs[0].correct === 'e', `expected correct='e', got '${qs[0].correct}'`);
 }
 
 console.log('parser/parts/mcq.test.mjs: ok');

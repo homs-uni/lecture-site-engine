@@ -73,11 +73,11 @@ export const GUIDE_CONFIG = {
 
   // ─── Callouts (Subject-Wide) ──────────────────────────────────────────────
   callouts: [
-    { re: /^مهم للامتحان/, cls: 'callout-exam', label: 'مهم للامتحان ⚠️' },
-    { re: /^⚠️ ملاحظة هامة/, cls: 'callout-important', label: '⚠️ ملاحظة هامة' },
-    { re: /^نقطة مهمة/, cls: 'callout-important', label: 'نقطة مهمة ⚠️' },
-    { re: /^ملاحظة:/, cls: 'callout-note', label: 'ملاحظة' },
-    { re: /^الدرس المستفاد:/, cls: 'callout-lesson', label: 'الدرس المستفاد' },
+    { re: /^(?:📌\s*)?مهم للامتحان/, cls: 'callout-exam', label: 'مهم للامتحان ⚠️' },
+    { re: /^(?:📌\s*)?⚠️\s*ملاحظة هامة/, cls: 'callout-important', label: '⚠️ ملاحظة هامة' },
+    { re: /^(?:📌\s*)?نقطة مهمة/, cls: 'callout-important', label: 'نقطة مهمة ⚠️' },
+    { re: /^(?:📌\s*)?ملاحظة:/, cls: 'callout-note', label: 'ملاحظة' },
+    { re: /^(?:📌\s*)?الدرس المستفاد:/, cls: 'callout-lesson', label: 'الدرس المستفاد' },
   ],
 
   // ─── Assessment (Subject-Wide) ────────────────────────────────────────────
