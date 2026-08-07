@@ -12,6 +12,13 @@
   "subtitle": "إشارة + تحويل + ميزات + تعلم",
   "files": [
     {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
       "path": "par2.md",
       "num": 2,
       "icon": "💻",

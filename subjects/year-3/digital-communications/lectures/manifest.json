@@ -4,12 +4,42 @@
     "subjectNameEn": "Digital Communications",
     "year": "2025-2026",
     "academicYear": 3,
-    "theme": "amber-default",
+    "theme": "software-purple",
+    "enabledLectures":true,
     "department": "النظري"
   },
   "title": "الاتصالات الرقمية — Digital Communications",
   "subtitle": "تمثيل + تعديل + تضمين + تحليل",
-  "files": [],
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2-sec1.md",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٢ — جزء ١"
+    },
+    {
+      "path": "par2-sec2.md",
+      "num": 2,
+      "icon": "💻",
+      "matIcon": "code",
+      "badge": "المحاضرة ٢ — جزء ٢"
+    },
+    {
+      "path": "par3.md",
+      "num": 3,
+      "icon": "🎯",
+      "matIcon": "quiz",
+      "badge": "المحاضرة ٣"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",
