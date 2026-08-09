@@ -98,7 +98,7 @@ function parseQuestionContent(content, arabicKey) {
     if (ckM) correct = arabicKey[ckM[1].toLowerCase()] || ckM[1].toLowerCase();
   }
 
-  const explainM = content.match(/التعليل[:\s*]*([\s\S]+?)(?=\n---|\n(?:#{3,4} |\*\*)السؤال |$)/);
+  const explainM = content.match(/التعليل[:\s*]*([\s\S]+?)(?=\n---|\n(?:#{3,4} |\*\*)(?:ال)?سؤال |$)/);
   let explain = explainM ? explainM[1].trim() : '';
   if (!explain && answerM) {
     // Some files skip the "التعليل:" label entirely and put the rationale
@@ -106,9 +106,17 @@ function parseQuestionContent(content, arabicKey) {
     // this when there WAS an answer line to anchor on — otherwise (answer
     // deliberately left blank) there's nothing to anchor the search to and
     // it would just grab the next unrelated blockquote in the text.
-    const afterAnswer = content.slice(answerM.index + answerM[0].length);
+    // Strip a trailing "**" left over from "**الإجابة الصحيحة: ب**" so
+    // the bullet/blockquote match starts on real content.
+    const afterAnswer = content.slice(answerM.index + answerM[0].length).replace(/^\*+\s*/, '');
     const bqM = afterAnswer.match(/^\s*\n*((?:^>.*\n?)+)/m);
-    if (bqM) explain = bqM[1].replace(/^>\s?/gm, '').trim();
+    if (bqM) {
+      explain = bqM[1].replace(/^>\s?/gm, '').trim();
+    } else {
+      // Math_2-style: ✅/❌ bullets right under the answer, no "التعليل:" label.
+      const bulletsM = afterAnswer.match(/^\s*\n*((?:^[-*].*\n?)+)/m);
+      if (bulletsM) explain = bulletsM[1].trim();
+    }
   }
 
   // The options loop below must stop BEFORE any explanation text — but when
@@ -217,8 +225,10 @@ function parseQuestionContent(content, arabicKey) {
  * chunk once split() runs.
  */
 function moveSourceTagAfterHeading(text) {
+  // Optional "ال" — some lectures write "### سؤال N (...)" instead of
+  // the SCHEMA form "### السؤال N (...)".
   return text.replace(
-    /^\*\*المصدر:\*\*[ \t]*([^\n]*)\n((?:#{3,4} السؤال \d+|\*\*السؤال \d+ ?\().*)/gm,
+    /^\*\*المصدر:\*\*[ \t]*([^\n]*)\n((?:#{3,4} (?:ال)?سؤال \d+|\*\*(?:ال)?سؤال \d+ ?\().*)/gm,
     '$2\n**المصدر:** $1',
   );
 }
@@ -284,23 +294,26 @@ export function parseMCQ(text, config) {
     moveSourceTagAfterHeading(body)
       // templates/part-mcq.md + templates/part-past-exam-mcq.md only:
       //   "### السؤال 1 (متوسط)" / "**السؤال 1 (متوسط)**"
+      // Also accepts "### سؤال 1 (...)" (no ال) — used by some lecture files
+      // (e.g. year-1/Math_2). Digit after سؤال keeps this from matching
+      // theory headings like "### سؤال نظري 1".
       // The bold (non-###) alternative requires a following "(" so it can't
       // match the "**السؤال N:**" (colon) inner marker used by Case-2 groups
       // below — "###" headings never use the colon form, so that alternative
       // is left unrestricted (some real lecture files omit the "(difficulty)"
       // entirely on a "###" heading).
-      .split(/(?=^(?:#{3,4} السؤال \d+|\*\*السؤال \d+ ?\())/m)
-      .filter(c => /^(?:#{3,4} السؤال \d+|\*\*السؤال \d+ ?\()/.test(c.trim()))
+      .split(/(?=^(?:#{3,4} (?:ال)?سؤال \d+|\*\*(?:ال)?سؤال \d+ ?\())/m)
+      .filter(c => /^(?:#{3,4} (?:ال)?سؤال \d+|\*\*(?:ال)?سؤال \d+ ?\()/.test(c.trim()))
       .map(chunk => {
         const { source, rest: cleanedChunk } = extractSource(chunk);
 
         // "\d+" only matched plain numbers, so sub-numbered questions like
         // "### السؤال 1.1 (hard): ..." (used for multi-part scenarios) fell
         // through to num='?'. "[\d.]+" also accepts "1.1", "2.3", etc.
-        const hm = cleanedChunk.match(/^(?:#{3,4} |\*\*)السؤال ([\d.]+)(?:[–-][\d.]+)? ?\((.+?)\)(?:\*\*)?/);
+        const hm = cleanedChunk.match(/^(?:#{3,4} |\*\*)(?:ال)?سؤال ([\d.]+)(?:[–-][\d.]+)? ?\((.+?)\)(?:\*\*)?/);
         const num = hm ? hm[1] : '?';
         const difficulty = hm ? hm[2].trim() : 'متوسط';
-        const afterHeading = cleanedChunk.replace(/^(?:#{3,4} |\*\*)السؤال .+\n/m, '');
+        const afterHeading = cleanedChunk.replace(/^(?:#{3,4} |\*\*)(?:ال)?سؤال .+\n/m, '');
 
         const subMatches = [...afterHeading.matchAll(/^\*\*السؤال [\d.]+:\*\*/gm)];
         if (subMatches.length) {
@@ -347,9 +360,17 @@ export function parseTheory(text) {
     .split(/(?=^### سؤال )/m)
     .filter(c => /^### سؤال /.test(c) && !c.includes('تصحيح') && !c.includes('تصميم'))
     .map(chunk => {
-      const hm = chunk.match(/^### (سؤال \d+:\s*.+)/);
-      const title = hm ? hm[1].trim() : 'سؤال';
-      const answerM = chunk.match(/\*\*نموذج الإجابة:\*\*\s*([\s\S]+?)(?=\n---|\n### |$)/);
+      // SCHEMA form: "### سؤال 1: title…"
+      // Alternate (e.g. Math_2): "### سؤال نظري 1" + "**السؤال:** stem"
+      const classic = chunk.match(/^### (سؤال \d+:\s*.+)/);
+      const nazari = chunk.match(/^### (سؤال نظري \d+)/);
+      let title = classic ? classic[1].trim() : (nazari ? nazari[1].trim() : 'سؤال');
+      if (!classic) {
+        const stemM = chunk.match(/\*\*السؤال:\*\*\s*([^\n]+)/);
+        if (stemM) title = `${title}: ${stemM[1].trim()}`;
+      }
+      // SCHEMA: **نموذج الإجابة:** — some files invert it to **الإجابة النموذجية:**
+      const answerM = chunk.match(/\*\*(?:نموذج الإجابة|الإجابة النموذجية):\*\*\s*([\s\S]+?)(?=\n---|\n### |$)/);
       const answer = answerM ? answerM[1].trim() : '';
       return { title, answer, id: slugify(title) };
     });

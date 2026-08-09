@@ -124,4 +124,34 @@ Which are true?
   assert(qs[0].correct === 'e', `tatweel expected correct='e', got '${qs[0].correct}'`);
 }
 
+// Without ال: "### سؤال N (...)" (Math_2 and similar lectures)
+{
+  const qs = parseMCQ(`
+### سؤال 1 (مفاهيمي)
+ما الفرق؟
+أ) one
+ب) two
+ج) three
+د) four
+**الإجابة الصحيحة: ب**
+- ✅ (ب) صحيحة: because two
+- ❌ (أ) خاطئة: reverse
+`, { arabicKey });
+
+  assert(qs.length === 1, `no-al: expected 1 question, got ${qs.length}`);
+  assert(qs[0].num === '1' && qs[0].difficulty === 'مفاهيمي', `no-al num/diff=${qs[0].num}/${qs[0].difficulty}`);
+  assert(qs[0].correct === 'b' && qs[0].options.length === 4, 'no-al options/correct failed');
+  assert(qs[0].explain.includes('صحيحة'), `no-al explain should pick up ✅/❌ bullets, got=${qs[0].explain}`);
+}
+
+// "### سؤال نظري N" must NOT be treated as an MCQ heading
+{
+  const qs = parseMCQ(`
+### سؤال نظري 1
+**السؤال:** something
+**الإجابة النموذجية:** answer
+`, { arabicKey });
+  assert(qs.length === 0, `theory heading must not parse as MCQ, got ${qs.length}`);
+}
+
 console.log('parser/parts/mcq.test.mjs: ok');
