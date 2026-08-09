@@ -1,0 +1,43 @@
+{
+  "settings": {
+    "subjectName": "Math_2",
+    "subjectNameEn": "Math_2",
+    "year": "2025-2026",
+    "academicYear": 1,
+    "theme": "gis-earth",
+    "enabledLectures":true,
+    "department": "القسم"
+  },
+  "title": "Math_2 — Math_2",
+  "subtitle": "دليل دراسي تفاعلي",
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    },
+    {
+      "path": "par2.md",
+      "num": 2,
+      "icon": "📖",
+      "matIcon": "menu_book",
+      "badge": "المحاضرة ٢"
+    }
+  ],
+  "lectureIcons": [
+    "📌",
+    "📖",
+    "💻",
+    "🎯",
+    "📝"
+  ],
+  "lectureMatIcons": [
+    "school",
+    "menu_book",
+    "code",
+    "quiz",
+    "description"
+  ]
+}
