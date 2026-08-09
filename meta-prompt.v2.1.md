@@ -1,8 +1,24 @@
-# Meta-Prompt v2.0 — Generate Subject-Specific Lecture Extraction Prompt
+# Meta-Prompt v2.1 — Generate Subject-Specific Lecture Extraction Prompt
+
+> **What changed in v2.1 (vs v2.0):** two mandatory sections were added to the
+> generated `custom_prompt.md`. Everything else is identical to v2.0.
+>
+> 1. **قواعد كتابة المعادلات** — required for **any** subject containing equations
+>    (math, physics, signals, circuits, statistics, control…).
+> 2. **قواعد المخططات** — **every diagram must be `mermaid`**, for every subject.
+>    The legacy ```` ```diagram ```` YAML DSL, ASCII art, and image links are out.
+>
+> **Why it exists:** guides were written with math inside backticks
+> (`` `y' = n·xⁿ⁻¹` ``, `` `Df = ]-∞,+∞[` ``) and with several formulas crammed
+> into one `$$` block. On an RTL Arabic page that renders as right-to-left body
+> text with mirrored brackets, and stacked formulas collapse into one dense
+> paragraph. The engine now parses standalone `$$…$$` into real equation blocks
+> and forces LTR on math — but only if the source Markdown is written correctly.
+> These rules are that contract.
 
 ## Your role
 
-You generate **one file only**: `custom_prompt.md` — a subject-specific prompt an AI uses to convert PDF lectures into study-guide Markdown for the lecture-site engine v2.0.
+You generate **one file only**: `custom_prompt.md` — a subject-specific prompt an AI uses to convert PDF lectures into study-guide Markdown for the lecture-site engine v2.1.
 
 You do **not** extract lecture content. You do **not** output JSON. You do **not** output YAML.
 
@@ -26,6 +42,8 @@ You do **not** extract lecture content. You do **not** output JSON. You do **not
 - Respect `original_text_display.format` — if `collapsible`, explain the new <details> structure; if `hidden`, omit it.
 - Respect `coverage_tracking.enabled` — if true, require @coverage metadata per section.
 - Respect `lecture.combine_related_topics` — if false, follow lecture order exactly; if true, allow combining adjacent sections that are closely connected.
+- **If the subject contains ANY equations** (`equations` block enabled, or `content_ordering.default_type: equation-first`, or any content_type includes DERIVATION/EQUATION): copy the **"## قواعد كتابة المعادلات"** section into `custom_prompt.md` **verbatim and in full**. It is not optional and not summarisable — it is a parser/rendering contract, not style advice.
+- **Every diagram must be `mermaid`.** Copy the **"## قواعد المخططات"** section into `custom_prompt.md` whenever the `diagrams` block is enabled. Never instruct the AI to emit the legacy ```` ```diagram ```` YAML DSL, ASCII art, or image links.
 - Keep `custom_prompt.md` lean — one mini-example per block is enough.
 - **At the very end**, append "## مرجع القوالب (Templates Reference)" with full templates.
 - **Never:** generate lecture content, invent markers, include disabled items.
@@ -130,6 +148,22 @@ Every section should show:
 
 This meta-understanding helps students see the subject as **system, not list**
 
+### 8. Math Is Left-to-Right — A Formula Is Never a Code Span
+The guide page is RTL Arabic. A formula written as inline code
+(`` `y' = f(x)` ``) inherits the paragraph's bidi context: operands get
+reordered around the Arabic text and brackets get mirrored, so
+`` `Df = ]-∞, +∞[` `` reads back wrong. A formula written as `$…$` / `$$…$$`
+is typeset by KaTeX, which the engine pins to `direction: ltr` — so it is
+correct in any language.
+
+**Therefore, for every subject that has equations:**
+- Backticks are for **code, identifiers, and English terms** (`chain rule`, `radius of convergence`)
+- Dollar signs are for **mathematics** — every variable, every relation, every formula
+- One formula per `$$` block, with a blank line around it
+
+This applies to math, physics, signals, circuits, statistics, control theory —
+anything where a symbol carries meaning. See the mandatory rules block below.
+
 
 
 
@@ -176,6 +210,289 @@ Fill every `[...]` from SUBJECT_BRIEF. Process enabled items only.
 
 ---
 
+## قواعد كتابة المعادلات (Math & Equation Formatting) — إلزامية
+
+> **انسخ هذا القسم كما هو إذا كانت المادة تحتوي أي معادلات.**
+> هذه ليست قواعد تنسيق تجميلية — البارسر والمُصيّر (`renderer`) يعتمدان عليها.
+> مخالفتها تُنتج معادلات مقلوبة الاتجاه، أو صيغاً متلاصقة تبدو كفقرة واحدة كثيفة.
+
+### القاعدة 1: الرياضيات داخل `$` — وليس داخل backticks
+
+الصفحة كلها RTL (من اليمين لليسار). أي صيغة تُكتب كـ inline code تأخذ اتجاه
+الفقرة العربية، فتنقلب أطراف المعادلة وتنعكس الأقواس. أما `$…$` فيعالجها
+`KaTeX` ويفرض عليها LTR دائماً.
+
+| ❌ ممنوع | ✅ الصحيح |
+| --- | --- |
+| `` `y' = n·xⁿ⁻¹` `` | `$y' = n\,x^{\,n-1}$` |
+| `` `Df = ]-∞, +∞[` `` | `$D_f = \;]-\infty, +\infty[$` |
+| `` `lim(x→0) sinx/x = 1` `` | `$\lim\limits_{x\to0} \frac{\sin x}{x} = 1$` |
+| `` `∂f/∂x` `` | `$\dfrac{\partial f}{\partial x}$` |
+
+**متى تبقى الـ backticks صحيحة؟** للمصطلحات الإنجليزية وأسماء التقنيات فقط:
+`chain rule`، `radius of convergence`، `piecewise`، `Fourier Series`.
+القاعدة الفاصلة: **إذا كان الرمز يحمل معنى رياضياً → `$`. إذا كان اسماً → backtick.**
+
+### القاعدة 2: صيغة واحدة لكل `$$` — ممنوع الحشر
+
+كل معادلة تستحق سطرها. حشر عدة صيغ في `$$` واحد بفواصل `\qquad` هو السبب
+المباشر لظهورها "متلاصقة" ومزدحمة.
+
+❌ **ممنوع:**
+```markdown
+$$a_0 = \frac{1}{T}\int f\,dx, \qquad a_n = \frac{1}{T}\int f\cos(nx)dx, \qquad b_n = \frac{1}{T}\int f\sin(nx)dx$$
+```
+
+✅ **الصحيح:**
+```markdown
+#### 📐 المعادلة: معاملات فورييه الثلاثة
+
+$$
+a_0 = \frac{1}{T}\int_{-T}^{T} f(x)\,dx
+$$
+
+$$
+a_n = \frac{1}{T}\int_{-T}^{T} f(x)\cos\left(\frac{n\pi}{T}x\right)dx
+$$
+
+$$
+b_n = \frac{1}{T}\int_{-T}^{T} f(x)\sin\left(\frac{n\pi}{T}x\right)dx
+$$
+```
+
+**استثناء وحيد:** صيغتان **متقابلتان فعلاً** (مباشر ↔ عكسي، زوجي ↔ فردي) يجوز
+وضعهما في `$$` واحد بفاصل `\qquad\Longleftrightarrow\qquad`.
+
+### القاعدة 3: سطر فارغ قبل كل `$$` وبعده
+
+بدون السطر الفارغ تلتصق المعادلة بالفقرة ويعاملها البارسر كنص عادي.
+
+```markdown
+نضرب بالمرافق:
+
+$$
+\frac{\sqrt{x}-\sqrt{x_0}}{x-x_0} = \frac{1}{\sqrt x+\sqrt{x_0}}
+$$
+
+بأخذ النهاية عند $x \to x_0$:
+```
+
+### القاعدة 4: متى `#### 📐` ومتى `$$` مجرّدة؟
+
+| الحالة | الشكل | النتيجة على الصفحة |
+| --- | --- | --- |
+| صيغة أساسية تستحق عنواناً | `#### 📐 المعادلة: [الاسم]` ثم `$$…$$` | بطاقة معنونة بإطار |
+| خطوة داخل اشتقاق/برهان | `$$…$$` مباشرة | معادلة مركزية بلا عنوان |
+| أول صيغة في القسم | `#### 📐 التعريف / الصيغة` ثم `$$…$$` | بطاقة معنونة |
+
+البارسر يربط `#### 📐` بأول `$$` بعده فقط؛ وكل `$$` تالية تُصيَّر كمعادلة
+مستقلة نظيفة. **لا تكرّر `#### 📐 المعادلة` قبل كل خطوة** في اشتقاق طويل —
+اجعل الخطوات `$$` مجرّدة مفصولة بجُمل عربية قصيرة تشرح الانتقال.
+
+**اشتقاق متعدد الخطوات — الشكل القياسي:**
+```markdown
+نأخذ $\ln$ للطرفين:
+
+$$
+\ln y = g(x)\ln\big(f(x)\big)
+$$
+
+نشتق الطرفين ضمنياً:
+
+$$
+\frac{y'}{y} = \Big(g(x)\ln\big(f(x)\big)\Big)'
+$$
+
+وأخيراً نعوّض $y$ بالتعبير الأصلي:
+
+$$
+y' = f(x)^{g(x)} \cdot \Big(g(x)\ln\big(f(x)\big)\Big)'
+$$
+```
+
+### القاعدة 5: اكتب `LaTeX` حقيقياً — لا رموز Unicode
+
+الرموز المرفوعة/المنخفضة (`xⁿ`، `aₙ`، `x₀`، `∂f/∂x`) لا تُصيَّر بخط رياضي،
+ولا تتحاذى، وتكسر البحث داخل الموقع.
+
+| ❌ Unicode | ✅ LaTeX |
+| --- | --- |
+| `Df`, `Wf`, `x₀`, `aₙ` | `$D_f$`, `$W_f$`, `$x_0$`, `$a_n$` |
+| `xⁿ`, `e⁻ˣ`, `f²(x)` | `$x^{n}$`, `$e^{-x}$`, `$f^{2}(x)$` |
+| `sinx`, `lnx`, `sh(x)` | `$\sin x$`, `$\ln x$`, `$\operatorname{sh}(x)$` |
+| `R`, `∞`, `≥`, `≠` | `$\mathbb{R}$`, `$\infty$`, `$\geq$`, `$\neq$` |
+| `√(x-1)`, `(a)/(b)` | `$\sqrt{x-1}$`, `$\dfrac{a}{b}$` |
+
+**دوال بأسماء:** استعمل `\sin \cos \tan \ln \log \lim \max \min`، و
+`\operatorname{sh}` `\operatorname{ch}` `\operatorname{th}` للدوال القطعية،
+و `\arcsin` `\arctan` للعكسية. الاسم بدون backslash يظهر مائلاً كأنه جداء متغيرات.
+
+**استثناء مهم:** داخل `<details>` الخاصة بـ **النص الأصلي من المحاضرة** — اترك
+الاقتباس **حرفياً كما ورد في المحاضرة**، بما فيه رموز Unicode. هذا سجل نصي
+أمين للمصدر، وليس محتوى للتصيير.
+
+### القاعدة 6: المجالات والمجموعات والقيمة المطلقة
+
+| المعنى | الكتابة الصحيحة |
+| --- | --- |
+| فترة مفتوحة/مغلقة | `$]-\infty,\, 3[$` ، `$[1,\, 3[$` ، `$[-1,\, 1]$` |
+| مجموعة الأعداد الحقيقية | `$\mathbb{R}$` |
+| استبعاد قيم | `$\mathbb{R} \setminus \{-3,\, 4\}$` |
+| اتحاد | `$[0,2[\ \cup\ ]2,+\infty[$` |
+| **القيمة المطلقة** | `$\lvert x \rvert$` — **وليس** `$|x|$` |
+
+> ⚠️ **لا تستعمل `|` داخل أي معادلة أبداً.** الشرطة العمودية هي فاصل خلايا
+> الجداول في Markdown، فتكسر الجدول فوراً. استعمل `\lvert … \rvert` دائماً،
+> وكذلك `\left\lvert … \right\rvert` للمقادير الطويلة.
+
+### القاعدة 7: المعادلات داخل الجداول
+
+- استعمل `$…$` داخل الخلايا — يعمل بشكل صحيح
+- استعمل `\dfrac` لا `\frac` (أوضح داخل الخلية)
+- **ممنوع `|`** داخل الخلية (انظر القاعدة 6)
+- **تحقق أن كل صفوف الجدول لها نفس عدد الخلايا** — صف واحد بعدد مختلف يكسر الجدول كله
+
+```markdown
+| # | الدالة | المشتقة |
+| --- | --- | --- |
+| 8 | $y = x^{n}$ | $y' = n\,x^{\,n-1}$ |
+| 10 | $y = \sqrt{f(x)}$ | $y' = \dfrac{f'(x)}{2\sqrt{f(x)}}$ |
+```
+
+### القاعدة 8: داخل الكتل الضيقة استعمل `$…$` لا `$$…$$`
+
+في `compare` (الفهم الخاطئ/الصحيح) و `callout` و خلايا `trace` — المساحة نصف
+عرض الشاشة. صيغة `$$` طويلة ستحتاج تمريراً أفقياً. استعمل `$…$` داخل الجملة،
+أو اجعل الصيغة `$$` قصيرة جداً.
+
+### القاعدة 9: النتيجة النهائية تُبرز
+
+عند وصول مثال محلول إلى جوابه، أبرزه بـ `\boxed{}`:
+
+```markdown
+$$
+\boxed{\,D_f = \mathbb{R} \setminus \{-3,\, 4\}\,}
+$$
+```
+
+### ✅ قائمة تحقق المعادلات (راجعها قبل تسليم أي محاضرة فيها رياضيات)
+
+- [ ] لا توجد أي صيغة رياضية داخل backticks — كلها `$…$` أو `$$…$$`
+- [ ] كل `$$` تحتوي **صيغة واحدة** فقط (عدا الصيغ المتقابلة صراحةً)
+- [ ] سطر فارغ قبل كل `$$` وبعدها
+- [ ] لا يوجد `|` داخل أي معادلة — استُبدلت بـ `\lvert … \rvert`
+- [ ] لا رموز Unicode رياضية (`xⁿ`, `x₀`, `∂`, `√`, `∞`) خارج اقتباس النص الأصلي
+- [ ] كل أسماء الدوال مسبوقة بـ `\` (`\sin` لا `sin`)
+- [ ] كل صفوف كل جدول لها نفس عدد الخلايا
+- [ ] الاشتقاقات الطويلة: خطوة لكل `$$`، بينها جملة عربية تشرح الانتقال
+- [ ] النتائج النهائية داخل `\boxed{}`
+- [ ] أرقام الأجزاء (`## الجزء ...`) فريدة ومتسلسلة
+
+[if the diagrams block is enabled, append these items verbatim:]
+- [ ] كل مخطط داخل ```` ```mermaid ```` (لا `diagram`، لا ASCII، لا صور)
+- [ ] كل نصوص العُقد بين `"…"` والأسطر الجديدة بـ `<br/>`
+- [ ] كل مخطط متبوع بشرح العناصر وشرح الروابط بلا تكرار
+
+---
+
+## قواعد المخططات (Diagrams) — `mermaid` فقط، إلزامي
+
+> **أي مخطط في الدليل يجب أن يكون `mermaid`. بلا استثناء.**
+> شجرة، مخطط تدفق، دورة، تسلسل، بنية نظام، تصنيف، آلة حالات — كلها `mermaid`.
+
+### القاعدة 1: لا تستعمل أي صيغة مخططات أخرى
+
+| ❌ ممنوع | ✅ الصحيح |
+| --- | --- |
+| ```` ```diagram ```` (صيغة `YAML` قديمة) | ```` ```mermaid ```` |
+| رسم `ASCII` بالمحارف (`+---+`, `--->`) | ```` ```mermaid ```` |
+| وصف المخطط نصياً فقط ثم تركه بلا رسم | ```` ```mermaid ```` |
+| صورة أو رابط صورة خارجي | ```` ```mermaid ```` |
+
+**لماذا `mermaid` تحديداً؟** المُصيّر يدعمها أصلاً: تصيير كسول عند التمرير
+(مهم لصفحة فيها عشرات المخططات)، خط عربي مضبوط مسبقاً، وتوافق تلقائي مع
+الوضع الليلي. أي صيغة أخرى لن تحصل على أيٍّ من ذلك.
+
+### القاعدة 2: البنية الكاملة لأي مخطط — أربعة أجزاء
+
+```markdown
+#### 📊 المخطط: [اسم المخطط]
+
+#### ما هذا المخطط؟
+> [جملة واحدة: ماذا يُظهر هذا المخطط ولماذا هو هنا]
+
+```mermaid
+graph TD
+    A["العقدة الأولى"] --> B["العقدة الثانية"]
+```
+
+**شرح العناصر:**
+- **[العقدة A]**: [معناها]
+- **[العقدة B]**: [معناها]
+
+**شرح الروابط:**
+- **من A إلى B**: [ماذا يعني هذا السهم]
+```
+
+المخطط بلا شرح عناصره وروابطه **ناقص** — الطالب لا يعرف كيف يقرؤه.
+
+### القاعدة 3: النصوص العربية داخل العُقد بين علامتَي تنصيص
+
+هذه أكثر نقطة تكسر `mermaid` عملياً. أي نص يحتوي **قوساً، فاصلة، نقطتين،
+شرطة مائلة، أو رمزاً رياضياً** يجب أن يكون داخل `"…"`.
+
+```mermaid
+graph TD
+    ❌ A[النهايتان (يمين ويسار) موجودتان؟] --> B[نعم]
+    ✅ A["النهايتان (يمين ويسار) موجودتان؟"] --> B["نعم"]
+```
+
+**القاعدة الآمنة: ضع كل نص عقدة بين `"…"` دائماً**، حتى لو بدا بسيطاً — أرخص
+من تتبّع أي محرف كسر المخطط.
+
+- سطر جديد داخل عقدة: `<br/>` (وليس `\n`)
+- تجنّب `#` و `%%` و `;` داخل النصوص
+- الرياضيات داخل العُقد: اكتبها نصاً بسيطاً (`x0`, `f(x0)`) — `mermaid` لا تُصيّر `LaTeX`
+
+### القاعدة 4: اختر نوع المخطط حسب المعنى
+
+| المعنى المطلوب | نوع `mermaid` |
+| --- | --- |
+| تصنيف / شجرة قرار / تسلسل هرمي | `graph TD` |
+| خطوات عملية أو خوارزمية بقرارات | `graph TD` مع `{شرط؟}` |
+| تدفق أفقي قصير | `graph LR` |
+| تفاعل بين أطراف عبر الزمن | `sequenceDiagram` |
+| بنية أصناف / علاقات كائنية | `classDiagram` |
+| دورة متكررة | `graph TB` مع رابط يعود للبداية |
+| بنية نظام بطبقات | `graph TB` مع `subgraph` |
+
+**اتجاه المخطط:** استعمل `TD` (أعلى→أسفل) افتراضياً — يقرأ بشكل طبيعي في
+الصفحة العربية. استعمل `LR` فقط للتدفقات القصيرة جداً.
+
+### القاعدة 5: متى تضع مخططاً أصلاً؟
+
+- ✅ عندما توجد **علاقة أو تفرّع أو تسلسل** يصعب فهمه من النص وحده
+- ✅ عندما تُصنّف المحاضرة شيئاً إلى أنواع (شجرة قرار مثالية)
+- ✅ عندما تشرح تدفق عملية متعددة الخطوات
+- ❌ **لا تُجبر** المخطط على محتوى خطّي بسيط — النص أوضح عندها
+- ❌ لا تحوّل جدول مقارنة إلى مخطط — الجدول أوضح للمقارنات
+
+> **ملاحظة عن مخططات المحاضرة الأصلية:** إذا كانت المحاضرة تحوي رسمة/صورة
+> مهمة، أعد بناءها كـ `mermaid` قدر الإمكان، **وأضف أيضاً** التنبيه:
+> "⚠️ **مهم:** هذا الموضوع موضح أفضل بالرسمة في الصفحة X من ملف المحاضرة."
+
+### ✅ قائمة تحقق المخططات
+
+- [ ] كل مخطط في الملف داخل ```` ```mermaid ```` — لا `diagram` ولا `ASCII` ولا صور
+- [ ] كل مخطط مسبوق بـ `#### 📊 المخطط:` و `#### ما هذا المخطط؟`
+- [ ] كل مخطط متبوع بـ **شرح العناصر** و **شرح الروابط**
+- [ ] كل نصوص العُقد بين `"…"`
+- [ ] الأسطر الجديدة داخل العُقد بـ `<br/>`
+- [ ] لا `LaTeX` داخل العُقد (نص بسيط فقط)
+- [ ] نوع المخطط يناسب المعنى (شجرة/تدفق/تسلسل/أصناف)
+
+---
+
 ## ترتيب المحتوى حسب نوع المادة (Content Ordering Rules)
 
 ### للرياضيات والهندسة والنظرية الكمية:
@@ -193,20 +510,48 @@ Fill every `[...]` from SUBJECT_BRIEF. Process enabled items only.
 9. ⚠️ أخطاء شائعة
 10. 📄 النص الأصلي (collapsible)
 
-**مثال صغير:**
+> ⚠️ **التزم بـ "قواعد كتابة المعادلات" أعلاه في كل قسم من هذا النوع.**
+
+**مثال صغير — لاحظ أن كل رمز رياضي داخل `$` وكل صيغة في `$$` مستقلة:**
 ```markdown
 ### 1.2. Derivative (المشتقة)
 <!-- @render: {type: "equation-first"} -->
 
 #### 💡 الفكرة الأساسية
-**المشتقة = معدل تغيير الدالة عند نقطة معينة**
+**المشتقة $f'(x)$ = معدل تغيير الدالة عند نقطة معينة**
 
-#### 📐 التعريف الرسمي
-$$f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$$
+#### 📐 التعريف / الصيغة
+
+$$
+f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}
+$$
 
 #### 📖 الشرح
-المشتقة تقيس الانحدار (slope) — كم بسرعة تتغير الدالة؟ كلما زادت القيمة الموجبة، كلما ارتفعت الدالة أسرع.
+المشتقة تقيس الانحدار (`slope`) — كم بسرعة تتغير الدالة؟ كلما زادت القيمة
+الموجبة، ارتفعت الدالة أسرع. لاحظ أن المشتقة موجودة فقط إذا كانت هذه النهاية
+**موجودة ومحدودة**.
+
+**مثال:** لحساب مشتقة $f(x) = x^{2}$ من التعريف نعوّض:
+
+$$
+f'(x) = \lim_{h \to 0} \frac{(x+h)^{2} - x^{2}}{h} = \lim_{h \to 0} (2x + h)
+$$
+
+$$
+\boxed{\,f'(x) = 2x\,}
+$$
 ```
+
+**قارن بالخطأ الشائع** (نفس المحتوى، لكنه سيُصيَّر مقلوباً ومتلاصقاً):
+```markdown
+❌ #### 💡 الفكرة الأساسية
+❌ **المشتقة `f'(x)` = معدل تغيير الدالة**
+❌
+❌ #### 📐 التعريف الرسمي
+❌ $$f'(x) = \lim_{h \to 0} \frac{f(x+h)-f(x)}{h}, \qquad f(x)=x², \qquad f'(x)=2x$$
+```
+السبب: `` `f'(x)` `` داخل backticks يأخذ اتجاه RTL، والصيغ الثلاث محشورة في
+`$$` واحد فتظهر متلاصقة، و `x²` رمز Unicode لا يُصيَّر رياضياً.
 
 ### للخوارزميات والبرمجة:
 **نوع المحتوى:** `type: "code-first"`
@@ -232,12 +577,14 @@ $$f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$$
 2. 📍 أين نحن الآن؟
 3. ⬅️ الربط مع السابق
 4. 💡 الفكرة الأساسية
-5. **📊 المخطط** ← **يأتي أولاً**
-6. جدول العُقد + جدول الروابط
+5. **📊 المخطط (`mermaid`)** ← **يأتي أولاً**
+6. شرح العناصر + شرح الروابط
 7. 📖 الشرح: "اقرأ المخطط كالتالي..."
 8. 🎯 الملخص السريع
 9. 📚 التطبيق
 10. 📄 النص الأصلي (collapsible)
+
+> ⚠️ **المخطط `mermaid` حصراً** — راجع "قواعد المخططات" أعلاه.
 
 ### للنظرية والمبادئ (الافتراضي):
 **نوع المحتوى:** `type: "prose-first"` ← **هذا الافتراضي**
@@ -530,7 +877,7 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 
 [code:] **💻 الكود:** [languages] — لغة الفنس يجب أن تكون اسم لغة حقيقي. انظر SCHEMA.md v2.0 §Code.
 [algorithm:] **⚙️ الخطوات / الخوارزمية:** أسطر داخل fence بصيغة `1 | الخطوة | الأداة | ماذا يحدث`. انظر SCHEMA.md v2.0.
-[diagrams:] **📊 المخطط:** 3 أقسام — ما هذا؟ + جدول العُقد + جدول الروابط + بلوك diagram. انظر SCHEMA.md v2.0.
+[diagrams:] **📊 المخطط:** 4 أجزاء — `#### 📊 المخطط:` + `#### ما هذا المخطط؟` + بلوك ```` ```mermaid ```` + شرح العناصر والروابط. **`mermaid` إلزامي لكل مخطط — ممنوع ```` ```diagram ```` أو ASCII أو صور. انظر "قواعد المخططات" أعلاه.**
 [trace:] **🔍 تتبع التنفيذ:** جدول الخطوات (أعمدة قابلة للتخصيص حسب المادة). انظر SCHEMA.md v2.0.
 [analogy:] **💡 التشبيه:** جملة من الحياة اليومية + "وجه الشبه: X = Y". استخدمه بكثرة.
 [trade_off:] **⚖️ المقايضة:** جدول المزايا × العيوب (متى تختاره؟).
@@ -538,13 +885,21 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 [compare:] **الفهم الخاطئ ❌ / الفهم الصحيح ✅** — في الملخص الشامل وأقسام الأخطاء: استخدم `#### الفهم الخاطئ ❌:` ثم `#### الفهم الصحيح ✅:` (فقرة أو أكثر لكل جانب). في الشرح المختصر داخل فقرة: سطر واحد لكل منهما بصيغة `**الفهم الخاطئ الشائع ❌:**` / `**الفهم الصحيح ✅:**`.
 [callouts:] #### مهم للامتحان ⚠️: / #### نقطة مهمة ⚠️: / #### ملاحظة: / #### الدرس المستفاد:
 [think_prompt:] **🤔 تفعيل الفهم:** استخدمه ≥[min_per_lecture] مرات.
-[equations:] **📐 المعادلة:** LaTeX في $$ أو fence math — يتبعها **الشرح:** بمعنى الرموز.
+[equations:] **📐 المعادلة:** LaTeX في `$$` (عرض) أو `$…$` (داخل السطر) — يتبعها **الشرح:** بمعنى الرموز. **صيغة واحدة لكل `$$`، سطر فارغ حولها، ولا رياضيات داخل backticks أبداً — انظر "قواعد كتابة المعادلات" أعلاه (إلزامي).**
 
 ---
 
 ## تحقق قبل الإنهاء
 
 [Checklist from subject-brief.output.checklist_items — all items]
+
+[if the subject has equations, append these items verbatim:]
+- [ ] لا توجد أي صيغة رياضية داخل backticks (كلها `$…$` أو `$$…$$`)
+- [ ] كل `$$` تحتوي صيغة واحدة فقط، وحولها سطر فارغ
+- [ ] لا يوجد `|` داخل أي معادلة (استُبدل بـ `\lvert … \rvert`)
+- [ ] لا رموز Unicode رياضية خارج اقتباس النص الأصلي
+- [ ] كل صفوف كل جدول لها نفس عدد الخلايا
+- [ ] أرقام الأجزاء (`## الجزء ...`) فريدة ومتسلسلة
 
 ---
 
@@ -567,4 +922,8 @@ coverage % = (عدد النقاط المشروحة / عدد النقاط في ا
 - [ ] `original_text_display.format` مُعكوس (collapsible vs inline vs hidden)
 - [ ] قسم مرجع القوالب يحتوي فقط القوالب المفعّلة، كاملة وحرفية
 - [ ] لا إشارات لأي parts/blocks معطّلة
-- [ ] صيغة v2.0 (metadata, coverage, collapsible structure)
+- [ ] صيغة v2.1 (metadata, coverage, collapsible structure)
+- [ ] **إن كانت المادة تحتوي معادلات:** قسم "قواعد كتابة المعادلات" منسوخ كاملاً وحرفياً في `custom_prompt.md` (القواعد التسع + قائمة التحقق)
+- [ ] **إن كانت المادة لا تحتوي معادلات إطلاقاً:** القسم محذوف بالكامل (لا تُثقل البرومبت بقواعد لا تنطبق)
+- [ ] المثال المصغّر لـ `equation-first` يُظهر `$…$` داخل السطر و `$$` مستقلة — لا backticks حول الرياضيات
+- [ ] **إن كانت كتلة `diagrams` مفعّلة:** قسم "قواعد المخططات" منسوخ كاملاً، ولا يوجد أي ذكر لـ ```` ```diagram ```` في `custom_prompt.md`
