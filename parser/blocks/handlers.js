@@ -629,6 +629,27 @@ export function createDefaultBlockHandlers() {
       },
     },
 
+    // ── Standalone display math ────────────────────────────────────────────
+    // A `$$…$$` block that is NOT the first one under `#### 📐` (that one is
+    // claimed by h4-schema-equation). Without this rule the second, third…
+    // equation of a section collapses into a paragraph — the lines get joined
+    // by a space and the formula renders as right-to-left body text instead of
+    // a centred, LTR equation. Emitting a titleless equation block keeps every
+    // formula in its own card with real spacing around it.
+    {
+      id: 'display-math',
+      priority: 72,
+      test: (ctx) => ctx.trimmed === '$$' || /^\$\$[\s\S]*\$\$$/.test(ctx.trimmed),
+      parse: (ctx) => {
+        const math = collectDollarMath(ctx.lines, ctx.i);
+        if (!math?.latex) return null;
+        return {
+          block: { type: 'equation', title: '', latex: math.latex, displayMode: true },
+          nextIndex: math.nextIndex,
+        };
+      },
+    },
+
     // ── Tables ─────────────────────────────────────────────────────────────
     {
       id: 'table',

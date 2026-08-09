@@ -360,15 +360,23 @@ function renderCoreIdea(block) {
 }
 
 function renderEquation(block) {
-  const title = block.title || '📐 المعادلة';
+  // `title: ''` (a standalone `$$…$$`) renders bare — no header, no card — so a
+  // run of consecutive formulas reads as a sequence of equations rather than a
+  // stack of identical "📐 المعادلة" boxes.
+  const title = block.title === '' ? '' : (block.title || '📐 المعادلة');
   const display = block.displayMode !== false;
   const latex = block.latex || '';
-  let html = `<div class="equation-block mb-lg box-animate bg-surface-container-low border border-outline-variant rounded-xl p-lg">
-    <div class="flex items-center gap-sm mb-md">
+  const shell = title
+    ? 'equation-block mb-lg box-animate bg-surface-container-low border border-outline-variant rounded-xl p-lg'
+    : 'equation-block equation-block--bare mb-lg box-animate';
+  let html = `<div class="${shell}">`;
+  if (title) {
+    html += `<div class="flex items-center gap-sm mb-md">
       ${ms('functions', false, 'text-primary text-lg')}
       <h5 class="font-headline-sm text-headline-sm text-on-surface">${inlineMd(title)}</h5>
-    </div>
-    <div class="equation-block__math overflow-x-auto py-sm text-center" data-katex-display="${display ? 'true' : 'false'}">${esc(latex)}</div>`;
+    </div>`;
+  }
+  html += `<div class="equation-block__math overflow-x-auto py-sm text-center" data-katex-display="${display ? 'true' : 'false'}">${esc(latex)}</div>`;
   if (block.explanation) {
     html += `<div class="equation-block__explain mt-md pt-md border-t border-outline-variant font-body-md text-on-surface-variant leading-relaxed">${inlineMd(block.explanation).replace(/\n/g, '<br>')}</div>`;
   }

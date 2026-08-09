@@ -2044,6 +2044,46 @@ details[open] summary .acc-chevron { transform: rotate(180deg); }
   margin: 0 auto;
 }
 
+/* ── Equations (KaTeX) ──
+   Math is always left-to-right, even inside an RTL Arabic paragraph. Without
+   the isolation below the bidi algorithm reorders an inline formula around
+   Arabic text — `f(x) = 2x` reads back as `2x = f(x)` — and mirrors the
+   brackets in interval notation such as ]-∞, +∞[. */
+.katex {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
+.katex-display {
+  direction: ltr;
+  unicode-bidi: isolate;
+  margin: 0;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* Inline math sits on the text baseline; keep a hair of side padding so it
+   never touches the Arabic word next to it. */
+.prose-content .katex:not(.katex-display .katex) {
+  padding: 0 0.15em;
+}
+
+/* Breathing room between consecutive formulas — the main reason stacked
+   equations used to read as one dense block. */
+.equation-block--bare {
+  padding: 0.35rem 0;
+}
+
+.equation-block--bare + .equation-block--bare {
+  margin-top: -0.5rem;
+}
+
+.equation-block__math {
+  line-height: 1.9;
+}
+
 /* ── Mermaid diagrams ── */
 .mermaid-container {
   border: 1px solid var(--color-outline-variant);
