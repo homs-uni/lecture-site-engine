@@ -119,6 +119,14 @@ function sourceTag(source) {
   return `<span class="font-label-md px-sm py-xs rounded-full bg-outline-variant/40 text-on-surface-variant">${esc(source)}</span>`;
 }
 
+/** Per-question "**المحاضرة:**" tag — which lecture this question's answer
+ * traces back to. Shown as a chip so the link is visible in BOTH orderings,
+ * not only when the bank happens to be grouped by lecture. */
+function lectureTag(lecture) {
+  if (!lecture) return '';
+  return `<span class="mcq-lecture-tag inline-flex items-center gap-2xs font-label-md px-sm py-xs rounded-full bg-tertiary-container text-on-tertiary-container">${ms('menu_book', false, 'text-sm leading-none')}${esc(lecture)}</span>`;
+}
+
 /** Inline "propose a correction" helper shown inside a question's comment
  * popup — builds a `#correction`-tagged message, copies it when possible,
  * then shows the draft above the shared question Giscus thread (same
@@ -151,11 +159,12 @@ function renderCorrectionPicker(q) {
 /** Renders one answerable question as its own card — reused both for a
  * standalone question and for each sub-question inside a Case-2 group. */
 function renderMcqCard(q, cardId, { showSource = true } = {}) {
-  let html = `<article class="mcq-card bg-surface-container-lowest dark:bg-[#161b30] border border-outline-variant dark:border-[#1e40af] rounded-xl p-lg custom-shadow box-animate box-hover scroll-mt-16 anchor-target" id="${cardId}" data-correct="${q.correct}" data-discussion-term="${esc(cardId)}">
+  let html = `<article class="mcq-card bg-surface-container-lowest dark:bg-[#161b30] border border-outline-variant dark:border-[#1e40af] rounded-xl p-lg custom-shadow box-animate box-hover scroll-mt-16 anchor-target" id="${cardId}" data-correct="${q.correct}" data-discussion-term="${esc(cardId)}" data-lecture="${esc(q.lecture || '')}" data-sitting="${esc(q.section || '')}">
     <div class="flex items-center gap-md mb-md flex-wrap">
       <span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-lg font-code-sm text-code-sm">س${q.num}</span>
       ${q.difficulty ? `<span class="font-label-md px-sm py-xs rounded-full ${diffBadgeClass(q.difficulty)}">${esc(q.difficulty)}</span>` : ''}
       ${showSource ? sourceTag(q.source) : ''}
+      ${lectureTag(q.lecture)}
       <div class="mcq-card-discuss-actions mr-auto flex items-center">
         <button type="button"
           class="mcq-discuss-summary inline-flex items-center gap-sm text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 p-0 shadow-none rounded-none cursor-pointer"
@@ -221,11 +230,12 @@ function renderMcqCard(q, cardId, { showSource = true } = {}) {
  * wrapping block, so the stimulus and all its questions stay together and
  * scroll/move as a unit instead of reading as unrelated separate cards. */
 function renderMcqGroup(q, partId) {
-  let html = `<section class="mcq-group bg-surface-container-low dark:bg-[#12162a] border-2 border-primary/30 dark:border-[#2b3a8f] rounded-2xl p-lg custom-shadow box-animate box-hover">
+  let html = `<section class="mcq-group bg-surface-container-low dark:bg-[#12162a] border-2 border-primary/30 dark:border-[#2b3a8f] rounded-2xl p-lg custom-shadow box-animate box-hover" data-lecture="${esc(q.lecture || '')}" data-sitting="${esc(q.section || '')}">
     <div class="flex items-center gap-md mb-md flex-wrap">
       <span class="px-sm py-xs bg-primary text-on-primary rounded-lg font-code-sm text-code-sm">${ms('link', true, 'text-sm')} س${q.num}${q.questions.length > 1 ? `–${q.questions[q.questions.length - 1].num}` : ''}</span>
       ${q.difficulty ? `<span class="font-label-md px-sm py-xs rounded-full ${diffBadgeClass(q.difficulty)}">${esc(q.difficulty)}</span>` : ''}
       ${sourceTag(q.source)}
+      ${lectureTag(q.lecture)}
     </div>
     ${renderQuestionStem(q.stimulus)}
     <div class="space-y-md mt-lg">`;
@@ -235,6 +245,7 @@ function renderMcqGroup(q, partId) {
       ...sub,
       source: sub.source || q.source || '',
       section: sub.section || q.section || '',
+      lecture: sub.lecture || q.lecture || '',
     };
     html += renderMcqCard(subQ, mcqCardDomId(partId, subQ), { showSource: false });
   });
@@ -242,14 +253,33 @@ function renderMcqGroup(q, partId) {
   return html + '</div></section>';
 }
 
+/** Segmented "order by" control — only rendered when the bank actually carries
+ * per-question "**المحاضرة:**" tags, so ordinary lecture MCQs are unaffected. */
+function groupByToggle(hasLectures) {
+  if (!hasLectures) return '';
+  const btn = (mode, icon, label, on) =>
+    `<button type="button" data-mcq-groupby="${mode}" aria-pressed="${on}" class="mcq-groupby-btn inline-flex items-center gap-xs px-sm py-xs rounded-lg border font-label-md transition-all ${
+      on
+        ? 'bg-primary text-on-primary border-primary'
+        : 'bg-surface-container-high text-on-surface border-outline-variant hover:bg-surface-variant'
+    }">${ms(icon, false, 'text-sm')} ${label}</button>`;
+  return `<div class="mcq-groupby flex items-center gap-xs flex-wrap" role="group" aria-label="ترتيب الأسئلة">
+    <span class="font-label-md text-on-surface-variant">الترتيب:</span>
+    ${btn('sitting', 'history_edu', 'حسب الدورة', true)}
+    ${btn('lecture', 'menu_book', 'حسب المحاضرة', false)}
+  </div>`;
+}
+
 export function renderMCQ(questions, partId) {
   const totalCount = questions.reduce((n, q) => n + (q.type === 'group' ? q.questions.length : 1), 0);
+  const hasLectures = questions.some(q => q.lecture);
 
   let html = `<div class="mcq-progress sticky top-16 z-10 bg-surface-container-lowest dark:bg-[#10121f]/90 border border-outline-variant dark:border-[#1e40af] rounded-xl p-md mb-lg custom-shadow box-animate box-hover backdrop-blur-sm" data-part="${partId}" data-total="${totalCount}">
     <div class="flex items-center justify-between gap-md mb-sm flex-wrap">
-      <div class="flex items-center gap-md">
+      <div class="flex items-center gap-md flex-wrap">
         ${ms('quiz', false, 'text-primary')}
         <span class="font-label-md text-on-surface-variant">تقدّم الإجابة: <strong class="text-on-surface mcq-answered-count">0</strong> / ${totalCount}</span>
+        ${groupByToggle(hasLectures)}
       </div>
       <div class="flex items-center gap-sm font-label-md flex-wrap">
         <span class="text-primary">✓ <strong class="mcq-score">0</strong></span>
@@ -262,29 +292,29 @@ export function renderMCQ(questions, partId) {
     </div>
     <div class="mcq-progress-track" role="img" aria-label="شريط تقدّم الإجابات">${Array.from({ length: totalCount }, () => '<span class="mcq-progress-seg mcq-progress-seg--pending"></span>').join('')}</div>
   </div>
-  <div class="space-y-lg">`;
+  <div class="mcq-list space-y-lg" data-groupby="sitting">`;
 
   let lastSection = null;
+  let order = 0;
   questions.forEach(q => {
-    // "## <label>" dividers in the source (e.g. grouping a past-exam bank's
-    // questions by which lecture their answer came from) come through as a
-    // `section` string on every question — insert a heading whenever it
-    // changes so consecutive questions from the same section stay grouped
-    // visually without repeating the label on every card.
+    // "## <label>" dividers in the source (a past-exam bank's exam sittings —
+    // "## دورة 3 — …") come through as a `section` string on every question —
+    // insert a heading whenever it changes so consecutive questions from the
+    // same sitting stay grouped visually without repeating the label.
+    // Regrouping by lecture rebuilds these headings client-side instead.
     const sectionKey = normalizeMcqSection(q.section);
     if (sectionKey && sectionKey !== lastSection) {
       const secId = `${partId}-${mcqSectionAnchor(sectionKey)}`;
-      html += `<h3 id="${esc(secId)}" class="font-headline-md text-headline-md text-primary dark:text-inverse-primary flex items-center gap-sm pt-md first:pt-0 scroll-mt-16">
-        ${ms('menu_book', false, 'text-lg')} ${esc(sectionKey)}
+      html += `<h3 id="${esc(secId)}" class="mcq-group-heading font-headline-md text-headline-md text-primary dark:text-inverse-primary flex items-center gap-sm pt-md first:pt-0 scroll-mt-16" data-group-kind="sitting">
+        ${ms('history_edu', false, 'text-lg')} ${esc(sectionKey)}
       </h3>`;
     }
     lastSection = sectionKey || lastSection;
 
-    if (q.type === 'group') {
-      html += renderMcqGroup(q, partId);
-      return;
-    }
-    html += renderMcqCard(q, mcqCardDomId(partId, q));
+    // `data-order` freezes the file's own order so regrouping stays stable no
+    // matter how many times the reader toggles back and forth.
+    const cardHtml = q.type === 'group' ? renderMcqGroup(q, partId) : renderMcqCard(q, mcqCardDomId(partId, q));
+    html += cardHtml.replace(/^(\s*<(?:article|section) )/, `$1data-order="${order++}" `);
   });
 
   return html + '</div>';

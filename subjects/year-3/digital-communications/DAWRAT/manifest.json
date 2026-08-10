@@ -1,0 +1,7 @@
+{
+  "title": "دورات سنوات سابقة",
+  "subtitle": "أسئلة من دورات امتحانية سابقة",
+  "files": [
+    { "path": "exams.md", "id": "exams", "icon": "📝", "matIcon": "history_edu", "label": "دورات سنوات سابقة" }
+  ]
+}

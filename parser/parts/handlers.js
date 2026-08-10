@@ -243,6 +243,19 @@ function extractSource(chunk) {
 }
 
 /**
+ * Extracts a "**المحاضرة:** ..." tag — which lecture a past-exam question's
+ * answer traces back to. Deliberately a per-question TAG rather than a "## "
+ * section divider: the markdown keeps the questions in their original exam
+ * order, and the UI regroups by lecture on demand, so one bank can be read
+ * either way without duplicating the file or committing to one ordering.
+ */
+function extractLecture(chunk) {
+  const m = chunk.match(/^\*\*المحاضرة:\*\*[ \t]*([^\n]*)\n?/m);
+  if (m) return { lecture: m[1].trim(), rest: chunk.replace(m[0], '') };
+  return { lecture: '', rest: chunk };
+}
+
+/**
  * Case-2 "shared stimulus" group: one paragraph/code block feeding several
  * sub-questions, all inside a single "### السؤال N–M (...)" chunk so they
  * stay visually and semantically together instead of being split into
@@ -305,7 +318,8 @@ export function parseMCQ(text, config) {
       .split(/(?=^(?:#{3,4} (?:ال)?سؤال \d+|\*\*(?:ال)?سؤال \d+ ?\())/m)
       .filter(c => /^(?:#{3,4} (?:ال)?سؤال \d+|\*\*(?:ال)?سؤال \d+ ?\()/.test(c.trim()))
       .map(chunk => {
-        const { source, rest: cleanedChunk } = extractSource(chunk);
+        const { source, rest: sourceless } = extractSource(chunk);
+        const { lecture, rest: cleanedChunk } = extractLecture(sourceless);
 
         // "\d+" only matched plain numbers, so sub-numbered questions like
         // "### السؤال 1.1 (hard): ..." (used for multi-part scenarios) fell
@@ -318,10 +332,10 @@ export function parseMCQ(text, config) {
         const subMatches = [...afterHeading.matchAll(/^\*\*السؤال [\d.]+:\*\*/gm)];
         if (subMatches.length) {
           const { stimulus, questions } = parseMcqGroup(afterHeading, subMatches, arabicKey);
-          return { type: 'group', num, difficulty, source, section, stimulus, questions };
+          return { type: 'group', num, difficulty, source, section, lecture, stimulus, questions };
         }
 
-        return { num, difficulty, source, section, ...parseQuestionContent(afterHeading, arabicKey) };
+        return { num, difficulty, source, section, lecture, ...parseQuestionContent(afterHeading, arabicKey) };
       }),
   );
 }

@@ -1,4 +1,5 @@
 import { ms } from '../core/icons.js';
+import { mcqSectionAnchor } from '../core/slug.js';
 
 let interactivityBound = false;
 
@@ -241,6 +242,106 @@ function positionLineExplainTip(tip, anchor) {
   tip.style.left = `${left}px`;
 }
 
+/* ── MCQ "order by" (دورة ↔ محاضرة) ───────────────────────────────────────
+ * A past-exam bank carries two independent groupings: the exam sitting it came
+ * from ("**المصدر:**" + "## دورة …" dividers) and the lecture its answer traces
+ * back to ("**المحاضرة:**" tag). The markdown commits to sitting order; this
+ * regroups the already-rendered cards client-side so neither ordering has to
+ * be the "real" one. Cards are MOVED, never re-created, so answered state,
+ * saved picks and open comment popups survive a toggle.
+ */
+const MCQ_GROUPBY_KEY = 'mcqGroupBy';
+
+/** "المحاضرة 4: …" → 4, so lecture groups sort by lecture number rather than
+ * by the Arabic label's collation order. Untagged questions sink to the end. */
+function lectureSortKey(label) {
+  const m = String(label || '').match(/\d+/);
+  return m ? Number(m[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function groupHeadingHtml(kind, label) {
+  const icon = kind === 'lecture' ? 'menu_book' : 'history_edu';
+  return `${ms(icon, false, 'text-lg')} ${escTip(label)}`;
+}
+
+/** @param {HTMLElement} list @param {'sitting'|'lecture'} mode */
+export function setMcqGroupBy(list, mode) {
+  if (!list) return;
+  const items = [...list.children].filter(el => !el.classList.contains('mcq-group-heading'));
+  if (!items.length) return;
+
+  // Always re-sort from the frozen file order first, so toggling repeatedly
+  // can't drift the within-group ordering.
+  items.sort((a, b) => Number(a.dataset.order || 0) - Number(b.dataset.order || 0));
+
+  const buckets = new Map();
+  for (const el of items) {
+    const key = (mode === 'lecture' ? el.dataset.lecture : el.dataset.sitting) || 'غير مصنّف';
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(el);
+  }
+
+  const ordered = [...buckets.entries()].sort((a, b) =>
+    mode === 'lecture'
+      ? lectureSortKey(a[0]) - lectureSortKey(b[0])
+      : Number(a[1][0].dataset.order || 0) - Number(b[1][0].dataset.order || 0),
+  );
+
+  // Heading ids are regenerated with the SAME helper the server-side renderer
+  // uses, so sitting-mode anchors (and the sidebar links pointing at them)
+  // survive a round trip, and lecture-mode headings are linkable too.
+  const partId = list.closest('[data-part-type]')?.id || '';
+  const groups = [];
+
+  const frag = document.createDocumentFragment();
+  for (const [label, els] of ordered) {
+    const anchor = mcqSectionAnchor(label);
+    const h = document.createElement('h3');
+    h.className =
+      'mcq-group-heading font-headline-md text-headline-md text-primary dark:text-inverse-primary flex items-center gap-sm pt-md first:pt-0 scroll-mt-16';
+    h.dataset.groupKind = mode;
+    if (partId) h.id = `${partId}-${anchor}`;
+    h.innerHTML = groupHeadingHtml(mode, label);
+    frag.appendChild(h);
+    for (const el of els) frag.appendChild(el);
+    groups.push({ level: 3, text: label, id: anchor });
+  }
+  list.replaceChildren(frag);
+  list.dataset.groupby = mode;
+
+  // Let the shell re-point the sidebar/TOC at whichever grouping is now on
+  // screen — without it, the contents panel would keep listing the headings
+  // that were just replaced.
+  list.dispatchEvent(new CustomEvent('mcq:groupchange', {
+    bubbles: true,
+    detail: { partId, mode, groups },
+  }));
+
+  const scope = list.closest('.section-block') || list.parentElement;
+  scope?.querySelectorAll('[data-mcq-groupby]').forEach(btn => {
+    const on = btn.dataset.mcqGroupby === mode;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.classList.toggle('bg-primary', on);
+    btn.classList.toggle('text-on-primary', on);
+    btn.classList.toggle('border-primary', on);
+    btn.classList.toggle('bg-surface-container-high', !on);
+    btn.classList.toggle('text-on-surface', !on);
+    btn.classList.toggle('border-outline-variant', !on);
+  });
+}
+
+/** Re-apply the reader's saved ordering after new MCQ content is mounted. */
+export function applyStoredMcqGroupBy(root = document) {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(MCQ_GROUPBY_KEY);
+  } catch { /* private mode — fall back to the rendered order */ }
+  if (saved !== 'lecture' && saved !== 'sitting') return;
+  root.querySelectorAll('.mcq-list').forEach(list => {
+    if (list.dataset.groupby !== saved) setMcqGroupBy(list, saved);
+  });
+}
+
 /**
  * Bind delegated event handlers for MCQ, qa-card, copy-code, line-explain toggle.
  * Idempotent — safe to call once at app init.
@@ -256,6 +357,19 @@ export function initInteractivity(root = document) {
   }
 
   root.addEventListener('click', e => {
+    const groupByBtn = e.target.closest('[data-mcq-groupby]');
+    if (groupByBtn) {
+      const mode = groupByBtn.dataset.mcqGroupby;
+      const scope = groupByBtn.closest('.section-block') || document;
+      const list = scope.querySelector('.mcq-list');
+      if (!list || list.dataset.groupby === mode) return;
+      setMcqGroupBy(list, mode);
+      try {
+        localStorage.setItem(MCQ_GROUPBY_KEY, mode);
+      } catch { /* private mode — the toggle still works for this session */ }
+      return;
+    }
+
     const resetAllBtn = e.target.closest('[data-mcq-reset-all]');
     if (resetAllBtn) {
       const section = resetAllBtn.closest('.section-block');

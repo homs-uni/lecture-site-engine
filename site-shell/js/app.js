@@ -84,6 +84,7 @@ const {
   initInteractivity,
   applyMcqPick,
   updateMCQProgress,
+  applyStoredMcqGroupBy,
   setRefContext,
   clearRefContext,
   ms,
@@ -443,9 +444,11 @@ function setJumpQuizVisible(show) {
 }
 
 function mountReviewHtml(item, html) {
+  lastMountedTocItem = item;
   document.getElementById("content").innerHTML = html;
   showView("lecture");
   initInteractivity(document.getElementById("content"));
+  applyStoredMcqGroupBy(document.getElementById("content"));
   initDiagrams(document.getElementById("content"));
   initEquations(document.getElementById("content"));
   initMermaid(document.getElementById("content"));
@@ -1419,6 +1422,24 @@ function setActiveNavLink(activeEl) {
     }
   });
 }
+
+/** The item whose TOC is currently in the sidebar — needed so an MCQ
+ * "order by" toggle can re-point the contents panel at the new headings. */
+let lastMountedTocItem = null;
+
+/** Keep the sidebar in step when a past-exam bank is regrouped (دورة ↔ محاضرة):
+ * the renderer replaced the "## " headings, so the TOC subsections that pointed
+ * at the old ones have to be rebuilt from the grouping it just emitted. */
+document.addEventListener("mcq:groupchange", (e) => {
+  const { partId, groups } = e.detail || {};
+  const toc = lastMountedTocItem?.toc;
+  const part = toc?.parts?.find((p) => p.id === partId);
+  if (!part || !Array.isArray(groups)) return;
+  part.subsections = groups;
+  buildSidebar(toc);
+  updateSidebarProgressTarget();
+  updateSidebarProgressFill();
+});
 
 function buildSidebar(toc) {
   const containers = [

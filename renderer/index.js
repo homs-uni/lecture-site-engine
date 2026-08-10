@@ -19,7 +19,7 @@ import {
   buildTocData,
   shortLectureTitle,
 } from './lecture/index.js';
-import { initInteractivity, pickMCQ, applyMcqPick, resetMcqCard, resetAllMcqInSection, updateMCQProgress } from './interactivity/index.js';
+import { initInteractivity, pickMCQ, applyMcqPick, resetMcqCard, resetAllMcqInSection, updateMCQProgress, setMcqGroupBy, applyStoredMcqGroupBy } from './interactivity/index.js';
 
 const DEFAULT_CONFIG = {
   defaultTitle: 'Study Guide',
@@ -74,6 +74,8 @@ export function createRenderer(options = {}) {
     resetMcqCard,
     resetAllMcqInSection,
     updateMCQProgress,
+    setMcqGroupBy,
+    applyStoredMcqGroupBy,
     PART_MAT_ICONS,
     ms,
   };
@@ -82,4 +84,4 @@ export function createRenderer(options = {}) {
 export { PART_MAT_ICONS, ms, setRefContext, clearRefContext };
 export { createBlockRegistry, renderBlocks } from './blocks/index.js';
 export { createPartRegistry } from './parts/index.js';
-export { initInteractivity, pickMCQ, applyMcqPick, resetMcqCard, resetAllMcqInSection, updateMCQProgress } from './interactivity/index.js';
+export { initInteractivity, pickMCQ, applyMcqPick, resetMcqCard, resetAllMcqInSection, updateMCQProgress, setMcqGroupBy, applyStoredMcqGroupBy } from './interactivity/index.js';
