@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "subjectName": "نظم المعلومات — ملاحظات",
+    "subjectNameEn": "Information Systems Notes",
+    "year": "2025-2026",
+    "academicYear": 4,
+    "theme": "software-purple",
+    "enabledLectures": true,
+    "department": "نظري"
+  },
+  "title": "ملخصات وقراءة شاملة — نظم المعلومات",
+  "subtitle": "قراءة متصلة مرتّبة حسب فصول المادة",
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "الفصل ١"
+    }
+  ],
+  "lectureIcons": [
+    "📌",
+    "📖",
+    "💻",
+    "🎯",
+    "📝"
+  ],
+  "lectureMatIcons": [
+    "school",
+    "menu_book",
+    "code",
+    "quiz",
+    "description"
+  ]
+}
