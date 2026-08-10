@@ -1,5 +1,6 @@
-schema_version: "1.0"
+schema_version: "2.0"
 
+# ─── Subject identity ─────────────────────────────────────────────────────────
 subject:
   id: information-systems
   name_ar: "نظم المعلومات"
@@ -7,6 +8,7 @@ subject:
   tagline: "مفاهيم + تحليل + تصميم + تطوير"
   section_label: "نظري"
 
+# ─── Locale & terminology ─────────────────────────────────────────────────────
 locale:
   language: ar
   direction: rtl
@@ -15,6 +17,7 @@ locale:
   extra_explanation_tag: "(شرح زيادة للفهم)"
   not_in_lecture_tag: "(غير مشروحة في المحاضرة)"
 
+# ─── Domain & Content Organization ─────────────────────────────────────────────
 domain: analysis
 
 domain_profile:
@@ -26,37 +29,75 @@ domain_profile:
   forbid_adding: []
   prerequisites: []
 
+# ─── Content Ordering Rules ────────────────────────────────────────────────────
+content_ordering:
+  section_type_rules:
+    equation_subjects: []
+    code_subjects: []
+    diagram_subjects: [information-systems]
+    comparison_subjects: [information-systems]
+    command_subjects: []
+    scenario_subjects: []
+
+  default_type: "diagram-first"
+
+# ─── Visualization Templates Available ─────────────────────────────────────────
+visualization_templates:
+  enabled_types:
+    - inline-text
+    - inline-algorithm
+    - full-width-algorithm
+    - comparison-table
+    - cycle
+    - sequence
+    - tree
+    - flowchart
+
+  diagram_types: [flowchart, bpmn, decision-tree, dfd, usecase, class, activity, erd, state-transition]
+
+# ─── Coverage Tracking ──────────────────────────────────────────────────────────
+coverage_tracking:
+  enabled: true
+  require_metadata: true
+  acceptable_coverage_threshold: 90
+
+# ─── Original Text Display ──────────────────────────────────────────────────────
+original_text_display:
+  enabled: true
+  format: "collapsible"
+  show_coverage_badge: true
+  location: "after-explanation"
+
+# ─── Lecture heading ────────────────────────────────────────────────────────────
 lecture:
   unit_label: "المحاضرة"
   split_regex: "^# المحاضرة "
   title_pattern: "# {unit_label} {num} — {title_en} ({title_ar})"
   intro_blockquote: true
+  combine_related_topics: false
 
+# ─── Parts ──────────────────────────────────────────────────────────────────────
 parts:
   integration_map:
-    enabled: true
+    enabled: false
     heading: "📌 خريطة التكامل (أين تقع هذه المحاضرة في الدورة؟)"
-
-  detail:
-    enabled: true
-    heading: "الجزء الأول: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)"
-    numbered_sections: true
-    require_per_section:
-      - original_quote
-      - simplified_explanation
 
   summary:
     enabled: true
-    heading: "الجزء الثاني: ملخص منظم"
+    heading: "الجزء الأول: ملخص منظم (اقرأ قبل المحاضرة!)"
     subsections:
-      - definitions_table
-      - components_table
-      - comparisons_table
-      - glossary
-      - golden_points
-      - common_mistakes_table
-      - patterns
-      - main_ideas
+      - lecture_overview
+      - learning_objectives
+      - prerequisites
+      - main_concepts
+      - connections
+      - common_mistakes
+
+  detail:
+    enabled: true
+    heading: "الجزء الثاني: الشرح التفصيلي (سطر بسطر / فقرة بفقرة)"
+    numbered_sections: true
+    require_per_section: []
 
   mcq:
     enabled: true
@@ -78,10 +119,10 @@ parts:
     cover: [logic, misconception, return_check, dead_code]
 
   exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين إضافية (من إعداد الدليل للتدريب)"
-    count_min: 5
-    count_max: 8
+    count_min: 4
+    count_max: 7
     authored_by_guide: true
     types:
       - fill_gaps
@@ -89,9 +130,9 @@ parts:
       - scenario
 
   analysis_exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين تحليل وتطبيق (إضافية — من إعداد الدليل)"
-    count_min: 4
+    count_min: 3
     count_max: 6
     types:
       - case_study
@@ -100,7 +141,7 @@ parts:
       - written_analysis
 
   trace_exercise:
-    enabled: true
+    enabled: false
     heading: "الجزء الرابع: تمارين تتبع التنفيذ"
     count_min: 3
     note: "كل تمرين: مدخل + جدول/شجرة ناقصة للطالب + نموذج الحل الكامل"
@@ -116,13 +157,13 @@ parts:
       - schema_design
 
   theory:
-    enabled: true
+    enabled: false
     heading: "الجزء الخامس: أسئلة نظرية متوقعة بالامتحان"
-    count_min: 10
+    count_min: 8
 
   cheat_sheet:
     enabled: true
-    heading: "الجزء السادس: ورقة المراجعة السريعة (Cheat Sheet)"
+    heading: "الجزء الرابع: ورقة المراجعة السريعة (Cheat Sheet)"
     subsections:
       - integration_map_table
       - golden_rules_table
@@ -130,7 +171,7 @@ parts:
 
   qa_cards:
     enabled: true
-    heading: "الجزء الرابع: بطاقات سؤال وجواب (Q&A Cards)"
+    heading: "الجزء الثالث: بطاقات سؤال وجواب (Q&A Cards)"
     count_min: 15
 
   reference_code:
@@ -142,11 +183,16 @@ parts:
     note: ""
 
   checklist:
-    enabled: true
+    enabled: false
     heading: "الجزء السادس: قائمة فحص ذاتي قبل الامتحان ✅"
 
+# ─── Blocks ─────────────────────────────────────────────────────────────────────
 blocks:
+
   original_quote:
+    enabled: false
+
+  render_metadata:
     enabled: true
 
   simplified_explanation:
@@ -168,7 +214,7 @@ blocks:
     enabled: false
 
   troubleshooting:
-    enabled: true
+    enabled: false
 
   diagrams:
     enabled: true
@@ -197,7 +243,7 @@ blocks:
 
   think_prompt:
     enabled: true
-    min_per_lecture: 4
+    min_per_lecture: 3
 
   tables:
     enabled: true
@@ -212,7 +258,7 @@ blocks:
     enabled: false
 
   qa_inline:
-    enabled: true
+    enabled: false
 
   analogy:
     enabled: true
@@ -232,6 +278,70 @@ blocks:
     require_explanation: true
     common_symbols: []
 
+# ─── Section Structure Template ────────────────────────────────────────────────
+section_template:
+  structure:
+    - element: "heading"
+      label: "### 1.1 Topic Name"
+      required: true
+
+    - element: "render_metadata"
+      format: "<!-- @render: {type: \"...\", visualization: \"...\", coverage: \"...\", connectivity: {...}} -->"
+      required: true
+
+    - element: "context"
+      label: "📍 أين نحن الآن؟"
+      format: "#### [one sentence]"
+      required: false
+
+    - element: "connectivity"
+      label: "⬅️ الربط مع السابق"
+      format: "#### [one sentence — prerequisite or connection to previous topic]"
+      required: true
+      note: "يحل محل 'النص الأصلي يقول' في النموذج"
+
+    - element: "core_idea"
+      label: "💡 الفكرة الأساسية"
+      format: "#### **[One sentence core idea — bold, high contrast]**"
+      required: true
+
+    - element: "definition_or_formula"
+      label: "[📐 التعريف / الصيغة] أو [💻 الكود] أو [📊 المخطط]"
+      format: "#### [Depends on content_type]"
+      required: false
+      conditional: "if type: equation-first then required"
+
+    - element: "explanation"
+      label: "📖 الشرح"
+      format: "#### [2-4 short paragraphs, NOT one dense block]"
+      required: true
+
+    - element: "summary"
+      label: "🎯 الملخص السريع"
+      format: "#### [Bullets — 3-5 key points]"
+      required: false
+
+    - element: "application"
+      label: "📚 التطبيق / استخدام"
+      format: "#### [Where is this used next? How does it connect forward?]"
+      required: false
+
+    - element: "original_text_collapsible"
+      label: "📄 النص الأصلي من المحاضرة"
+      format: |
+        <details>
+        <summary>عرض النص الأصلي (coverage: XX%)</summary>
+        > [EXACT QUOTE]
+        </details>
+      required: true
+      note: "Collapsible by default — not visible unless clicked"
+
+    - element: "common_mistakes"
+      label: "⚠️ أخطاء شائعة"
+      format: "#### [List with ❌ and ✓]"
+      required: false
+
+# ─── Pedagogy flags ──────────────────────────────────────────────────────────
 pedagogy:
   cover_every_line: true
   complete_gaps: true
@@ -239,163 +349,52 @@ pedagogy:
   explain_why: true
   daily_analogy_plus_example: true
   follow_lecture_order: true
-  adapt_to_lecture_type: true
+  adapt_to_lecture_type: false
 
-  lecture_types:
-    - id: introduction
-      match: "المفهوم العام لنظام المعلومات"
-      tools: ["system", "data", "information", "closed/open system"]
-    - id: technology
-      match: "تكنولوجيا نظم المعلومات"
-      tools: ["OS", "utility programs", "language translators", "WAN", "LAN", "topologies"]
-    - id: sdlc
-      match: "دورة حياة النظام"
-      tools: ["analysis", "design", "implementation", "maintenance", "DFD", "ERD"]
-    - id: project_planning
-      match: "تخطيط المشروع"
-      tools: ["scheduling", "risk analysis", "time-line table"]
-    - id: gis
-      match: "نظم المعلومات الجغرافية"
-      tools: ["GIS", "spatial analysis", "layers", "digitizing"]
+  lecture_types: []
 
+# ─── Assessment ───────────────────────────────────────────────────────────────
 assessment:
   mcq_option_letters: arabic
 
+# ─── Automation Question Types ────────────────────────────────────────────────
 automation_question_types:
   flash_qa:
-    enabled: true
-    label_ar: "مراجعة سريعة (سؤال / جواب)"
-    difficulty: easy
-    count_min: 15
-    parts: [qa_cards, qa_inline, theory]
-    blocks: [qa_inline, callouts]
-    format: |
-      **Q{N}:** سؤال مراجعة مباشر (تعريف، فرق، متى نستخدم)
-      **A:** إجابة مختصرة قابلة للمقارنة الآلية (جملة أو جملتان)
-      — بدون تعليل طويل. مناسب للحفظ السريع قبل الامتحان.
-    examples:
-      - "ما الفرق بين النظام المفتوح والنظام المغلق؟"
-      - "ما هي مراحل دورة حياة النظام؟"
-      - "ما هو الفرق بين البيانات والمعلومات؟"
+    enabled: false
 
   scenario_cluster:
-    enabled: true
-    label_ar: "تحدي مركّب (سيناريو + أسئلة متعددة)"
-    difficulty: hard
-    count_min: 3
-    questions_per_scenario: 4
-    parts: [mcq, debug, theory]
-    blocks: [code, trace, diagrams, tables, compare, equations]
-    format: |
-      ### السيناريو {N}: {عنوان}
-      > [وصف الحالة: كود، جدول، مخطط، أو مسألة رياضية كاملة — 5–10 أسطر]
-      ثم 3–5 أسئلة MCQ **كلها مبنية على نفس السيناريو** (لا تكرر نفس الفكرة):
-      ### السؤال {N}.1 (hard) … أ) ب) ج) د) + تعليل
-      كل سيناريو يختبر: فهم + تطبيق + قرار (أي خطوة تالية؟ أي ناتج؟ أين الخطأ؟)
-    scenario_sources:
-      - code_trace
-      - numerical_case
-      - algorithm_state
-      - logic_entailment
-      - system_design
-    examples:
-      - "مخطط DFD لنظام مبيعات — حدد الخطأ في تدفق البيانات"
-      - "مشروع نظام معلومات — اختر أفضل استراتيجية لإدارة المخاطر"
+    enabled: false
 
   hands_on:
-    enabled: true
-    label_ar: "تطبيق عملي (أكمل / صحّح / نفّذ)"
-    difficulty: medium
-    count_min: 5
-    parts: [exercise, analysis_exercise, debug]
-    blocks: [fill_gaps, code_fix, algorithm, expected_output, tables]
-    types:
-      - fill_gaps
-      - table_fill
-      - numerical_solve
-      - diagram_completion
-    format: |
-      كل تمرين: **المعطيات** + **المطلوب** (مرقّم) + **نموذج الحل الكامل**
-      الطالب يجيب بقيمة/جدول/كود — الإجابة قابلة للمقارنة حرفياً أو رقمياً.
+    enabled: false
 
   step_trace:
-    enabled: true
-    label_ar: "تتبع خطوة بخطوة (جدول ناقص)"
-    difficulty: medium
-    count_min: 3
-    parts: [trace_exercise, mcq]
-    blocks: [trace, algorithm, tables, diagrams]
-    format: |
-      **المدخل:** {حالة ابتدائية}
-      **أكمل الجدول:**
-      | الخطوة | العملية | الحالة |
-      | 1 | ... | ؟ |
-      **نموذج الحل:** جدول مكتمل + **النتيجة النهائية**
-      + 1–2 سؤال MCQ على نفس التتبع (ماذا في الخطوة 3؟)
-    trace_targets:
-      - algorithm_iterations
-      - variable_state
-      - search_tree_expansion
-      - memory_page_replacement
+    enabled: false
 
   compare_analyze:
-    enabled: true
-    label_ar: "مقارنة وتحليل (أيهما أفضل؟ لماذا؟)"
-    difficulty: medium
-    count_min: 5
-    parts: [mcq, theory, analysis_exercise]
-    blocks: [compare, trade_off, tables, analogy]
-    format: |
-      سؤال مقارنة بخيارات (أ، ب، ج، د) + تعليل لماذا الباقي خاطئ
-      أو جدول: | المعيار | الخيار A | الخيار B |
-      أو تمرين تحليل: «في الحالة X استخدم Y لأن Z»
+    enabled: false
 
   find_the_bug:
     enabled: false
-    label_ar: "اكتشف الخطأ (كود / منطق / حساب)"
-    difficulty: hard
-    count_min: 4
-    parts: [debug, exercise]
-    blocks: [code_fix, compare, troubleshooting]
-    bug_types: [logic, misconception, off_by_one, wrong_formula, race_condition, infinite_loop]
-    format: |
-      **الكود/الحساب (يحتوي خطأ):** …
-      **اكتشف الخطأ:** [وصف موجز]
-      **التصحيح:** … + **شرح الحل** (3 نقاط)
 
   structured_theory:
-    enabled: true
-    label_ar: "نظري منظم (تعريف + مكونات + مثال)"
-    difficulty: medium
-    count_min: 10
-    parts: [theory, mcq]
-    blocks: [compare, tables, callouts]
-    format: |
-      ### السؤال {N}: {السؤال}
-      **نموذج الإجابة:**
-      1. التعريف: …
-      2. المكونات/الشروط: …
-      3. مثال: …
-      4. متى نستخدم: …
-      — هيكل ثابت يسهّل التصحيح الآلي بالكلمات المفتاحية.
+    enabled: false
 
+# ─── Output ───────────────────────────────────────────────────────────────────
 output:
   validation_footer: true
-  schema_reference: "SCHEMA.md v1.0"
+  schema_reference: "SCHEMA.md v2.0"
   closing_line: "ابدأ الآن. سأرسل المحاضرة في الرسالة التالية."
+
   checklist_items:
     - "غطّيت كل معلومة وردت في المحاضرة"
-    - "كل قسم يبدأ بـ «النص الأصلي يقول» + «الشرح المبسّط»"
+    - "الملخص (Part 1): يشرح ماذا ستتعلم + لماذا مهم + المتطلبات السابقة"
+    - "الملخص بدون جداول مقارنات (تلك في Cheat Sheet)"
+    - "كل قسم detail يبدأ بـ '⬅️ الربط مع السابق' + '💡 الفكرة الأساسية' + الشرح"
     - "الأقسام مرقّمة هرمياً (1، 1.1، 2 …)"
-    - "استخدمت جداول لكل مقارنة وقائمة تعريفات"
     - "كل مصطلح إنجليزي بين backticks"
-    - "≥20 سؤال MCQ مع تعليل كامل لكل خيار"
-    - "≥10 أسئلة نظرية مع نموذج إجابة منظم"
-    - "تمارين تتبع: كل تمرين له جدول ناقص + نموذج حل كامل"
-    - "تمارين تطبيقية من إعداد الدليل مع نموذج حل"
-    - "مراجعة سريعة: ≥15 بطاقة Q/A (flash_qa)"
-    - "تحدي مركّب: ≥3 سيناريوهات × 3–5 أسئلة MCQ لكل سيناريو (scenario_cluster)"
-    - "تطبيق عملي: ≥5 تمارين مع نموذج حل (hands_on)"
-    - "تتبع خطوة بخطوة: ≥3 جداول ناقصة + نموذج حل (step_trace)"
-    - "مقارنة وتحليل: ≥5 أسئلة مقارنة (compare_analyze)"
-    - "نظري منظم: ≥10 أسئلة بهيكل ثابت (structured_theory)"
+    - "النص الأصلي موجود في <details> collapsible مع @coverage metadata"
+    - "≥16 سؤال MCQ مع تعليل كامل"
+    - "≥15 بطاقة Q&A مع إجابات مختصرة"
+    - "≥2 سؤال تصميم (ER / UML / Schema) مع نموذج حل كامل"
+    - "Cheat Sheet: جداول + مقارنات + قواميس + خطوات سريعة"

@@ -4,12 +4,21 @@
     "subjectNameEn": "Information Systems",
     "year": "2025-2026",
     "academicYear": 4,
-    "theme": "amber-default",
+    "theme": "software-purple",
+    "enabledLectures":true,
     "department": "نظري"
   },
   "title": "نظم المعلومات — Information Systems",
   "subtitle": "مفاهيم + تحليل + تصميم + تطوير",
-  "files": [],
+  "files": [
+    {
+      "path": "par1.md",
+      "num": 1,
+      "icon": "📌",
+      "matIcon": "school",
+      "badge": "المحاضرة ١"
+    }
+  ],
   "lectureIcons": [
     "📌",
     "📖",
