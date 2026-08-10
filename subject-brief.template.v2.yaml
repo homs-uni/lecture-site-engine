@@ -22,6 +22,13 @@
 #   - visualization_templates: الرسومات المدعومة (cycle, sequence, etc.)
 #   - coverage_tracking: enabled → يتطلب metadata @coverage في المخرجات
 #   - collapsible_original_text: true → يجعل "النص الأصلي" قابل للطي بدل الظهور دائماً
+#
+# content_ordering.default_type — أضيف في meta-prompt v2.2 (راجع meta-prompt.v2.2.md):
+#   equation-first | code-first | diagram-first | comparison-first | command-first
+#   | scenario-first | prose-first (افتراضي)
+#   - لا تختر diagram-first لمجرد وجود بعض المخططات — اختر النوع حسب العنصر
+#     الذي يقود أغلب الأقسام فعلياً. مواد المراحل/دورة الحياة (SDLC وغيرها)
+#     تبقى diagram-first (مخطط تسلسل مراحل)، وليست نوعاً منفصلاً.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 schema_version: "2.0"
@@ -69,11 +76,20 @@ content_ordering:
     equation_subjects: []          # e.g. [discrete-math, statistics, statics]
     # إذا كانت عن خوارزميات/برمجة → code-first
     code_subjects: []              # e.g. [java-basics, python-algorithms]
-    # إذا كانت عن أنظمة/عمارات → diagram-first
-    diagram_subjects: []           # e.g. [os-theory, distributed-systems]
+    # إذا كانت عن أنظمة/عمارات/مراحل ودورة حياة (Process/Lifecycle) → diagram-first
+    # ملاحظة: مواد المراحل (SDLC, project stages, CRISP-DM) تستخدم diagram-first
+    # أيضاً — ارسم تسلسل المراحل كمخطط واحد، لا تخترع نوعاً منفصلاً لها.
+    diagram_subjects: []           # e.g. [os-theory, distributed-systems, information-systems]
+    # إذا كانت المادة أساسها "N خيارات، اختر حسب معايير" → comparison-first
+    comparison_subjects: []        # e.g. [network-management, operations-research-2]
+    # إذا كانت المادة أساسها أوامر CLI/إعدادات أدوات → command-first
+    command_subjects: []           # e.g. [computer-networks, network-management]
+    # إذا كانت المادة تبدأ من حادثة/حالة واقعية قبل المفهوم → scenario-first
+    scenario_subjects: []          # e.g. [information-security]
     # الافتراضي: prose-first (theory)
 
-  # Global default for this subject (equation-first | code-first | diagram-first | prose-first)
+  # Global default for this subject
+  # equation-first | code-first | diagram-first | comparison-first | command-first | scenario-first | prose-first
   default_type: "prose-first"
 
 # ─── Visualization Templates Available (NEW IN v2.0) ─────────────────────────
